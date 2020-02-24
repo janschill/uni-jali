@@ -1,0 +1,10 @@
+{
+  "name": "svelte-compiler",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "dependencies": {
+    "svelte": "^3.19.1"
+  }
+}
