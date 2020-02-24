@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset='utf-8'>
+  <meta name='viewport' content='width=device-width,initial-scale=1'>
+  <title>Node app</title>
+</head>
+
+<body>
+  <h1>Node button example</h1>
+  <button id="button">Clicked 0 times</button>
+</body>
+
+</html>
+
+<script>
+  let count = 0;
+  const $button = document.getElementById('button')
+  $button.addEventListener('click', () => {
+    $button.textContent = `Clicked ${++count} ${count == 1 ? 'time' : 'times'}`;
+  });
+</script>
