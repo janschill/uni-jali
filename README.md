@@ -1,5 +1,7 @@
 # uni-project
 
-## Running node in Docker
+## Svelte example projects
 
-https://nodejs.org/en/docs/guides/nodejs-docker-webapp/
+* [Simple React vs. Svelte to-do app](https://medium.com/javascript-in-plain-english/i-created-the-exact-same-app-in-react-and-svelte-here-are-the-differences-c0bd2cc9b3f8)
+* [Simple Markdown app](https://snipcart.com/blog/svelte-js-framework-tutorial)
+* [More complex book app](https://blog.logrocket.com/how-to-build-a-simple-svelte-js-app/)
