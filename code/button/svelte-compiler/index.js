@@ -1,4 +1,5 @@
 const svelte = require('svelte/compiler');
+const svelteComponentFile = require('Button.svelte');
 const svelteComponent = `
 <script>
   let count = 0;
@@ -11,7 +12,8 @@ const svelteComponent = `
 <button on:click={handleClick}>
   Clicked {count} {count === 1 ? 'time' : 'times'}
 </button>
-`
-const compiledSvelte = svelte.compile(svelteComponent)
-const parsedSvelte = svelte.parse(svelteComponent)
+`;
+
+const compiledSvelte = svelte.compile(svelteComponentFile);
+const parsedSvelte = svelte.parse(svelteComponent);
 console.log(compiledSvelte.js.code);
