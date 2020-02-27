@@ -1,0 +1,21 @@
+%{
+  open AbstractSyntax;
+%}
+
+// Tokens:
+%token <int> CONSTINT
+%token <bool> CONSTBOOL
+%token <string> NAME
+%token PLUS
+
+%%
+
+Main:
+  Expr EOF { $1 }
+;
+
+Expr:
+    NAME      { Var}
+    CONSTINT  { ConstantInteger $1 }
+  | CONSTBOOL { ConstantBoolean $1 }
+;
