@@ -7,6 +7,10 @@
 %token <bool> CONSTBOOL
 %token <string> NAME
 %token PLUS
+%token EOF
+
+%start Main
+%type <AbstractSyntax.expr> Main
 
 %%
 
@@ -16,6 +20,7 @@ Main:
 
 Expr:
     NAME      { Var}
-    CONSTINT  { ConstantInteger $1 }
+  | CONSTINT  { ConstantInteger $1 }
   | CONSTBOOL { ConstantBoolean $1 }
+  | Expr PLUS Expr { Prim("+", $1, $3) }
 ;

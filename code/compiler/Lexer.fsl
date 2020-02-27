@@ -1,0 +1,17 @@
+{
+  // Helper functions
+
+module Lexer
+
+open Microsoft.FSharp.Text.Lexing;
+open Parser;
+
+let lexemeAsString lexbuffer =
+  LexBuffer<char>.LexemeString lexbuffer
+}
+
+rule Token = parse
+  | [' ' '\t' '\r'] { Token lexbuffer }
+  | '\n'            { lexbuffer.EndPos <- lexbuffer.EndPos.NextLine; Token lexbuffer }
+  | ['0'-'9']+      { CONSTINT (System.Int32.Parse (lexemeAsString lexbuffer)) }
+  | '+'             { PLUS }
