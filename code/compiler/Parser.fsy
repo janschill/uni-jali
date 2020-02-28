@@ -19,8 +19,6 @@ Main:
 ;
 
 Expr:
-    NAME      { Var}
-  | CONSTINT  { ConstantInteger $1 }
-  | CONSTBOOL { ConstantBoolean $1 }
+    CONSTINT  { ConstantInteger $1 }
   | Expr PLUS Expr { Prim("+", $1, $3) }
 ;
