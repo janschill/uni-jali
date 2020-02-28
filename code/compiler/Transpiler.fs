@@ -5,6 +5,7 @@ open AbstractSyntax
 let rec eval (e: expr): string =
     match e with
     | ConstantInteger i -> string i
+    | Let(name, expression) -> sprintf "%s = %s" name (eval expression)
     | Prim(operation, expression1, expression2) ->
         let value1 = eval expression1
         let value2 = eval expression2
