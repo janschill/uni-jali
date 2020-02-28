@@ -4,13 +4,14 @@
 
 module Lexer
 
-open Microsoft.FSharp.Text.Lexing;
+open FSharp.Text.Lexing
 open Parser;
 
-let lexemeAsString lexbuffer =
-  LexBuffer<char>.LexemeString lexbuffer
+let lexemeAsString lexbuf =
+  LexBuffer<char>.LexemeString lexbuf
 
-# 13 "Lexer.fs"
+
+# 14 "Lexer.fs"
 let trans : uint16[] array = 
     [| 
     (* State 0 *)
@@ -33,24 +34,24 @@ let rec _fslex_dummy () = _fslex_dummy()
 and Token  lexbuf =
   match _fslex_tables.Interpret(0,lexbuf) with
   | 0 -> ( 
-# 14 "Lexer.fsl"
-                                     Token lexbuffer 
-# 38 "Lexer.fs"
+# 15 "Lexer.fsl"
+                                     Token lexbuf 
+# 39 "Lexer.fs"
           )
   | 1 -> ( 
-# 15 "Lexer.fsl"
-                                     lexbuffer.EndPos <- lexbuffer.EndPos.NextLine; Token lexbuffer 
-# 43 "Lexer.fs"
+# 16 "Lexer.fsl"
+                                     lexbuf.EndPos <- lexbuf.EndPos.NextLine; Token lexbuf 
+# 44 "Lexer.fs"
           )
   | 2 -> ( 
-# 16 "Lexer.fsl"
-                                     CONSTINT (System.Int32.Parse (lexemeAsString lexbuffer)) 
-# 48 "Lexer.fs"
+# 17 "Lexer.fsl"
+                                     CONSTINT (System.Int32.Parse (lexemeAsString lexbuf)) 
+# 49 "Lexer.fs"
           )
   | 3 -> ( 
-# 17 "Lexer.fsl"
+# 18 "Lexer.fsl"
                                      PLUS 
-# 53 "Lexer.fs"
+# 54 "Lexer.fs"
           )
   | _ -> failwith "Token"
 
