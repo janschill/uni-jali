@@ -24,7 +24,7 @@ setup:
 	@echo -e 'Note, you must have mono installed (not using homebrew): http://www.mono-project.com/download/#download-mac\n'
 
 	# Downloading nuget.exe to ~/fsharp
-	mkdir ~/.fsharp
+	mkdir ~/fsharp
 	sudo curl -o ~/fsharp/nuget.exe https://dist.nuget.org/win-x86-commandline/latest/nuget.exe
 
 	# Installing FsLexYacc in ~/fsharp
