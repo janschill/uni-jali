@@ -1,6 +1,6 @@
 #!/bin/bash
 
-build: 
+build:
 	@echo ""
 	@echo " -- PARSER: --"
 	@echo ""
@@ -11,12 +11,12 @@ build:
 	fslex --unicode Lexer.fsl
 	@echo ""
 
-run: 
+run:
 	make build
 	@echo ""
 	@echo " -- STARTING INTERACTIVE --"
 	@echo ""
-	fsharpi -r ~/fsharp/FsLexYacc.Runtime.dll AbstractSyntax.fs Parser.fs Lexer.fs Program.fs
+	fsharpi -r ~/fsharp/FsLexYacc.Runtime.dll AbstractSyntax.fs Transpiler.fs Parser.fs Lexer.fs Program.fs
 
 setup:
 	# This setup is based on this guide: https://gist.github.com/AndreasHassing/16567f299b77b0090d94441115a5d031/ae1db7572fd877df733213120800084fbafe9858#5-link-the-runtime-dll-to-your-fsharp-folder

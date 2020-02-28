@@ -4,10 +4,9 @@ open System
 open FSharp.Text.Lexing
 
 open AbstractSyntax
-// open Interpreter
+open Transpiler
 open Lexer
 open Parser
-
 
 let fromString (str: string): expr =
     let lexbuf = LexBuffer<char>.FromString(str)
@@ -19,6 +18,7 @@ let fromString (str: string): expr =
 
 [<EntryPoint>]
 let main argv =
+    printf "%s" (eval (fromString ("5 + 5")))
     (*
 
     let input = "5 * 5";;
