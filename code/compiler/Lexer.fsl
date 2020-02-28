@@ -9,15 +9,31 @@ open Parser;
 let lexemeAsString lexbuf =
   LexBuffer<char>.LexemeString lexbuf
 
+let keyword s =
+    match s with
+    | "else"    -> ELSE 
+    | "false"   -> CSTBOOL false
+    | "if"      -> IF
+    | "elseif"  -> ELSEIF
+    | "let"     -> LET
+    | "then"    -> THEN
+    | "true"    -> CSTBOOL true
+    | _         -> NAME s
+
 }
 
 rule Token = parse
   | [' ' '\t' '\r'] { Token lexbuf }
   | '\n'            { lexbuf.EndPos <- lexbuf.EndPos.NextLine; Token lexbuf }
   | ['0'-'9']+      { CONSTINT (System.Int32.Parse (lexemeAsString lexbuf)) }
+  | ['a'-'z''A'-'Z']['a'-'z''A'-'Z''0'-'9']*  { keyword (lexemeAsString lexbuf) }
   | '+'             { PLUS }
   | '-'             { MINUS }                     
   | '*'             { TIMES }                     
   | '/'             { DIV }                     
   | '%'             { MOD }
+  | '='             { EQ }
+  | '!'             { NOT }
   | eof             { EOF }
+  | '('             { LPAR }
+  | ')'             { RPAR }
