@@ -4,8 +4,9 @@
     <TargetFramework>netcoreapp3.1</TargetFramework>
   </PropertyGroup>
   <ItemGroup>
-    <Compile Include="Program.fs" />
-    <Compile Include="Lexer.fs" />
+    <Compile Include="AbstractSyntax.fs" />
     <Compile Include="Parser.fs" />
+    <Compile Include="Lexer.fs" />
+    <Compile Include="Program.fs" />
   </ItemGroup>
 </Project>
