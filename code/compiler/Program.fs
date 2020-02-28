@@ -19,5 +19,14 @@ let fromString (str: string): expr =
 
 [<EntryPoint>]
 let main argv =
-    fromString "5 + 5"
+    (*
+
+    let input = "5 * 5";;
+    let lexbuf = LexBuffer<char>.FromString(input);;
+    let ts = Lexer.Token lexbuf;;
+    let ts1 = Lexer.Token lexbuf;;
+    let ts2 = Lexer.Token lexbuf;;
+    let ts3 = Lexer.Token lexbuf;;
+
+    *)
     0

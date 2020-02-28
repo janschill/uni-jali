@@ -6,7 +6,7 @@
 %token <int> CONSTINT
 %token <bool> CONSTBOOL
 %token <string> NAME
-%token PLUS
+%token PLUS MINUS TIMES DIV MOD
 %token EOF
 
 %start Main
@@ -19,6 +19,10 @@ Main:
 ;
 
 Expr:
-    CONSTINT  { ConstantInteger $1 }
-  | Expr PLUS Expr { Prim("+", $1, $3) }
+    CONSTINT        { ConstantInteger $1 }
+  | Expr PLUS Expr  { Prim("+", $1, $3) }
+  | Expr MINUS Expr { Prim("-", $1, $3) }
+  | Expr TIMES Expr { Prim("*", $1, $3) }
+  | Expr DIV   Expr { Prim("/", $1, $3) }
+  | Expr MOD   Expr { Prim("%", $1, $3) } 
 ;

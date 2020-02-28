@@ -3,12 +3,20 @@ module Parser
 type token = 
   | EOF
   | PLUS
+  | MINUS
+  | TIMES
+  | DIV
+  | MOD
   | NAME of (string)
   | CONSTBOOL of (bool)
   | CONSTINT of (int)
 type tokenId = 
     | TOKEN_EOF
     | TOKEN_PLUS
+    | TOKEN_MINUS
+    | TOKEN_TIMES
+    | TOKEN_DIV
+    | TOKEN_MOD
     | TOKEN_NAME
     | TOKEN_CONSTBOOL
     | TOKEN_CONSTINT
