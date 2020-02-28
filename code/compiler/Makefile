@@ -4,7 +4,7 @@ build:
 	@echo ""
 	@echo " -- PARSER: --"
 	@echo ""
-	@fsyacc --module Parser Parser.fsy
+	fsyacc --module Parser Parser.fsy
 	@echo ""
 	@echo " -- LEXER: --"
 	@echo ""
