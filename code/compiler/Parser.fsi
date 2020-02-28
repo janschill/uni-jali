@@ -2,6 +2,8 @@
 module Parser
 type token = 
   | EOF
+  | EQ
+  | LET
   | PLUS
   | MINUS
   | TIMES
@@ -12,6 +14,8 @@ type token =
   | CONSTINT of (int)
 type tokenId = 
     | TOKEN_EOF
+    | TOKEN_EQ
+    | TOKEN_LET
     | TOKEN_PLUS
     | TOKEN_MINUS
     | TOKEN_TIMES
@@ -26,6 +30,7 @@ type nonTerminalId =
     | NONTERM__startMain
     | NONTERM_Main
     | NONTERM_Expr
+    | NONTERM_AtExpr
 /// This function maps tokens to integer indexes
 val tagOfToken: token -> int
 
