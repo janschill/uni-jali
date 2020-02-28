@@ -11,13 +11,12 @@ let lexemeAsString lexbuf =
 
 let keyword s =
     match s with
-    | "else"    -> ELSE 
-    | "false"   -> CSTBOOL false
+    | "else"    -> ELSE
+    | "false"   -> CONSTBOOL false
     | "if"      -> IF
     | "elseif"  -> ELSEIF
     | "let"     -> LET
-    | "then"    -> THEN
-    | "true"    -> CSTBOOL true
+    | "true"    -> CONSTBOOL true
     | _         -> NAME s
 
 }
@@ -28,11 +27,12 @@ rule Token = parse
   | ['0'-'9']+      { CONSTINT (System.Int32.Parse (lexemeAsString lexbuf)) }
   | ['a'-'z''A'-'Z']['a'-'z''A'-'Z''0'-'9']*  { keyword (lexemeAsString lexbuf) }
   | '+'             { PLUS }
-  | '-'             { MINUS }                     
-  | '*'             { TIMES }                     
-  | '/'             { DIV }                     
+  | '-'             { MINUS }
+  | '*'             { TIMES }
+  | '/'             { DIV }
   | '%'             { MOD }
-  | '='             { EQ }
+  | '='             { ASSIGN }
+  | "=="            { EQL }
   | '!'             { NOT }
   | eof             { EOF }
   | '('             { LPAR }

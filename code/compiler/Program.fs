@@ -18,7 +18,8 @@ let fromString (str: string): expr =
 
 [<EntryPoint>]
 let main argv =
-    printf "%s" (eval (fromString ("5 + 5")))
+    printf "%s" (eval (fromString ("let x = 1")))
+    printf ""
     (*
 
     let input = "5 * 5";;
