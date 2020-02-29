@@ -21,7 +21,7 @@ let keyword s =
     | _         -> NAME s
 
 
-# 24 "Lexer.fs"
+# 24 "/Users/livborre/Projects/uni-project/code/compiler/generated/Lexer.fs"
 let trans : uint16[] array = 
     [| 
     (* State 0 *)
@@ -70,78 +70,78 @@ and Token  lexbuf =
   | 0 -> ( 
 # 25 "Lexer.fsl"
                                      Token lexbuf 
-# 73 "Lexer.fs"
+# 73 "/Users/livborre/Projects/uni-project/code/compiler/generated/Lexer.fs"
           )
   | 1 -> ( 
 # 26 "Lexer.fsl"
                                      lexbuf.EndPos <- lexbuf.EndPos.NextLine; Token lexbuf 
-# 78 "Lexer.fs"
+# 78 "/Users/livborre/Projects/uni-project/code/compiler/generated/Lexer.fs"
           )
   | 2 -> ( 
 # 27 "Lexer.fsl"
                                      CONSTINT (System.Int32.Parse (lexemeAsString lexbuf)) 
-# 83 "Lexer.fs"
+# 83 "/Users/livborre/Projects/uni-project/code/compiler/generated/Lexer.fs"
           )
   | 3 -> ( 
 # 28 "Lexer.fsl"
                                                                keyword (lexemeAsString lexbuf) 
-# 88 "Lexer.fs"
+# 88 "/Users/livborre/Projects/uni-project/code/compiler/generated/Lexer.fs"
           )
   | 4 -> ( 
 # 29 "Lexer.fsl"
                                      PLUS 
-# 93 "Lexer.fs"
+# 93 "/Users/livborre/Projects/uni-project/code/compiler/generated/Lexer.fs"
           )
   | 5 -> ( 
 # 30 "Lexer.fsl"
                                      MINUS 
-# 98 "Lexer.fs"
+# 98 "/Users/livborre/Projects/uni-project/code/compiler/generated/Lexer.fs"
           )
   | 6 -> ( 
 # 31 "Lexer.fsl"
                                      TIMES 
-# 103 "Lexer.fs"
+# 103 "/Users/livborre/Projects/uni-project/code/compiler/generated/Lexer.fs"
           )
   | 7 -> ( 
 # 32 "Lexer.fsl"
                                      DIV 
-# 108 "Lexer.fs"
+# 108 "/Users/livborre/Projects/uni-project/code/compiler/generated/Lexer.fs"
           )
   | 8 -> ( 
 # 33 "Lexer.fsl"
                                      MOD 
-# 113 "Lexer.fs"
+# 113 "/Users/livborre/Projects/uni-project/code/compiler/generated/Lexer.fs"
           )
   | 9 -> ( 
 # 34 "Lexer.fsl"
                                      ASSIGN 
-# 118 "Lexer.fs"
+# 118 "/Users/livborre/Projects/uni-project/code/compiler/generated/Lexer.fs"
           )
   | 10 -> ( 
 # 35 "Lexer.fsl"
                                      EQL 
-# 123 "Lexer.fs"
+# 123 "/Users/livborre/Projects/uni-project/code/compiler/generated/Lexer.fs"
           )
   | 11 -> ( 
 # 36 "Lexer.fsl"
                                      NOT 
-# 128 "Lexer.fs"
+# 128 "/Users/livborre/Projects/uni-project/code/compiler/generated/Lexer.fs"
           )
   | 12 -> ( 
 # 37 "Lexer.fsl"
                                      EOF 
-# 133 "Lexer.fs"
+# 133 "/Users/livborre/Projects/uni-project/code/compiler/generated/Lexer.fs"
           )
   | 13 -> ( 
 # 38 "Lexer.fsl"
                                      LPAR 
-# 138 "Lexer.fs"
+# 138 "/Users/livborre/Projects/uni-project/code/compiler/generated/Lexer.fs"
           )
   | 14 -> ( 
 # 39 "Lexer.fsl"
                                      RPAR 
-# 143 "Lexer.fs"
+# 143 "/Users/livborre/Projects/uni-project/code/compiler/generated/Lexer.fs"
           )
   | _ -> failwith "Token"
 
-# 3000000 "Lexer.fs"
+# 3000000 "/Users/livborre/Projects/uni-project/code/compiler/generated/Lexer.fs"
