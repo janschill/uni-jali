@@ -20,32 +20,51 @@ let keyword s =
     | _         -> NAME s
 
 let previousIndentation = 0
-let readIndentation (s : string) =
-  let currentIndentation = s.Length / 2
-  printf "Current indentation:"
-  // printf currentIndentation
-  if previousIndentation = currentIndentation + 1 then
-    previousIndentation = previousIndentation + 1
+let history = []
+
+let readIndentation (currentIndentation) =
+  printf "Previous indentation: %d \n" previousIndentation
+  printf "Current indentation: %d \n" currentIndentation
+  if currentIndentation = previousIndentation then
+    // here we just wanna say 'Token lexbuf' in the Token rule :( ....
     INDENT
-  else
-    previousIndentation = previousIndentation - 1
+  else if currentIndentation = previousIndentation + 1 then
+    INDENT
+  else if currentIndentation = previousIndentation - 1 then
     DEDENT
+  else 
+    failwith "Lexer error: illegal indentation"
+
+let readTabs (s : string) =
+  readIndentation (s.Length)
+
+let readSpaces (s : string) =
+  readIndentation (s.Length / 2)
+
+
+
+let show s = printf "%s. \n" s
+// let show i = printf "%d" i
+
+
 }
 
+
 rule Token = parse
-  | [' ' '\r']      { INDENT }
-  | ['\t']*         { readIndentation (lexemeAsString lexbuf) }
-  | '\n'            { lexbuf.EndPos <- lexbuf.EndPos.NextLine; NEWLINE }
-  | ['0'-'9']+      { CONSTINT (System.Int32.Parse (lexemeAsString lexbuf)) }
-  | ['a'-'z''A'-'Z']['a'-'z''A'-'Z''0'-'9']*  { keyword (lexemeAsString lexbuf) }
-  | '+'             { PLUS }
-  | '-'             { MINUS }
-  | '*'             { TIMES }
-  | '/'             { DIV }
-  | '%'             { MOD }
-  | '='             { ASSIGN }
-  | "=="            { EQL }
-  | '!'             { NOT }
-  | eof             { EOF }
-  | '('             { LPAR }
-  | ')'             { RPAR }
+  | ['\t']*         { printf "tabs"; show (lexemeAsString lexbuf); readTabs (lexemeAsString lexbuf) } 
+  | [' ']*          { printf "spaces"; show (lexemeAsString lexbuf); readSpaces (lexemeAsString lexbuf) }
+  | [' ' '\r']      { show (lexemeAsString lexbuf); Token lexbuf; }
+  | '\n'            { show (lexemeAsString lexbuf); lexbuf.EndPos <- lexbuf.EndPos.NextLine; NEWLINE }
+  | ['0'-'9']+      { show (lexemeAsString lexbuf); CONSTINT (System.Int32.Parse (lexemeAsString lexbuf)) }
+  | ['a'-'z''A'-'Z']['a'-'z''A'-'Z''0'-'9']*  { show (lexemeAsString lexbuf); keyword (lexemeAsString lexbuf) }
+  | '+'             { show (lexemeAsString lexbuf); PLUS }
+  | '-'             { show (lexemeAsString lexbuf); MINUS }
+  | '*'             { show (lexemeAsString lexbuf); TIMES }
+  | '/'             { show (lexemeAsString lexbuf); DIV }
+  | '%'             { show (lexemeAsString lexbuf); MOD }
+  | '='             { show (lexemeAsString lexbuf); ASSIGN }
+  | "=="            { show (lexemeAsString lexbuf); EQL }
+  | '!'             { show (lexemeAsString lexbuf); NOT }
+  | eof             { show (lexemeAsString lexbuf); EOF }
+  | '('             { show (lexemeAsString lexbuf); LPAR }
+  | ')'             { show (lexemeAsString lexbuf); RPAR }

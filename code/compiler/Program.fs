@@ -18,9 +18,18 @@ let fromString (str: string): expr =
 
 [<EntryPoint>]
 let main argv =
-    let str = "\tx = 1"
+(*
+    open Program;;
+    open FSharp.Text.Lexing;;
+let str = 
+"x = 1 
+z = 2
+        y = 1";;
+   let lexbuf = LexBuffer<char>.FromString(str);;
+   Lexer.Token lexbuf;;
+*)
     // let dream = ""
-    printf "%s" (eval (fromString (str)))
+    // printf "%s" (eval (fromString (str)))
     printf ""
     0
 (*
@@ -29,3 +38,4 @@ let main argv =
         p
     addTwo 5
 *)
+
