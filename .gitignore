@@ -4,6 +4,7 @@ package-lock.json
 fsharp/
 .vscode/
 .ionide/
+generated/
 
 ### fsharp ###
 lib/debug
