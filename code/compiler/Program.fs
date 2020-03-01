@@ -19,14 +19,17 @@ let fromString (str: string): expr =
 [<EntryPoint>]
 let main argv =
 (*
-    open Program;;
-    open FSharp.Text.Lexing;;
+open Program;;
+open FSharp.Text.Lexing;;
+
 let str = 
 "x = 1 
 z = 2
-        y = 1";;
-   let lexbuf = LexBuffer<char>.FromString(str);;
-   Lexer.Token lexbuf;;
+  y = 1
+hehe = 1000";;
+
+let lexbuf = LexBuffer<char>.FromString(str);;
+Lexer.Token lexbuf;;
 *)
     // let dream = ""
     // printf "%s" (eval (fromString (str)))
