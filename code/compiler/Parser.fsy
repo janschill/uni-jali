@@ -7,13 +7,13 @@
 %token <bool> CONSTBOOL
 %token <string> NAME
 %token PLUS MINUS TIMES DIV MOD
-%token LET
 %token ASSIGN
 %token EOF
 
 // Not implemented:
 %token IF ELSEIF ELSE EQL NOT
 %token LPAR RPAR
+%token NEWLINE INDENT DEDENT FUNCTION
 
 %left ELSE              /* lowest precedence  */
 %left PLUS MINUS
@@ -40,9 +40,10 @@ Expr:
 ;
 
 AtExpr:
-    Const                { $1          }
-  | LET NAME ASSIGN Expr { Let($2, $4) }
-  | LPAR Expr RPAR       { $2          }
+    Const NEWLINE                            { $1          }
+  | NAME ASSIGN Expr NEWLINE                 { Let($1, $3) }
+  // | NAME NAME ASSIGN NEWLINE INDENT Expr DEDENT { Let($1, $3) }
+  | LPAR Expr RPAR                           { $2          }
 
 Const:
     CONSTINT        { ConstantInteger $1 }

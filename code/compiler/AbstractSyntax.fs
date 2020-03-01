@@ -5,3 +5,4 @@ type expr =
     | ConstantBoolean of bool
     | Prim of string * expr * expr
     | Let of string * expr
+    | Function of string * expr
