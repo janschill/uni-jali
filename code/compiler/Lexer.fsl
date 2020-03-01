@@ -19,7 +19,7 @@ let keyword s =
     | "func"    -> FUNCTION
     | _         -> NAME s
 
-let previousIndentation = 0
+let mutable previousIndentation = 0
 let history = []
 
 let readIndentation (currentIndentation) : Option<token> =
@@ -28,34 +28,32 @@ let readIndentation (currentIndentation) : Option<token> =
   if currentIndentation = previousIndentation then
     None
   else if currentIndentation = previousIndentation + 1 then
+    previousIndentation <- previousIndentation + 1
     Some(INDENT)
   else if currentIndentation = previousIndentation - 1 then
+    previousIndentation <- previousIndentation - 1
     Some(DEDENT)
-  else 
+  else
     failwith "Lexer error: illegal indentation"
 
 let readTabs (s : string) = readIndentation (s.Length)
-
 let readSpaces (s : string) = readIndentation (s.Length / 2)
-
-
 let show s = printf "%s. \n" s
-
 }
 
 
 rule Token = parse
   | [' ' '\r']      { Token lexbuf; }
-  | ['\t']*         { 
-      printf "tabs"; 
+  | ['\t']*         {
+      printf "tabs";
       match readTabs (lexemeAsString lexbuf) with
       | Some(t) -> t
       | None -> Token lexbuf
-  } 
-  | [' ']*          { 
-      printf "spaces"; 
-      match readSpaces (lexemeAsString lexbuf) with 
-      | Some(t) -> t 
+  }
+  | [' ']*          {
+      printf "spaces";
+      match readSpaces (lexemeAsString lexbuf) with
+      | Some(t) -> t
       | None -> Token lexbuf
   }
   | '\n'            { lexbuf.EndPos <- lexbuf.EndPos.NextLine; NEWLINE }
