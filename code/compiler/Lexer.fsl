@@ -62,7 +62,12 @@ rule Token = parse
   | '%'             { MOD }
   | '='             { ASSIGN }
   | "=="            { EQL }
+  | "!="            { NOTEQ }
+  | '>'             { GT }
+  | '<'             { LT }
+  | ">="            { GE }
+  | "<="            { LE }
   | '!'             { NOT }
-  | eof             { EOF }
   | '('             { LPAR }
   | ')'             { RPAR }
+  | eof             { EOF }
