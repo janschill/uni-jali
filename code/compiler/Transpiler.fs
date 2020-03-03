@@ -19,3 +19,7 @@ let rec eval (e: expr): string =
     | Function(name, parameter, expression) ->
         let value = eval expression
         sprintf "function %s(%s) {\n  return %s;\n}" name parameter value
+    | Tuple(expression1, expression2) ->
+        let value1 = eval expression1
+        let value2 = eval expression2
+        sprintf "[%s, %s]" value1 value2

@@ -7,3 +7,4 @@ type expr =
     | Prim of string * expr * expr
     | Let of string * expr
     | Function of string * string * expr
+    | Tuple of expr * expr
