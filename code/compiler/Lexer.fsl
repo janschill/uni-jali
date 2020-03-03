@@ -50,9 +50,7 @@ rule Token = parse
   | [' ' '\r']      { Token lexbuf; }
   | ['\t']*         { printf "tabs"; getOrElse (readTabs (lexemeAsString lexbuf)) (fun () -> Token lexbuf); }
   | [' ']*          { printf "spaces"; getOrElse (readSpaces (lexemeAsString lexbuf)) (fun () -> Token lexbuf); }
-  | '\n'['\t']+     { lexbuf.EndPos <- lexbuf.EndPos.NextLine; NEWLINE; getOrElse (readTabs (lexemeAsString lexbuf)) (fun () -> Token lexbuf); }
-  | '\n'[' ']+      { lexbuf.EndPos <- lexbuf.EndPos.NextLine; NEWLINE; getOrElse (readSpaces (lexemeAsString lexbuf)) (fun () -> Token lexbuf); }
-  | '\n'            { lexbuf.EndPos <- lexbuf.EndPos.NextLine; NEWLINE; getOrElse (readIndentation(0)) (fun () -> Token lexbuf); }
+  | '\n'            { lexbuf.EndPos <- lexbuf.EndPos.NextLine; NEWLINE }
   | ['0'-'9']+      { CONSTINT (System.Int32.Parse (lexemeAsString lexbuf)) }
   | ['a'-'z''A'-'Z']['a'-'z''A'-'Z''0'-'9']*  { keyword (lexemeAsString lexbuf) }
   | '+'             { PLUS }

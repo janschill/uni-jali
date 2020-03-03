@@ -48,9 +48,9 @@ Expr:
 ;
 
 AtExpr:
-    Const NEWLINE                            { $1          }
-  | NAME ASSIGN Expr NEWLINE                 { Let($1, $3) }
-  // | NAME NAME ASSIGN NEWLINE INDENT Expr DEDENT { Let($1, $3) }
+    Const                                       { $1          }
+  | NAME ASSIGN Expr NEWLINE                    { Let($1, $3) }
+  | FUNCTION NAME NAME ASSIGN NEWLINE INDENT Expr DEDENT { Function($2, $3, $7) }
   | LPAR Expr RPAR                           { $2          }
 
 Const:
