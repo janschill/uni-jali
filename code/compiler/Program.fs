@@ -40,5 +40,11 @@ Lexer.Token lexbuf;;
         p + 2
         p
     addTwo 5
+
+a = 1
+function f x = 
+  b = 2
+  b
+a
 *)
 
