@@ -12,8 +12,9 @@
 
 // Not implemented:
 %token IF ELSEIF ELSE EQL NOT
-%token LPAR RPAR COMMA
+%token LPAR RPAR COMMA PIPE
 %token NEWLINE FUNCTION END
+%token INT FLOAT BOOLEAN STRING CHAR
 
 %left ELSE              /* lowest precedence  */
 %left PLUS MINUS
@@ -22,7 +23,7 @@
 %nonassoc NOT           /* highest precedence  */
 
 %start Main
-%type <AbstractSyntax.expr> Main Program Value Expr Assignment FuncDef FuncBody SimpleStatement CompoundStatement Statement
+%type <AbstractSyntax.expr> Main Program Value Expr Assignment FuncDef FuncBody SimpleStatement CompoundStatement Statement ADT ADTContructor ADTConstructorParameter Type
 
 %%
 
@@ -34,6 +35,7 @@ Program:
     Expr { $1 }
   | Assignment { $1 }
   | FuncDef { $1 }
+  | ADT { $1 }
 
 Value:
     CONSTINT { ConstantInteger $1 }
@@ -43,14 +45,33 @@ Value:
 
 Expr:
     Value { $1 }
-  | Expr PLUS Expr  { Prim("+", $1, $3)  }
+  | Expr PLUS Expr { Prim("+", $1, $3)  }
   | Expr MINUS Expr { Prim("-", $1, $3)  }
   | Expr TIMES Expr { Prim("*", $1, $3)  }
   | Expr DIV Expr { Prim("/", $1, $3)  }
   | Expr MOD Expr { Prim("%", $1, $3)  }
 
+ADT:
+  Type NAME ASSIGN ADTContructor { ADT($2, $4) }
+
+ADTContructor:
+    NAME ADTConstructorParameter { $1, $2 }
+  | NAME ADTConstructorParameter PIPE ADTContructor { $1, $2, $4 }
+
+ADTConstructorParameter:
+    Type { $1 }
+  | Type ADTConstructorParameter { $1, $2 }
+
+Type:
+    INT { $1 }
+  | FLOAT { $1 }
+  | BOOLEAN { $1 }
+  | STRING { $1 }
+  | CHAR { $1 }
+
 Assignment:
-  NAME ASSIGN Expr NEWLINE { Let($1, $3) }
+    NAME ASSIGN Expr NEWLINE { Let($1, $3) }
+  | ADT NEWLINE { $1 }
 
 FuncDef:
   FUNCTION NAME NAME ASSIGN FuncBody { Function($2, $3, $5) }
@@ -66,5 +87,3 @@ CompoundStatement: NEWLINE Statement NEWLINE END { $2 }
 Statement:
     Expr { $1 }
   | Assignment { $1 }
-
-// | LPAR Expr RPAR                           { $2          }
