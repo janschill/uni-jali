@@ -18,33 +18,4 @@ let fromString (str: string): expr =
 
 [<EntryPoint>]
 let main argv =
-(*
-open Program;;
-open FSharp.Text.Lexing;;
-
-let str = 
-"x = 1 
-z = 2
-  y = 1
-hehe = 1000";;
-
-let lexbuf = LexBuffer<char>.FromString(str);;
-Lexer.Token lexbuf;;
-*)
-    // let dream = ""
-    // printf "%s" (eval (fromString (str)))
-    printf ""
-    0
-(*
-    func addTwo p =
-        p + 2
-        p
-    addTwo 5
-
-a = 1
-function f x = 
-  b = 2
-  b
-a
-*)
-
+    let x = 42

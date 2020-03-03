@@ -14,7 +14,7 @@
 // Not implemented:
 %token IF ELSEIF ELSE EQL NOT
 %token LPAR RPAR
-%token NEWLINE INDENT DEDENT FUNCTION
+%token NEWLINE FUNCTION END
 
 %left ELSE              /* lowest precedence  */
 %left PLUS MINUS
@@ -49,8 +49,9 @@ Expr:
 
 AtExpr:
     Const                                       { $1          }
+  | NAME                                        { Variable $1 }
   | NAME ASSIGN Expr NEWLINE                    { Let($1, $3) }
-  | FUNCTION NAME NAME ASSIGN NEWLINE INDENT Expr DEDENT { Function($2, $3, $7) }
+  | FUNCTION NAME NAME ASSIGN NEWLINE Expr NEWLINE END { Function($2, $3, $6) }
   | LPAR Expr RPAR                           { $2          }
 
 Const:
