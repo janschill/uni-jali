@@ -15,42 +15,13 @@ let keyword s =
     | "elseif"  -> ELSEIF
     | "true"    -> CONSTBOOL true
     | "func"    -> FUNCTION
+    | "end"     -> END
     | _         -> NAME s
-
-let mutable previousIndentation = 0
-let history = []
-
-let readIndentation (currentIndentation) : Option<token> =
-  printf "Previous indentation: %d \n" previousIndentation
-  printf "Current indentation: %d \n" currentIndentation
-  if currentIndentation = previousIndentation then
-    None
-  else if currentIndentation = previousIndentation + 1 then
-    previousIndentation <- previousIndentation + 1
-    Some(INDENT)
-  else if currentIndentation = previousIndentation - 1 then
-    previousIndentation <- previousIndentation - 1
-    Some(DEDENT)
-  else
-    failwith "Lexer error: illegal indentation"
-
-let readTabs (s : string) = readIndentation (s.Length)
-let readSpaces (s : string) = readIndentation (s.Length / 2)
-let show s = printf "%s. \n" s
-
-let getOrElse (o: Option<'a>) (els: unit -> 'a) : 'a =
-  match o with
-  | Some(a) -> a
-  | None -> els ()
-
 }
 
-
 rule Token = parse
-  | [' ' '\r']      { Token lexbuf; }
-  | ['\t']*         { printf "tabs"; getOrElse (readTabs (lexemeAsString lexbuf)) (fun () -> Token lexbuf); }
-  | [' ']*          { printf "spaces"; getOrElse (readSpaces (lexemeAsString lexbuf)) (fun () -> Token lexbuf); }
-  | '\n'            { lexbuf.EndPos <- lexbuf.EndPos.NextLine; NEWLINE }
+  | [' ' '\r' '\t']      { Token lexbuf }
+  | '\n'            { NEWLINE }
   | ['0'-'9']+      { CONSTINT (System.Int32.Parse (lexemeAsString lexbuf)) }
   | ['a'-'z''A'-'Z']['a'-'z''A'-'Z''0'-'9']*  { keyword (lexemeAsString lexbuf) }
   | '+'             { PLUS }

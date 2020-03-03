@@ -4,7 +4,8 @@ open AbstractSyntax
 
 let rec eval (e: expr): string =
     match e with
-    | ConstantInteger i -> string i
+    | ConstantInteger i -> sprintf "%s" (string i)
+    | Variable v -> string v
     | Let(name, expression) -> sprintf "const %s = %s;" name (eval expression)
     | Prim(operation, expression1, expression2) ->
         let value1 = eval expression1
@@ -15,24 +16,6 @@ let rec eval (e: expr): string =
         | ("*") -> sprintf "%s * %s" value1 value2
         | ("/") -> sprintf "%s / %s" value1 value2
         | ("%") -> sprintf "%s %s %s" value1 "%" value2
-(*
-const x = 1;
-let y = 1;
-
-function name(parameter) {
-    return parameter;
-}
-
-{
-    key: "value"
-}
-
-if (true) {
-
-} else if (false) {
-
-} else {
-
-}
-
-*)
+    | Function(name, parameter, expression) ->
+        let value = eval expression
+        sprintf "function %s(%s) {\n  return %s;\n}" name parameter value
