@@ -19,3 +19,4 @@ let fromString (str: string): expr =
 [<EntryPoint>]
 let main argv =
     let x = 42
+    x

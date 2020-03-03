@@ -13,7 +13,7 @@
 
 // Not implemented:
 %token IF ELSEIF ELSE EQL NOT
-%token LPAR RPAR
+%token LPAR RPAR COMMA
 %token NEWLINE FUNCTION END
 
 %left ELSE              /* lowest precedence  */
@@ -23,16 +23,27 @@
 %nonassoc NOT           /* highest precedence  */
 
 %start Main
-%type <AbstractSyntax.expr> Main Expr AtExpr
+%type <AbstractSyntax.expr> Main Program Value Expr Assignment FuncDef FuncBody SimpleStatement CompoundStatement Statement
 
 %%
 
 Main:
-    Expr EOF { $1 }
+    Program EOF { $1 }
 ;
 
+Program:
+    Expr { $1 }
+  | Assignment { $1 }
+  | FuncDef { $1 }
+
+Value:
+    CONSTINT { ConstantInteger $1 }
+  | CONSTBOOL { ConstantBoolean $1 }
+  | NAME { Variable $1 }
+  | LPAR Value COMMA Value RPAR { Tuple($2, $4) }
+
 Expr:
-    AtExpr          { $1                 }
+    Value          { $1                 }
   | MINUS Expr      { Prim("-", ConstantInteger 0, $2)  }
   | Expr PLUS Expr  { Prim("+", $1, $3)  }
   | Expr MINUS Expr { Prim("-", $1, $3)  }
@@ -46,13 +57,22 @@ Expr:
   | Expr LE    Expr { Prim("<=", $1, $3) }
 ;
 
-AtExpr:
-    Const                                       { $1          }
-  | NAME                                        { Variable $1 }
-  | NAME ASSIGN Expr NEWLINE                    { Let($1, $3) }
-  | FUNCTION NAME NAME ASSIGN NEWLINE Expr NEWLINE END { Function($2, $3, $6) }
-  | LPAR Expr RPAR                              { $2          }
+Assignment:
+  NAME ASSIGN Expr NEWLINE { Let($1, $3) }
 
-Const:
-    CONSTINT        { ConstantInteger $1 }
-  | CONSTBOOL       { ConstantBoolean $1 }
+FuncDef:
+  FUNCTION NAME NAME ASSIGN FuncBody { Function($2, $3, $5) }
+
+FuncBody:
+    SimpleStatement NEWLINE { $1 }
+  | CompoundStatement { $1 }
+
+SimpleStatement: Expr { $1 }
+
+CompoundStatement: NEWLINE Statement NEWLINE END { $2 }
+
+Statement:
+    Expr { $1 }
+  | Assignment { $1 }
+
+// | LPAR Expr RPAR                           { $2          }

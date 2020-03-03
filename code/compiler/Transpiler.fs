@@ -25,3 +25,7 @@ let rec eval (e: expr): string =
         sprintf "function %s(%s) {\n" name parameter |> ignore
         List.map (fun e -> sprintf "%s;\n" e) exps |> ignore
         sprintf "return %s;\n}" "something??"
+    | Tuple(expression1, expression2) ->
+        let value1 = eval expression1
+        let value2 = eval expression2
+        sprintf "[%s, %s]" value1 value2

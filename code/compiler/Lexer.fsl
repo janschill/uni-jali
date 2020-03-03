@@ -20,7 +20,7 @@ let keyword s =
 }
 
 rule Token = parse
-  | [' ' '\r' '\t']      { Token lexbuf }
+  | [' ' '\r' '\t'] { Token lexbuf }
   | '\n'            { NEWLINE }
   | ['0'-'9']+      { CONSTINT (System.Int32.Parse (lexemeAsString lexbuf)) }
   | ['a'-'z''A'-'Z']['a'-'z''A'-'Z''0'-'9']*  { keyword (lexemeAsString lexbuf) }
@@ -39,4 +39,8 @@ rule Token = parse
   | '!'             { NOT }
   | '('             { LPAR }
   | ')'             { RPAR }
+<<<<<<< HEAD
   | eof             { EOF }
+=======
+  | ','             { COMMA }
+>>>>>>> bb23c8be66a19e49406234a6973749d0d3a6cc44
