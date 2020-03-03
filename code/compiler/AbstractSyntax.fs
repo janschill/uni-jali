@@ -6,4 +6,4 @@ type expr =
     | Variable of string
     | Prim of string * expr * expr
     | Let of string * expr
-    | Function of string * string * expr
+    | Function of string * string * expr list
