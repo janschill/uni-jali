@@ -23,8 +23,7 @@
 %nonassoc NOT           /* highest precedence  */
 
 %start Main
-%type <AbstractSyntax.expr> Main Program Value Expr Assignment FuncDef FuncBody SimpleStatement CompoundStatement Statement ADT ADTContructor ADTConstructorParameter Type
-
+%type <AbstractSyntax.expr> Main Program Value Expr Type ADTConstructorParameter ADTSimpleConstructor ADTCompoundConstructor ADTContructor ADT Assignment Statement SimpleStatement CompoundStatement FuncBody FuncDef
 %%
 
 Main:
@@ -51,17 +50,7 @@ Expr:
   | Expr DIV Expr { Prim("/", $1, $3)  }
   | Expr MOD Expr { Prim("%", $1, $3)  }
 
-ADT:
-  Type NAME ASSIGN ADTContructor { ADT($2, $4) }
-
-ADTContructor:
-    NAME ADTConstructorParameter { $1, $2 }
-  | NAME ADTConstructorParameter PIPE ADTContructor { $1, $2, $4 }
-
-ADTConstructorParameter:
-    Type { $1 }
-  | Type ADTConstructorParameter { $1, $2 }
-
+// ====== ADT grammar rules: =======
 Type:
     INT { $1 }
   | FLOAT { $1 }
@@ -69,21 +58,43 @@ Type:
   | STRING { $1 }
   | CHAR { $1 }
 
+ADTConstructorParameter:
+    Type { $1 }
+  | Type ADTConstructorParameter { $1, $2 }
+
+ADTSimpleConstructor:
+    NAME ADTConstructorParameter { $1, $2 }
+  | NAME ADTConstructorParameter PIPE ADTContructor { $1, $2, $4 }
+
+ADTCompoundConstructor:
+    NEWLINE NAME ADTConstructorParameter { $2, $3 }
+  | NEWLINE NAME ADTConstructorParameter PIPE ADTContructor { $2, $3, $5 }
+
+ADTContructor:
+    ADTSimpleConstructor { $1 }
+  | ADTCompoundConstructor { $1 }
+
+ADT:
+  Type NAME ASSIGN ADTContructor { ADT($2, $4) }
+// =================================
+
 Assignment:
     NAME ASSIGN Expr NEWLINE { Let($1, $3) }
   | ADT NEWLINE { $1 }
 
-FuncDef:
-  FUNCTION NAME NAME ASSIGN FuncBody { Function($2, $3, $5) }
-
-FuncBody:
-    SimpleStatement NEWLINE { $1 }
-  | CompoundStatement { $1 }
+// ==== Function grammar rules: ====
+Statement:
+    Expr { $1 }
+  | Assignment { $1 }
 
 SimpleStatement: Expr { $1 }
 
 CompoundStatement: NEWLINE Statement NEWLINE END { $2 }
 
-Statement:
-    Expr { $1 }
-  | Assignment { $1 }
+FuncBody:
+    SimpleStatement NEWLINE { $1 }
+  | CompoundStatement { $1 }
+
+FuncDef:
+  FUNCTION NAME NAME ASSIGN FuncBody { Function($2, $3, $5) }
+// =================================
