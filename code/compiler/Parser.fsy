@@ -13,8 +13,9 @@
 
 // Not implemented:
 %token IF ELSEIF ELSE EQL NOT
-%token LPAR RPAR COMMA
+%token LPAR RPAR COMMA PIPE TYPE
 %token NEWLINE FUNCTION END
+%token INT FLOAT BOOLEAN STRING CHAR
 
 %left ELSE              /* lowest precedence  */
 %left PLUS MINUS
@@ -23,8 +24,9 @@
 %nonassoc NOT           /* highest precedence  */
 
 %start Main
-%type <AbstractSyntax.expr> Main Program Value Expr Assignment FuncDef FuncBody SingleLineStatemet CompoundStatement Statement
-
+%type <AbstractSyntax.expr> Main Program Value Expr ADT Assignment FuncDef // Statement SimpleStatement CompoundStatement FuncBody
+%type <AbstractSyntax.types> Type
+%type <AbstractSyntax.adtconstructor>
 %%
 
 Main:
@@ -35,6 +37,7 @@ Program:
     Expr { $1 }
   | Assignment { $1 }
   | FuncDef { $1 }
+  | ADT { $1 }
 
 Value:
     CONSTINT { ConstantInteger $1 }
@@ -57,30 +60,58 @@ Expr:
   | Expr LE    Expr { Prim("<=", $1, $3) }
 ;
 
-Assignment:
-  NAME ASSIGN Expr NEWLINE { Let($1, $3) }
+// ====== ADT grammar rules: =======
+Type:
+    INT     { Int }
+  | FLOAT   { Float }
+  | BOOLEAN { Boolean }
+  | STRING  { String }
+  | CHAR    { Char }
 
-FuncDef:
-  FUNCTION NAME NAME ASSIGN ExprList { Function($2, $3, ($5 |> List)) }
+ADTConstructorParameter:
+    Type { [$1] }
+  | Type ADTConstructorParameter { $1::$2 }
+
+ADTSimpleConstructor:
+    NAME ADTConstructorParameter { [adtconstructor($1, $2)] }
+  | NAME ADTConstructorParameter PIPE ADTContructor { adtconstructor($1, $2)::$4 }
+
+ADTCompoundConstructor:
+    NEWLINE ADTSimpleConstructor { $2 }
+
+ADTContructor:
+    ADTSimpleConstructor { $1 }
+  | ADTCompoundConstructor { $1 }
+
+ADT:
+  Type NAME ASSIGN ADTContructor { ADT($2, $4) }
+// =================================
+
+Assignment:
+    NAME ASSIGN Expr NEWLINE { Let($1, $3) }
+  | ADT NEWLINE { $1 }
+
+// ==== Function grammar rules: ====
+// Statement:
+//     Expr { $1 }
+//   | Assignment { $1 }
+//   | Expr NEWLINE Statement { $1, $3 }
+//   | Assignment NEWLINE Statement { $1, $3 }
+
+// SimpleStatement: Expr { $1 }
+
+// CompoundStatement: NEWLINE Statement NEWLINE END { $2 }
+
+// FuncBody:
+//     SimpleStatement NEWLINE { $1 }
+//   | CompoundStatement { $1 }
 
 ExprList:
-    Expr NEWLINE { [$1] }
+    { [] }
+  | Expr NEWLINE { [$1] }
   | NEWLINE ExprList Expr END { $3 :: $2 }
 
-FuncBody:
-    SingleLineStatemet NEWLINE { $1 }
-  | CompoundStatement { $1 }
+FuncDef:
+  FUNCTION NAME NAME ASSIGN ExprList { Function($2, $3, $5 ) }
 
-SingleLineStatemet: Expr { $1 }
-
-CompoundStatement: 
-    NEWLINE Statement NEWLINE END { $2 }
-
-Statement:
-    Expr { $1 }
-  | Assignment { $1 }
-  | Expr NEWLINE Statement { $1, $3 }
-  | Assignment NEWLINE Statement { $1, $3 }
-
-
-// | LPAR Expr RPAR                           { $2          }
+// =================================

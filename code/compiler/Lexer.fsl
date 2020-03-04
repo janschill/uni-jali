@@ -16,6 +16,12 @@ let keyword s =
     | "true"    -> CONSTBOOL true
     | "func"    -> FUNCTION
     | "end"     -> END
+    | "Integer" -> INT
+    | "Float"   -> FLOAT
+    | "Boolean" -> BOOLEAN
+    | "Char"    -> CHAR
+    | "String"  -> STRING
+    | "type"    -> TYPE
     | _         -> NAME s
 }
 
@@ -41,3 +47,4 @@ rule Token = parse
   | ')'             { RPAR }
   | eof             { EOF }
   | ','             { COMMA }
+  | '|'             { PIPE }

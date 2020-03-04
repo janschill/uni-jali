@@ -29,3 +29,39 @@ let rec eval (e: expr): string =
         let value1 = eval expression1
         let value2 = eval expression2
         sprintf "[%s, %s]" value1 value2
+    | ADT(adtName, (constructors: adtconstructor list)) ->
+        let setterGenerator count = "this.p" + string (count) + " = p" + string (count) + ";\n"
+        let parameterGenerator count = "p" + string (count) + ", "
+        let generateVariables types generatorFunc =
+            fst (List.fold (fun (acc: string, it: int) el -> (acc + generatorFunc (it), it + 1)) ("", 1) types)
+
+        let printClass ((className, types): adtconstructor): string =
+            let classDef =
+                sprintf "class %s extends %s {\n" className adtName
+
+            let parameters = generateVariables types parameterGenerator
+            let parametersCut = sprintf "%s" (parameters.Remove(parameters.Length - 2))
+
+            let constructorDef =
+                sprintf "constructor(%s) {\n" parametersCut
+
+            let setters = generateVariables types setterGenerator
+
+            let constructorBody =
+                sprintf "super();\n%s" setters
+
+            sprintf "%s%s%s}\n}\n" classDef constructorDef constructorBody
+
+        let rec evalConstructors cs: string list =
+            match cs with
+            | [] -> []
+            | x :: xs -> printClass x :: evalConstructors xs
+
+        let adtClass =
+            sprintf "class %s {}\n" adtName
+
+        let adt =
+            List.fold (fun s e ->
+                s + sprintf "%s\n" e) adtClass (evalConstructors constructors)
+
+        adt
