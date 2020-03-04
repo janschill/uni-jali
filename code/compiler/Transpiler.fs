@@ -16,6 +16,11 @@ let rec eval (e: expr): string =
         | ("*") -> sprintf "%s * %s" value1 value2
         | ("/") -> sprintf "%s / %s" value1 value2
         | ("%") -> sprintf "%s %s %s" value1 "%" value2
+        | (">") -> sprintf "%s > %s" value1 value2
+        | (">=") -> sprintf "%s >= %s" value1 value2
+        | ("<") -> sprintf "%s < %s" value1 value2
+        | ("<=") -> sprintf "%s <= %s" value1 value2
+        | ("==") -> sprintf "%s == %s" value1 value2
     | Function(name, parameter, expression) ->
         let value = eval expression
         sprintf "function %s(%s) {\n  return %s;\n}" name parameter value
