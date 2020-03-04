@@ -21,6 +21,7 @@ let keyword s =
     | "Boolean" -> BOOLEAN
     | "Char"    -> CHAR
     | "String"  -> STRING
+    | "type"    -> TYPE
     | _         -> NAME s
 }
 
@@ -36,9 +37,14 @@ rule Token = parse
   | '%'             { MOD }
   | '='             { ASSIGN }
   | "=="            { EQL }
+  | "!="            { NOTEQ }
+  | '>'             { GT }
+  | '<'             { LT }
+  | ">="            { GE }
+  | "<="            { LE }
   | '!'             { NOT }
-  | eof             { EOF }
   | '('             { LPAR }
   | ')'             { RPAR }
+  | eof             { EOF }
   | ','             { COMMA }
   | '|'             { PIPE }
