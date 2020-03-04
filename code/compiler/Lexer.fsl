@@ -39,8 +39,5 @@ rule Token = parse
   | '!'             { NOT }
   | '('             { LPAR }
   | ')'             { RPAR }
-<<<<<<< HEAD
   | eof             { EOF }
-=======
   | ','             { COMMA }
->>>>>>> bb23c8be66a19e49406234a6973749d0d3a6cc44
