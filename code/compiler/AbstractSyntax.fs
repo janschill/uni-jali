@@ -6,6 +6,7 @@ type types =
     | Boolean
     | String
     | Char
+    | Typevar of string
 
 type adtconstructor = string * types list
 

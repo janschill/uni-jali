@@ -2,30 +2,50 @@
   open AbstractSyntax;
 %}
 
-// Tokens:
-%token <int> CONSTINT
 %token <bool> CONSTBOOL
+%token <int> CONSTINT
 %token <string> NAME
-%token PLUS MINUS TIMES DIV MOD
 %token ASSIGN
+%token BOOLEAN
+%token CHAR
+%token COMMA
+%token DIV
+%token ELSE
+%token ELSEIF
+%token END
 %token EOF
-%token NOTEQ GT LT GE LE
+%token EQL
+%token FLOAT
+%token FUNCTION
+%token GE
+%token GT
+%token IF
+%token INT
+%token LE
+%token LPAR
+%token LT
+%token MINUS
+%token MOD
+%token NEWLINE
+%token NOT
+%token NOTEQL
+%token PIPE
+%token PLUS
+%token RPAR
+%token STRING
+%token TIMES
+%token TYPE
 
-// Not implemented:
-%token IF ELSEIF ELSE EQL NOT
-%token LPAR RPAR COMMA PIPE TYPE
-%token NEWLINE FUNCTION END
-%token INT FLOAT BOOLEAN STRING CHAR
-
-%left ELSE              /* lowest precedence  */
+/* lowest precedence  */
+%left ELSE
 %left PLUS MINUS
 %left TIMES DIV MOD
-
-%nonassoc NOT           /* highest precedence  */
+/* highest precedence  */
+%nonassoc NOT
 
 %start Main
-%type <AbstractSyntax.expr> Main Program Value Expr ADT Assignment FuncDef // Statement SimpleStatement CompoundStatement FuncBody
-%type <AbstractSyntax.types> Type
+%type <AbstractSyntax.expr> Main Program Value Expr ADT Assignment FuncDef
+%type <AbstractSyntax.types> TypeSpec
 %type <AbstractSyntax.adtconstructor>
 %%
 
@@ -34,84 +54,74 @@ Main:
 ;
 
 Program:
-    Expr { $1 }
+    Expr       { $1 }
   | Assignment { $1 }
-  | FuncDef { $1 }
-  | ADT { $1 }
+  | FuncDef    { $1 }
+  | ADT        { $1 }
 
 Value:
-    CONSTINT { ConstantInteger $1 }
-  | CONSTBOOL { ConstantBoolean $1 }
-  | NAME { Variable $1 }
+    CONSTINT                    { ConstantInteger $1 }
+  | CONSTBOOL                   { ConstantBoolean $1 }
+  | NAME                        { Variable $1 }
   | LPAR Value COMMA Value RPAR { Tuple($2, $4) }
 
 Expr:
-    Value           { $1                 }
-  | MINUS Expr      { Prim("-", ConstantInteger 0, $2)  }
-  | Expr PLUS Expr  { Prim("+", $1, $3)  }
-  | Expr MINUS Expr { Prim("-", $1, $3)  }
-  | Expr TIMES Expr { Prim("*", $1, $3)  }
-  | Expr DIV   Expr { Prim("/", $1, $3)  }
-  | Expr MOD   Expr { Prim("%", $1, $3)  }
-  | Expr NOTEQ Expr { Prim("!=", $1, $3) }
-  | Expr GT    Expr { Prim(">",  $1, $3) }
-  | Expr LT    Expr { Prim("<",  $1, $3) }
-  | Expr GE    Expr { Prim(">=", $1, $3) }
-  | Expr LE    Expr { Prim("<=", $1, $3) }
-;
+  | Exp NOTEQL Exp  { Prim("!=", $1, $3) }
+  | Exp EQL    Exp  { Prim("==", $1, $3) }
+  | Exp GT     Exp  { Prim(">",  $1, $3) }
+  | Exp LT     Exp  { Prim("<",  $1, $3) }
+  | Exp GE     Exp  { Prim(">=", $1, $3) }
+  | Exp LE     Exp  { Prim("<=", $1, $3) }
+  | Exp             { $1 }
+
+Exp:
+  | Value           { $1                 }
+  | MINUS Exp       { Prim("-", ConstantInteger 0, $2)  }
+  | Exp PLUS  Exp   { Prim("+", $1, $3)  }
+  | Exp MINUS Exp   { Prim("-", $1, $3)  }
+  | Exp TIMES Exp   { Prim("*", $1, $3)  }
+  | Exp DIV   Exp   { Prim("/", $1, $3)  }
+  | Exp MOD   Exp   { Prim("%", $1, $3)  }
+  | LPAR Expr RPAR  { $2 }
+
+Assignment:
+    NAME ASSIGN Expr NEWLINE { Let($1, $3) }
+  | ADT NEWLINE              { $1 }
+
+ExprList:
+    Expr NEWLINE          { [$1] }
+  | NEWLINE ExprListInner { $2 }
+
+ExprListInner:
+    Expr NEWLINE END           { [$1] }
+  | Expr NEWLINE ExprListInner { $1 :: $3 }
+
+FuncDef:
+  FUNCTION NAME NAME ASSIGN ExprList { Function($2, $3, $5 ) }
 
 // ====== ADT grammar rules: =======
-Type:
-    INT     { Int }
-  | FLOAT   { Float }
-  | BOOLEAN { Boolean }
-  | STRING  { String }
-  | CHAR    { Char }
+ADT:
+  TYPE NAME ASSIGN ADTContructor { ADT($2, $4) }
 
-ADTConstructorParameter:
-    Type { [$1] }
-  | Type ADTConstructorParameter { $1::$2 }
+ADTContructor:
+    ADTSimpleConstructor   { $1 }
+  | ADTCompoundConstructor { $1 }
 
 ADTSimpleConstructor:
-    NAME ADTConstructorParameter { [adtconstructor($1, $2)] }
+    NAME ADTConstructorParameter                    { [adtconstructor($1, $2)] }
   | NAME ADTConstructorParameter PIPE ADTContructor { adtconstructor($1, $2)::$4 }
 
 ADTCompoundConstructor:
     NEWLINE ADTSimpleConstructor { $2 }
 
-ADTContructor:
-    ADTSimpleConstructor { $1 }
-  | ADTCompoundConstructor { $1 }
+ADTConstructorParameter:
+  | /* empty */                      { [] }
+  | TypeSpec ADTConstructorParameter { $1::$2 }
 
-ADT:
-  Type NAME ASSIGN ADTContructor { ADT($2, $4) }
-// =================================
-
-Assignment:
-    NAME ASSIGN Expr NEWLINE { Let($1, $3) }
-  | ADT NEWLINE { $1 }
-
-// ==== Function grammar rules: ====
-// Statement:
-//     Expr { $1 }
-//   | Assignment { $1 }
-//   | Expr NEWLINE Statement { $1, $3 }
-//   | Assignment NEWLINE Statement { $1, $3 }
-
-// SimpleStatement: Expr { $1 }
-
-// CompoundStatement: NEWLINE Statement NEWLINE END { $2 }
-
-// FuncBody:
-//     SimpleStatement NEWLINE { $1 }
-//   | CompoundStatement { $1 }
-
-ExprList:
-    { [] }
-  | Expr NEWLINE { [$1] }
-  | NEWLINE ExprList Expr END { $3 :: $2 }
-
-FuncDef:
-  FUNCTION NAME NAME ASSIGN ExprList { Function($2, $3, $5 ) }
-
-// =================================
+TypeSpec:
+    INT     { Int }
+  | FLOAT   { Float }
+  | BOOLEAN { Boolean }
+  | STRING  { String }
+  | CHAR    { Char }
+  | NAME    { Typevar $1 }

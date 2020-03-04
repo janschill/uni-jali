@@ -37,7 +37,7 @@ rule Token = parse
   | '%'             { MOD }
   | '='             { ASSIGN }
   | "=="            { EQL }
-  | "!="            { NOTEQ }
+  | "!="            { NOTEQL }
   | '>'             { GT }
   | '<'             { LT }
   | ">="            { GE }

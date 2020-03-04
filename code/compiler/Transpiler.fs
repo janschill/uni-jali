@@ -10,6 +10,8 @@ let rec eval (e: expr): string =
     | Prim(operation, expression1, expression2) ->
         let value1 = eval expression1
         let value2 = eval expression2
+        sprintf "%s %s %s" value1 operation value2
+    (*
         match (operation) with
         | ("+") -> sprintf "%s + %s" value1 value2
         | ("-") -> sprintf "%s - %s" value1 value2
@@ -21,6 +23,7 @@ let rec eval (e: expr): string =
         | ("<") -> sprintf "%s < %s" value1 value2
         | ("<=") -> sprintf "%s <= %s" value1 value2
         | ("==") -> sprintf "%s == %s" value1 value2
+        *)
     | Function(name, parameter, expressions) ->
         let rec evalExpressions es =
             match es with
