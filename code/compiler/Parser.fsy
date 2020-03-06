@@ -114,6 +114,16 @@ ADTSimpleConstructor:
 ADTCompoundConstructor:
     NEWLINE ADTSimpleConstructor { $2 }
 
+// ADTSimpleConstructor:
+//     NAME ADTConstructorParameter                    { [adtconstructor($1, $2)] }
+//   | NAME ADTConstructorParameter PIPE ADTSimpleConstructor { adtconstructor($1, $2)::$4 }
+//   | NAME ADTConstructorParameter NEWLINE PIPE ADTSimpleConstructor { adtconstructor($1, $2)::$5 }
+
+// ADTCompoundConstructor:
+//     NEWLINE ADTSimpleConstructor { $2 }
+//   | PIPE ADTSimpleConstructor { $2 }
+//   | NEWLINE PIPE ADTSimpleConstructor { $3 }
+
 ADTConstructorParameter:
   | /* empty */                      { [] }
   | TypeSpec ADTConstructorParameter { $1::$2 }
