@@ -44,9 +44,8 @@
 %nonassoc NOT
 
 %start Main
-%type <AbstractSyntax.expr> Value Expr Exp ADT Assignment FuncDef
+%type <AbstractSyntax.expr> Main Value Expr Exp ADT Assignment FuncDef
 %type <AbstractSyntax.types> TypeSpec
-%type <AbstractSyntax.program> Main Program
 %%
 
 Main:
