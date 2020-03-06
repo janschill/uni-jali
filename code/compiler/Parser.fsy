@@ -60,6 +60,7 @@ Declaration:
   | Assignment          { $1 }
   | FuncDef             { $1 }
   | ADT                 { $1 }
+  | NEWLINE Declaration { $2 }    // handles empty lines
 
 // Stmt: 
 // | NAME ASSIGN Expr NEWLINE { Let($1, $3) }
@@ -67,6 +68,7 @@ Declaration:
 
 DeclarationList:
   | Declaration                          { [$1] }
+  | Declaration NEWLINE                  { [$1] }   // handles newlines at end of file
   | Declaration NEWLINE DeclarationList  { $1 :: $3 }
 
 Value:
