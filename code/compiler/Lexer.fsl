@@ -27,7 +27,7 @@ let keyword s =
 
 rule Token = parse
   | [' ' '\r' '\t'] { Token lexbuf }
-  | '\n'            { NEWLINE }
+  | '\n'            { lexbuf.EndPos <- lexbuf.EndPos.NextLine; NEWLINE }
   | ['0'-'9']+      { CONSTINT (System.Int32.Parse (lexemeAsString lexbuf)) }
   | ['a'-'z''A'-'Z']['a'-'z''A'-'Z''0'-'9']*  { keyword (lexemeAsString lexbuf) }
   | '+'             { PLUS }
