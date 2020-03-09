@@ -16,7 +16,7 @@ let fromString (str: string): expr =
     let lexbuf = LexBuffer<char>.FromString(str)
     try
         Parser.Main Lexer.Token lexbuf
-    with 
+    with
     | Failure("parse error") -> raise <| SyntaxError((lexbuf.EndPos.Line + 1), lexbuf.EndPos.Column)
     | _ -> reraise()
 
@@ -27,42 +27,39 @@ let testEval = """
 7 == 9
 """
 
-let src = """
- type DisjointSum =
-        Ctor1
-      | Ctor2 Integerx
+let simplefunction = """
+func f x = x + y
 """
-
-let test = """
-x = 2
-y = 3
-func f x = x+y
-
+let simplefunction2 = """
 func f x =
     x = 2
     x
-end 
-
-type DisjointSum = Ctor1 | Ctor2 Integer
+end
+"""
+let complexfunction = """
+func f x y z =
+  k = x + y * z
+  k
+end
 """
 
-let a = """type DisjointSum = Ctor1 Integer | Ctor2 String String"""
-let b = """type DisjointSum =
+let adta = """type DisjointSum = Ctor1 Integer | Ctor2 String String"""
+let adtb = """type DisjointSum =
   Ctor1 Integer | Ctor2 String String
 """
-let c = """type DisjointSum =
+let adtc = """type DisjointSum =
     Ctor1 Integer
   | Ctor2 String String
 """
-let d = """type DisjointSum =
+let adtd = """type DisjointSum =
    Ctor1 Integer |
    Ctor2 String String
 """
-let e = """type DisjointSum =
+let adte = """type DisjointSum =
    | Ctor1 Integer
    | Ctor2 String String
 """
-let f = """
+let pattern = """
 func f x y = match x b c with
    | Ctor1 => 42
    | Ctor2 => 43
