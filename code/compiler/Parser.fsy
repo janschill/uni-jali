@@ -36,6 +36,7 @@
 %token RARROW
 %token RPAR
 %token STRING
+%token THEN
 %token TIMES
 %token TYPE
 %token WITH
@@ -82,14 +83,15 @@ Value:
 
 // Higher precedence
 Exp:
-  | Value           { $1                 }
-  | MINUS Exp       { Prim("-", ConstantInteger 0, $2)  }
-  | Exp PLUS  Exp   { Prim("+", $1, $3)  }
-  | Exp MINUS Exp   { Prim("-", $1, $3)  }
-  | Exp TIMES Exp   { Prim("*", $1, $3)  }
-  | Exp DIV   Exp   { Prim("/", $1, $3)  }
-  | Exp MOD   Exp   { Prim("%", $1, $3)  }
-  | LPAR Expr RPAR  { $2 }
+  | Value                           { $1 }
+  | IF AtExpr THEN AtExp ELSE AtExp { If($2, $4, $6) }
+  | MINUS Exp                       { Prim("-", ConstantInteger 0, $2) }
+  | Exp PLUS  Exp                   { Prim("+", $1, $3) }
+  | Exp MINUS Exp                   { Prim("-", $1, $3) }
+  | Exp TIMES Exp                   { Prim("*", $1, $3) }
+  | Exp DIV   Exp                   { Prim("/", $1, $3) }
+  | Exp MOD   Exp                   { Prim("%", $1, $3) }
+  | LPAR Expr RPAR                  { $2 }
 
 // Lower precedence
 Expr:
@@ -100,6 +102,14 @@ Expr:
   | Exp GE     Exp  { Prim(">=", $1, $3) }
   | Exp LE     Exp  { Prim("<=", $1, $3) }
   | Exp             { $1 }
+
+AtExpr: 
+  | Expr NEWLINE  { $1 }
+  | Expr          { $1 }
+
+AtExp: 
+  | Exp NEWLINE  { $1 }
+  | Exp          { $1 }
 
 Assignment: NAME ASSIGN Expr { Let($1, $3) }
 

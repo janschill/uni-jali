@@ -12,6 +12,7 @@ let keyword s =
     | "else"    -> ELSE
     | "false"   -> CONSTBOOL false
     | "if"      -> IF
+    | "then"    -> THEN
     | "elseif"  -> ELSEIF
     | "true"    -> CONSTBOOL true
     | "func"    -> FUNCTION

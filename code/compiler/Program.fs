@@ -67,6 +67,11 @@ func f x y = match x b c with
    | _     => 45
 end
 """
+let ifstmt = """
+if 3>4
+then 3
+else 4
+"""
 
 [<EntryPoint>]
 let main argv =

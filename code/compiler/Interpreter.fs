@@ -43,6 +43,11 @@ let rec eval (e: expr) (env : value env) : value =
             | ("!=") -> Boolean(v1 <> v2)
             | _ -> failwithf "%s is not a valid operation on integers" operation
         | _ -> failwith "Sorry, can only operate on integers"
+    | If(cond, thenExpr, elseExpr) -> 
+        match eval cond env with
+        | Boolean true -> eval thenExpr env
+        | Boolean false -> eval elseExpr env
+        | _ -> failwith "Evaluator failed on if-statement: condition must be a boolean value"
     | Function(name, parameter, expressions) -> failwith "not implemented"
     | Tuple(expression1, expression2) ->
         let value1 = eval expression1 env
