@@ -16,7 +16,7 @@ type expr =
     | Variable of string
     | Prim of string * expr * expr
     | Let of string * expr
-    | Function of string * string * expr list
+    | Function of string * string list * expr list
     | Tuple of expr * expr
     | ADT of string * adtconstructor list
     | Program of expr list

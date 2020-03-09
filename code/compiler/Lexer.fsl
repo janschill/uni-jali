@@ -22,6 +22,8 @@ let keyword s =
     | "Char"    -> CHAR
     | "String"  -> STRING
     | "type"    -> TYPE
+    | "match"   -> MATCH
+    | "with"    -> WITH
     | _         -> NAME s
 }
 
@@ -48,3 +50,5 @@ rule Token = parse
   | eof             { EOF }
   | ','             { COMMA }
   | '|'             { PIPE }
+  | "<-"            { LARROW }
+  | "->"            { RARROW }
