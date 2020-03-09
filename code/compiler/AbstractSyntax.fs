@@ -19,3 +19,4 @@ type expr =
     | Function of string * string * expr list
     | Tuple of expr * expr
     | ADT of string * adtconstructor list
+    | Program of expr list

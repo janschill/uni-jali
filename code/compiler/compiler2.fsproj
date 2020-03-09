@@ -6,8 +6,11 @@
   <ItemGroup>
     <Compile Include="AbstractSyntax.fs" />
     <Compile Include="Transpiler.fs" />
-    <Compile Include="Parser.fs" />
-    <Compile Include="Lexer.fs" />
+    <Compile Include="./generated/Parser.fsi" />
+    <Compile Include="./generated/Parser.fs" />
+    <Compile Include="./generated/Lexer.fs" />
+    <Compile Include="Interpreter.fs" />
     <Compile Include="Program.fs" />
   </ItemGroup>
+  
 </Project>
