@@ -11,6 +11,7 @@
     <Compile Include="./generated/Lexer.fs" />
     <Compile Include="Interpreter.fs" />
     <Compile Include="Program.fs" />
+    <Compile Include="Test.fs" />
   </ItemGroup>
   
 </Project>
