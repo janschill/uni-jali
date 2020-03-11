@@ -12,7 +12,7 @@ open Interpreter
 exception SyntaxError of int * int with
     override this.Message = sprintf "Syntax error at line %d, column %d." this.Data0 this.Data1
 
-let fromString (str: string): expr =
+let fromString (str: string): Expr =
     let lexbuf = LexBuffer<char>.FromString(str)
     try
         Parser.Main Lexer.Token lexbuf
@@ -20,7 +20,7 @@ let fromString (str: string): expr =
     | Failure("parse error") -> raise <| SyntaxError((lexbuf.EndPos.Line + 1), lexbuf.EndPos.Column)
     | _ -> reraise()
 
-let evalString (str: string): value = eval (fromString str) []
+let evalString (str: string): Value = eval (fromString str) []
 
 let testEval = """
 3 + 4
@@ -72,6 +72,8 @@ if 3>4
 then 3
 else 4
 """
+
+let program = System.IO.File.ReadAllText "./program.javi"
 
 [<EntryPoint>]
 let main argv =

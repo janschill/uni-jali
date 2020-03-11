@@ -49,8 +49,8 @@
 %nonassoc NOT
 
 %start Main
-%type <AbstractSyntax.expr> Main Value Expr Exp ADT Assignment FuncDef
-%type <AbstractSyntax.types> TypeSpec
+%type <AbstractSyntax.Expr> Main Value Expr Exp ADT Assignment FuncDef
+%type <AbstractSyntax.Type> TypeSpec
 %%
 
 Main:
@@ -75,17 +75,21 @@ DeclarationList:
   | Declaration NEWLINE                  { [$1] }   // handles newlines at end of file
   | Declaration NEWLINE DeclarationList  { $1 :: $3 }
 
+PrimitiveValue:
+    CONSTINT                    { IntegerValue $1 }
+  | CONSTBOOL                   { BooleanValue $1 }
+  | NAME PrimitiveValue         { ADTValue($1, $2) }
+  | LPAR PrimitiveValue COMMA PrimitiveValue RPAR { Tuple($2, $4) }
+
 Value:
-    CONSTINT                    { ConstantInteger $1 }
-  | CONSTBOOL                   { ConstantBoolean $1 }
+    PrimitiveValue              { Constant($1) }
   | NAME                        { Variable $1 }
-  | LPAR Value COMMA Value RPAR { Tuple($2, $4) }
 
 // Higher precedence
 Exp:
   | Value                           { $1 }
   | IF AtExpr THEN AtExp ELSE AtExp { If($2, $4, $6) }
-  | MINUS Exp                       { Prim("-", ConstantInteger 0, $2) }
+  | MINUS Exp                       { Prim("-", Constant (IntegerValue 0), $2) }
   | Exp PLUS  Exp                   { Prim("+", $1, $3) }
   | Exp MINUS Exp                   { Prim("-", $1, $3) }
   | Exp TIMES Exp                   { Prim("*", $1, $3) }
@@ -103,11 +107,11 @@ Expr:
   | Exp LE     Exp  { Prim("<=", $1, $3) }
   | Exp             { $1 }
 
-AtExpr: 
+AtExpr:
   | Expr NEWLINE  { $1 }
   | Expr          { $1 }
 
-AtExp: 
+AtExp:
   | Exp NEWLINE  { $1 }
   | Exp          { $1 }
 
@@ -147,8 +151,8 @@ ADTContructor:
   | ADTCompoundConstructor { $1 }
 
 ADTSimpleConstructor:
-    NAME ADTConstructorParameter                    { [adtconstructor($1, $2)] }
-  | NAME ADTConstructorParameter PIPE ADTContructor { adtconstructor($1, $2)::$4 }
+    NAME ADTConstructorParameter                    { [ADTConstructor($1, $2)] }
+  | NAME ADTConstructorParameter PIPE ADTContructor { ADTConstructor($1, $2)::$4 }
 
 ADTCompoundConstructor:
     NEWLINE ADTSimpleConstructor { $2 }

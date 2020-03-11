@@ -1,0 +1,15 @@
+tupleval = (1, (2, 3))
+Model = 0
+booleanval = true
+
+type HTML = TEXT Integer
+html = TEXT 1
+
+func myfunc x y z =
+  k = x + y * z
+  k
+end
+
+if booleanval
+then 1
+else 2

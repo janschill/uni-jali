@@ -2,7 +2,7 @@ module Transpiler
 
 open AbstractSyntax
 
-let rec transpile (e: expr): string =
+let rec transpile (e: Expr): string =
     match e with
     | Program p ->
         let rec evalExpressions es =
@@ -10,14 +10,38 @@ let rec transpile (e: expr): string =
             | [] -> ""
             | e :: exs -> sprintf "%s%s" (transpile e) (evalExpressions exs)
         evalExpressions p
-    | ConstantInteger i -> sprintf "%s" (string i)
-    | ConstantBoolean b -> sprintf "%s" (string b)
+    | Constant c ->
+        let rec transpileConstant ct =
+            match ct with
+            | Tuple(value1, value2) -> sprintf "(%s, %s)" (transpileConstant value1) (transpileConstant value2)
+            | IntegerValue i -> string i
+            | BooleanValue b -> string b
+            | ADTValue(name, value) -> sprintf "new %s(%s);" name (transpileConstant value)
+        transpileConstant c
     | Variable v -> string v
-    | Let(name, expression) -> sprintf "const %s = %s" name (transpile expression)
     | Prim(operation, expression1, expression2) ->
         let value1 = transpile expression1
         let value2 = transpile expression2
         sprintf "(%s %s %s)" value1 operation value2
+    | Let(name, expression) ->
+        sprintf "const %s = %s;\n" name (transpile expression)
+    | If(expression1, expression2, expression3) ->
+        let value1 = transpile expression1
+        let value2 = transpile expression2
+        let value3 = transpile expression3
+
+        let row1 =
+            sprintf "if (%s) {\n" value1
+        let row2 =
+            sprintf "%s\n" value2
+
+        let row3 = "} else {\n"
+
+        let row4 =
+            sprintf "%s\n" value3
+
+        let row5 = "}\n"
+        sprintf "%s%s%s%s%s" row1 row2 row3 row4 row5
     | Function(name, (parameters: string list), expressions) ->
         let parametersTranspiled = List.fold (fun acc el -> (acc + el + ", ")) "" parameters
         let parametersTranspiledCut = (sprintf "%s" (parametersTranspiled.Remove(parametersTranspiled.Length - 2)))
@@ -30,22 +54,18 @@ let rec transpile (e: expr): string =
 
         let exps = evalExpressions expressions
 
-        let js =
-            sprintf "function %s(%s) {\n" name parametersTranspiledCut
+        let funcbody =
+            List.fold (fun s e ->
+                s + sprintf "%s\n" e) "" exps
 
-        List.fold (fun s e ->
-            s + sprintf "%s;\n" e) js exps
-    | Tuple(expression1, expression2) ->
-        let value1 = transpile expression1
-        let value2 = transpile expression2
-        sprintf "[%s, %s]" value1 value2
-    | ADT(adtName, (constructors: adtconstructor list)) ->
+        sprintf "function %s(%s) {\n%s}\n" name parametersTranspiledCut funcbody
+    | ADT(adtName, (constructors: ADTConstructor list)) ->
         let setterGenerator count = "this.p" + string (count) + " = p" + string (count) + ";\n"
         let parameterGenerator count = "p" + string (count) + ", "
         let generateVariables types generatorFunc =
             fst (List.fold (fun (acc: string, it: int) el -> (acc + generatorFunc (it), it + 1)) ("", 1) types)
 
-        let printClass ((className, types): adtconstructor): string =
+        let printClass ((className, types): ADTConstructor): string =
             let classDef =
                 sprintf "class %s extends %s {\n" className adtName
 
