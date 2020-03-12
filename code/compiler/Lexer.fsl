@@ -53,3 +53,4 @@ rule Token = parse
   | '|'             { PIPE }
   | "<-"            { LARROW }
   | "->"            { RARROW }
+  | '_'             { USCORE }

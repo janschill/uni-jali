@@ -26,5 +26,6 @@ and Expr =
     | Prim of string * Expr * Expr
     | Let of string * Expr
     | If of Expr * Expr * Expr
+    | Pattern of Expr list * (Expr * Expr list) list
     | Function of string * string list * Expr list
     | ADT of string * ADTConstructor list

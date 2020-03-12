@@ -59,12 +59,22 @@ let adte = """type DisjointSum =
    | Ctor1 Integer
    | Ctor2 String String
 """
+let easypattern = """
+func f x =
+match x with
+   | Ctor1 -> 42
+   | Ctor2 -> 45
+
+end
+"""
 let pattern = """
-func f x y = match x b c with
-   | Ctor1 => 42
-   | Ctor2 => 43
-   | Ctor3 => 44
-   | _     => 45
+func f x y =
+match x with
+   | Ctor1 -> 42
+   | Ctor2 -> 43
+   | Ctor3 -> 44
+   | Ctor4 -> 45
+
 end
 """
 let ifstmt = """
@@ -74,6 +84,8 @@ else 4
 """
 
 let program = System.IO.File.ReadAllText "./program.javi"
+let abpro = fromString program
+let trpro = transpile abpro
 
 [<EntryPoint>]
 let main argv =
