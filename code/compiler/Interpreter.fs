@@ -8,13 +8,6 @@ let rec lookup env x =
     | (y, v) :: r ->
         if x = y then v else lookup r x
 
-(* A runtime value is an integer or a function closure *)
-// type value =
-//     | Integer of int
-//     | Boolean of bool
-//     | TupleVal of value * value
-//     | Closure of string * string * expr * value env (* (f, x, fBody, fDeclEnv) *)
-
 let rec eval (e: Expr) (env: Value Env): Value =
     match e with
     | Program(x :: xs) ->
