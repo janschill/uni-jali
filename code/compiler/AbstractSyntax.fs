@@ -1,6 +1,6 @@
 module AbstractSyntax
 
-type types =
+type Type =
     | Int
     | Float
     | Boolean
@@ -8,16 +8,23 @@ type types =
     | Char
     | Typevar of string
 
-type adtconstructor = string * types list
+type ADTConstructor = string * Type list
 
-type expr =
-    | ConstantInteger of int
-    | ConstantBoolean of bool
+type 'v Env = (string * 'v) list
+
+type Value =
+    | IntegerValue of int
+    | BooleanValue of bool
+    | Tuple of Value * Value
+    | ADTValue of string * Value
+    | Closure of string * string * Expr * Value Env (* (f, x, fBody, fDeclEnv) *)
+
+and Expr =
+    | Program of Expr list
+    | Constant of Value
     | Variable of string
-    | Prim of string * expr * expr
-    | Let of string * expr
-    | If of expr * expr * expr
-    | Function of string * string list * expr list
-    | Tuple of expr * expr
-    | ADT of string * adtconstructor list
-    | Program of expr list
+    | Prim of string * Expr * Expr
+    | Let of string * Expr
+    | If of Expr * Expr * Expr
+    | Function of string * string list * Expr list
+    | ADT of string * ADTConstructor list
