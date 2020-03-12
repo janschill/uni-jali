@@ -84,8 +84,8 @@ else 4
 """
 
 let program = System.IO.File.ReadAllText "./program.javi"
-let abpro = fromString program
-let trpro = transpile abpro
+// let abpro = fromString program
+// let trpro = transpile abpro
 
 [<EntryPoint>]
 let main argv =

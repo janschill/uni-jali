@@ -101,21 +101,21 @@ Exp:
 
 // Lower precedence
 Expr:
-  | Exp NOTEQL Exp  { Prim("!=", $1, $3) }
-  | Exp EQL    Exp  { Prim("==", $1, $3) }
-  | Exp GT     Exp  { Prim(">",  $1, $3) }
-  | Exp LT     Exp  { Prim("<",  $1, $3) }
-  | Exp GE     Exp  { Prim(">=", $1, $3) }
-  | Exp LE     Exp  { Prim("<=", $1, $3) }
-  | Exp             { $1 }
+  | Exp NOTEQL Exp { Prim("!=", $1, $3) }
+  | Exp EQL    Exp { Prim("==", $1, $3) }
+  | Exp GT     Exp { Prim(">",  $1, $3) }
+  | Exp LT     Exp { Prim("<",  $1, $3) }
+  | Exp GE     Exp { Prim(">=", $1, $3) }
+  | Exp LE     Exp { Prim("<=", $1, $3) }
+  | Exp            { $1 }
 
 AtExpr:
-  | Expr NEWLINE  { $1 }
-  | Expr          { $1 }
+  | Expr NEWLINE { $1 }
+  | Expr         { $1 }
 
 AtExp:
-  | Exp NEWLINE  { $1 }
-  | Exp          { $1 }
+  | Exp NEWLINE { $1 }
+  | Exp         { $1 }
 
 Assignment: NAME ASSIGN Expr { Let($1, $3) }
 
@@ -129,8 +129,8 @@ FuncDef:
   | FUNCTION NAME FuncParameter ASSIGN NEWLINE FuncExprList END { Function($2, $3, $6 ) }
 
 PatternParameter:
-    Expr                  { [$1] }
-  | Expr PatternParameter { $1::$2 }
+    Expr                        { [$1] }
+  | Expr COMMA PatternParameter { $1::$3 }
 
 PatternBody:
     PIPE Value RARROW FuncExprList                      { [($2, $4)] }

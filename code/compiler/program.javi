@@ -11,15 +11,14 @@ func myfunc x y z =
 end
 
 if booleanval
-then 1
-else 2
+then 2
+else 3
 
-func f x =
-  y = match x with
+func f x y z =
+  match x y z with
     | Ctor1 -> 42
     | Ctor2 -> 43
     | Ctor3 -> 44
     | Ctor4 -> 45
 
-  y
 end

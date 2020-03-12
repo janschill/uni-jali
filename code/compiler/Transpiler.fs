@@ -42,7 +42,7 @@ let rec transpile (e: Expr): string =
 
         let row5 = "}\n"
         sprintf "%s%s%s%s%s" row1 row2 row3 row4 row5
-    | Pattern(expressions, tuples) -> failwith "Evaluator failed on if-statement: condition must be a boolean value"
+    | Pattern(expressions, tuples) -> failwith "pattern matching not implemented"
     | Function(name, (parameters: string list), expressions) ->
         let parametersTranspiled = List.fold (fun acc el -> (acc + el + ", ")) "" parameters
         let parametersTranspiledCut = (sprintf "%s" (parametersTranspiled.Remove(parametersTranspiled.Length - 2)))
