@@ -23,7 +23,7 @@ let rec eval (e: Expr) (env: Value Env): Value =
             match (operation) with
             | ("+") -> IntegerValue(v1 + v2)
             | ("-") -> IntegerValue(v1 - v2)
-            | ("*") -> IntegerValue(v1 - v2)
+            | ("*") -> IntegerValue(v1 * v2)
             | ("/") -> IntegerValue(v1 / v2)
             | ("%") -> IntegerValue(v1 % v2)
             | (">") -> BooleanValue(v1 > v2)
@@ -34,11 +34,15 @@ let rec eval (e: Expr) (env: Value Env): Value =
             | ("!=") -> BooleanValue(v1 <> v2)
             | _ -> failwithf "%s is not a valid operation on integers" operation
         | _ -> failwith "Sorry, can only operate on integers"
-    | Let(name, expression) -> failwith "not implemented"
+    | Let(name, expression1, expression2) ->
+        let value = eval expression1 env
+        let newEnv = (name, value) :: env
+        eval expression2 newEnv
     | If(cond, thenExpr, elseExpr) ->
         match eval cond env with
         | BooleanValue true -> eval thenExpr env
         | BooleanValue false -> eval elseExpr env
         | _ -> failwith "Evaluator failed on if-statement: condition must be a boolean value"
-    | Function(name, parameter, expressions) -> failwith "not implemented"
+    | Function(name, parameters, expressions) -> Closure(name, parameters, expressions, env)
+    | Apply(name, expressions) -> failwith "not implemented"
     | ADT(adtName, (constructors: ADTConstructor list)) -> failwith "not implemented"

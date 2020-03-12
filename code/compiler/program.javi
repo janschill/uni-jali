@@ -2,23 +2,25 @@ tupleval = (1, (2, 3))
 Model = 0
 booleanval = true
 
-type HTML = TEXT Integer
-html = TEXT 1
+type HTML = TEXT Integer | DIV Integer
 
 func myfunc x y z =
-  k = x + y * z
+  w = if booleanval
+  then 2
+  else 3
+
+  k = w / x + y * z
   k
 end
 
-if booleanval
-then 2
-else 3
 
-func f x y z =
-  match x y z with
+func f x y =
+  match x, y with
     | Ctor1 -> 42
     | Ctor2 -> 43
-    | Ctor3 -> 44
-    | Ctor4 -> 45
 
+end
+
+func main =
+  myfunc (1) (12) (3)
 end

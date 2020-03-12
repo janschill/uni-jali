@@ -17,15 +17,16 @@ type Value =
     | BooleanValue of bool
     | Tuple of Value * Value
     | ADTValue of string * Value
-    | Closure of string * string * Expr * Value Env (* (f, x, fBody, fDeclEnv) *)
+    | Closure of string * string list * Expr list * Value Env (* (f, x, fBody, fDeclEnv) *)
 
 and Expr =
     | Program of Expr list
     | Constant of Value
     | Variable of string
     | Prim of string * Expr * Expr
-    | Let of string * Expr
+    | Let of string * Expr * Expr
     | If of Expr * Expr * Expr
+    | Apply of string * Expr list
     | Pattern of Expr list * (Expr * Expr list) list
     | Function of string * string list * Expr list
     | ADT of string * ADTConstructor list

@@ -61,7 +61,6 @@ Main:
 Program: DeclarationList  { Program( $1 ) }
 
 Declaration:
-  | Expr                { $1 }
   | Assignment          { $1 }
   | FuncDef             { $1 }
   | ADT                 { $1 }
@@ -89,6 +88,7 @@ Value:
 // Higher precedence
 Exp:
   | Value                           { $1 }
+  | NAME Args                       { Apply($1, $2) }
   | IF AtExpr THEN AtExp ELSE AtExp { If($2, $4, $6) }
   | MATCH PatternParameter WITH NEWLINE PatternBody { Pattern($2, $5) }
   | MINUS Exp                       { Prim("-", Constant (IntegerValue 0), $2) }
@@ -117,7 +117,16 @@ AtExp:
   | Exp NEWLINE { $1 }
   | Exp         { $1 }
 
-Assignment: NAME ASSIGN Expr { Let($1, $3) }
+Arg:
+  | Value { $1 }
+  | LPAR Exp RPAR { $2 }
+Args:
+  | /* empty */ { [] }
+  | Arg Args    { $1::$2 }
+
+Assignment:
+  | NAME ASSIGN Expr NEWLINE Expr { Let($1, $3, $5) }
+  | NAME ASSIGN Expr NEWLINE Declaration { Let($1, $3, $5) }
 
 FuncExprList:
   | Expr NEWLINE                      { [$1] }

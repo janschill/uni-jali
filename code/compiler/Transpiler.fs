@@ -23,8 +23,8 @@ let rec transpile (e: Expr): string =
         let value1 = transpile expression1
         let value2 = transpile expression2
         sprintf "(%s %s %s)" value1 operation value2
-    | Let(name, expression) ->
-        sprintf "const %s = %s;\n" name (transpile expression)
+    | Let(name, expression1, expression2) ->
+        sprintf "const %s = %s;\n%s" name (transpile expression1) (transpile expression2)
     | If(expression1, expression2, expression3) ->
         let value1 = transpile expression1
         let value2 = transpile expression2
