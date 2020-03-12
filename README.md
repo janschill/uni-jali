@@ -52,12 +52,20 @@ func my_function x = x
 #### If statement
 
 ```
-if a == 1 then
-  expression1
-else if a == 2 then
-  expression2
-else
-  expression3
+if a == 1
+then expression1
+else if a == 2
+then expression2
+else expression3
+```
+
+#### Pattern matching
+
+```
+match x with
+  | Ctor1 -> expression
+  | Ctor2 -> expression
+ 
 ```
 
 #### Tuple
