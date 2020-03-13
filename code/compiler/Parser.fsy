@@ -123,16 +123,18 @@ Arg:
   | Value { $1 }
   | LPAR Exp RPAR { $2 }
 
-MatchExpr: MATCH PatternParameter WITH NEWLINE PatternBody { Pattern($2, $5) }
+MatchExpr: MATCH Expr WITH NEWLINE PatternBody { Pattern($2, $5) }
 PatternParameter:
     Expr { [$1] }
   | Expr COMMA PatternParameter { $1::$3 }
 PatternBody:
-    PIPE Value RARROW Expr { [($2, $4)] }
-  | PIPE Value RARROW Expr PatternBody { ($2, $4)::$5 }
+    PIPE Value RARROW Expr                      { [($2, $4)] }
+  | PIPE Value RARROW Expr NEWLINE PatternBody  { ($2, $4)::$5 }
   // | PIPE USCORE RARROW FuncExprList NEWLINE PatternBody { ($2, $4)::$6 }
 
-LetBinding: NAME ASSIGN Expr NEWLINE Expr { Let($1, $3, $5) }
+LetBinding: 
+  | NAME ASSIGN Expr NEWLINE Expr { Let($1, $3, $5) }
+  | NAME ASSIGN Expr NEWLINE Declaration { Let($1, $3, $5) }
 
 FuncDef:
   | FUNCTION NAME Params ASSIGN Expr NEWLINE Expr { Function($2, $3, $5, $7) }

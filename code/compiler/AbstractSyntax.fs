@@ -16,7 +16,7 @@ type Value =
     | IntegerValue of int
     | BooleanValue of bool
     | Tuple of Value * Value
-    | ADTValue of string * Value
+    | ADTValue of string * Value list
     | Closure of string * string list * Expr list * Value Env (* (f, x, fBody, fDeclEnv) *)
 
 and Expr =
@@ -27,6 +27,6 @@ and Expr =
     | Let of string * Expr * Expr
     | If of Expr * Expr * Expr
     | Apply of string * Expr list
-    | Pattern of Expr list * (Expr * Expr) list
+    | Pattern of Expr * (Expr * Expr) list
     | Function of string * string list * Expr * Expr (* (f, x, fBody, letBody) *)
     | ADT of string * ADTConstructor list
