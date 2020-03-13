@@ -61,6 +61,7 @@ Main:
 Program: DeclarationList  { Program( $1 ) }
 
 Declaration:
+  | Exp                 { $1 }
   | Assignment          { $1 }
   | FuncDef             { $1 }
   | ADT                 { $1 }
