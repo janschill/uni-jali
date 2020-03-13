@@ -4,14 +4,23 @@ booleanval = true
 
 type HTML = TEXT Integer | DIV Integer
 
-func myfunc x y z =
-  w = if booleanval
-  then 2
-  else 3
+func f x z = 
+  y = x+z
+  y 
+func m a b = 
+  a
+0
 
+func myfunc x y z =
+  w = (if (3>2) 
+  then 2 
+  else 3)
   k = w / x + y * z
   k
-end
+0
+
+
+
 
 
 func f x y =

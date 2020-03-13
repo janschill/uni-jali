@@ -27,6 +27,6 @@ and Expr =
     | Let of string * Expr * Expr
     | If of Expr * Expr * Expr
     | Apply of string * Expr list
-    | Pattern of Expr list * (Expr * Expr list) list
-    | Function of string * string list * Expr list
+    | Pattern of Expr list * (Expr * Expr) list
+    | Function of string * string list * Expr * Expr (* (f, x, fBody, letBody) *)
     | ADT of string * ADTConstructor list

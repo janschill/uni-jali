@@ -43,6 +43,6 @@ let rec eval (e: Expr) (env: Value Env): Value =
         | BooleanValue true -> eval thenExpr env
         | BooleanValue false -> eval elseExpr env
         | _ -> failwith "Evaluator failed on if-statement: condition must be a boolean value"
-    | Function(name, parameters, expressions) -> Closure(name, parameters, expressions, env)
+    // | Function(name, parameters, expressions) -> Closure(name, parameters, expressions, env)
     | Apply(name, expressions) -> failwith "not implemented"
     | ADT(adtName, (constructors: ADTConstructor list)) -> failwith "not implemented"

@@ -43,23 +43,23 @@ let rec transpile (e: Expr): string =
         let row5 = "}\n"
         sprintf "%s%s%s%s%s" row1 row2 row3 row4 row5
     | Pattern(expressions, tuples) -> failwith "pattern matching not implemented"
-    | Function(name, (parameters: string list), expressions) ->
-        let parametersTranspiled = List.fold (fun acc el -> (acc + el + ", ")) "" parameters
-        let parametersTranspiledCut = (sprintf "%s" (parametersTranspiled.Remove(parametersTranspiled.Length - 2)))
+    // | Function(name, (parameters: string list), expressions, expressions2) ->
+    //     let parametersTranspiled = List.fold (fun acc el -> (acc + el + ", ")) "" parameters
+    //     let parametersTranspiledCut = (sprintf "%s" (parametersTranspiled.Remove(parametersTranspiled.Length - 2)))
 
-        let rec evalExpressions es =
-            match es with
-            | [] -> []
-            | [ e ] -> [ sprintf "return %s" (transpile e) ]
-            | e :: exs -> transpile e :: evalExpressions exs
+    //     let rec evalExpressions es =
+    //         match es with
+    //         | [] -> []
+    //         | [ e ] -> [ sprintf "return %s" (transpile e) ]
+    //         | e :: exs -> transpile e :: evalExpressions exs
 
-        let exps = evalExpressions expressions
+    //     let exps = evalExpressions expressions
 
-        let funcbody =
-            List.fold (fun s e ->
-                s + sprintf "%s\n" e) "" exps
+    //     let funcbody =
+    //         List.fold (fun s e ->
+    //             s + sprintf "%s\n" e) "" exps
 
-        sprintf "function %s(%s) {\n%s}\n" name parametersTranspiledCut funcbody
+    //     sprintf "function %s(%s) {\n%s}\n" name parametersTranspiledCut funcbody
     | ADT(adtName, (constructors: ADTConstructor list)) ->
         let setterGenerator count = "this.p" + string (count) + " = p" + string (count) + ";\n"
         let parameterGenerator count = "p" + string (count) + ", "
