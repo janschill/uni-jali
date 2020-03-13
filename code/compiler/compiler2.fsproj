@@ -13,5 +13,4 @@
     <Compile Include="Program.fs" />
     <Compile Include="Test.fs" />
   </ItemGroup>
-  
 </Project>
