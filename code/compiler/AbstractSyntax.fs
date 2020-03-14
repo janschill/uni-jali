@@ -17,7 +17,7 @@ type Value =
     | BooleanValue of bool
     | Tuple of Value * Value
     | ADTValue of string * Value list
-    | Closure of string * string list * Expr list * Value Env (* (f, x, fBody, fDeclEnv) *)
+    | Closure of string * string list * Expr * Value Env (* (f, x, fBody, fDeclEnv) *)
 
 and Expr =
     | Program of Expr list

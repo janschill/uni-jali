@@ -20,9 +20,6 @@ func myfunc x y z =
 0
 
 
-
-
-
 func f x y =
   match x, y with
     | Ctor1 -> 42

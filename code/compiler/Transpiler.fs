@@ -16,7 +16,7 @@ let rec transpile (e: Expr): string =
             | Tuple(value1, value2) -> sprintf "(%s, %s)" (transpileConstant value1) (transpileConstant value2)
             | IntegerValue i -> string i
             | BooleanValue b -> string b
-            | ADTValue(name, value) -> sprintf "new %s(%s);" name (transpileConstant value)
+            // | ADTValue(name, value) -> sprintf "new %s(%s);" name (transpileConstant value)
         transpileConstant c
     | Variable v -> string v
     | Prim(operation, expression1, expression2) ->
