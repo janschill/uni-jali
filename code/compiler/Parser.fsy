@@ -62,14 +62,14 @@ Program: DeclarationList  { Program( $1 ) }
 
 DeclarationList:
   | Declaration { [$1] }
-  | Declaration NEWLINE                  { [$1] }   // handles newlines at end of file
-  | Declaration NEWLINE DeclarationList  { $1 :: $3 }
+  | Declaration NEWLINE { [$1] } // handles newlines at end of file
+  | Declaration NEWLINE DeclarationList { $1 :: $3 }
 Declaration:
-  | Expr                { $1 }
-  | LetBinding          { $1 }
-  | FuncDef             { $1 }
-  | ADT                 { $1 }
-  | NEWLINE Declaration { $2 }    // handles empty lines
+  | Expr { $1 }
+  | LetBinding { $1 }
+  | FuncDef { $1 }
+  | ADT { $1 }
+  | NEWLINE Declaration { $2 } // handles empty lines
 
 // Stmt:
 // | NAME ASSIGN Expr NEWLINE { Let($1, $3) }
@@ -77,12 +77,12 @@ Declaration:
 
 Expr: // Lower precedence
   | Exp NOTEQL Exp { Prim("!=", $1, $3) }
-  | Exp EQL    Exp { Prim("==", $1, $3) }
-  | Exp GT     Exp { Prim(">",  $1, $3) }
-  | Exp LT     Exp { Prim("<",  $1, $3) }
-  | Exp GE     Exp { Prim(">=", $1, $3) }
-  | Exp LE     Exp { Prim("<=", $1, $3) }
-  | Exp            { $1 }
+  | Exp EQL Exp { Prim("==", $1, $3) }
+  | Exp GT Exp { Prim(">",  $1, $3) }
+  | Exp LT Exp { Prim("<",  $1, $3) }
+  | Exp GE Exp { Prim(">=", $1, $3) }
+  | Exp LE Exp { Prim("<=", $1, $3) }
+  | Exp { $1 }
 Exp: // Higher precedence
   | Value { $1 }
   | LetBinding { $1 }
@@ -91,24 +91,24 @@ Exp: // Higher precedence
   | FuncCall { $1 }
   | MatchExpr { $1 }
   | MINUS Exp { Prim("-", Constant (IntegerValue 0), $2) }
-  | Exp PLUS  Exp                   { Prim("+", $1, $3) }
-  | Exp MINUS Exp                   { Prim("-", $1, $3) }
-  | Exp TIMES Exp                   { Prim("*", $1, $3) }
-  | Exp DIV   Exp                   { Prim("/", $1, $3) }
-  | Exp MOD   Exp                   { Prim("%", $1, $3) }
-  | LPAR Expr RPAR                  { $2 }
+  | Exp PLUS Exp { Prim("+", $1, $3) }
+  | Exp MINUS Exp { Prim("-", $1, $3) }
+  | Exp TIMES Exp { Prim("*", $1, $3) }
+  | Exp DIV Exp { Prim("/", $1, $3) }
+  | Exp MOD Exp { Prim("%", $1, $3) }
+  | LPAR Expr RPAR { $2 }
 
 Value:
     PrimitiveValue { Constant($1) }
-  | NAME           { Variable $1 }
+  | NAME { Variable $1 }
 PrimitiveValue:
-    CONSTINT                    { IntegerValue $1 }
-  | CONSTBOOL                   { BooleanValue $1 }
+    CONSTINT { IntegerValue $1 }
+  | CONSTBOOL { BooleanValue $1 }
   | ADTValue { $1 }
   | LPAR PrimitiveValue COMMA PrimitiveValue RPAR { Tuple($2, $4) }
 
 PrimitiveValueList:
-  | /* empty */  { [] }
+  | /* empty */ { [] }
   | PrimitiveValue PrimitiveValueList { $1::$2 }
 ADTValue:
   | NAME PrimitiveValueList { ADTValue($1, $2) }
@@ -116,15 +116,15 @@ ADTValue:
 IfStatement: IF AtExpr THEN AtExp ELSE AtExp { If($2, $4, $6) }
 AtExpr:
   | Expr NEWLINE { $1 }
-  | Expr         { $1 }
+  | Expr { $1 }
 AtExp:
   | Exp NEWLINE { $1 }
-  | Exp         { $1 }
+  | Exp { $1 }
 
 FuncCall: NAME Args { Apply($1, $2) }
 Args:
   | /* empty */ { [] }
-  | Arg Args    { $1::$2 }
+  | Arg Args { $1::$2 }
 Arg:
   | Value { $1 }
   | LPAR Exp RPAR { $2 }
@@ -134,11 +134,11 @@ PatternParameter:
     Expr { [$1] }
   | Expr COMMA PatternParameter { $1::$3 }
 PatternBody:
-    PIPE Value RARROW Expr                      { [($2, $4)] }
-  | PIPE Value RARROW Expr NEWLINE PatternBody  { ($2, $4)::$6 }
+    PIPE Value RARROW Expr { [($2, $4)] }
+  | PIPE Value RARROW Expr NEWLINE PatternBody { ($2, $4)::$6 }
   // | PIPE USCORE RARROW FuncExprList NEWLINE PatternBody { ($2, $4)::$6 }
 
-LetBinding: 
+LetBinding:
   | NAME ASSIGN Expr NEWLINE Expr { Let($1, $3, $5) }
   | NAME ASSIGN Expr NEWLINE Declaration { Let($1, $3, $5) }
 
@@ -150,7 +150,7 @@ Params:
   | /* empty */        { [] }
   | NAME Params { $1::$2 }
 
-// THIS IS OUR PROGRAM?? 
+// THIS IS OUR PROGRAM??
 // FuncDef:
 //   | FUNCTION NAME Params ASSIGN Expr { Function($2, $3, $5 ) }
 //   | FUNCTION NAME Params ASSIGN NEWLINE FuncExprList END { Function($2, $3, $6 ) }
@@ -168,11 +168,11 @@ ADT:
   TYPE NAME ASSIGN ADTContructor { ADT($2, $4) }
 
 ADTContructor:
-    ADTSimpleConstructor   { $1 }
+    ADTSimpleConstructor { $1 }
   | ADTCompoundConstructor { $1 }
 
 ADTSimpleConstructor:
-    NAME ADTConstructorParameter                    { [ADTConstructor($1, $2)] }
+    NAME ADTConstructorParameter { [ADTConstructor($1, $2)] }
   | NAME ADTConstructorParameter PIPE ADTContructor { ADTConstructor($1, $2)::$4 }
 
 ADTCompoundConstructor:
@@ -183,9 +183,9 @@ ADTConstructorParameter:
   | TypeSpec ADTConstructorParameter { $1::$2 }
 
 TypeSpec:
-    INT     { Int }
-  | FLOAT   { Float }
+    INT { Int }
+  | FLOAT { Float }
   | BOOLEAN { Boolean }
-  | STRING  { String }
-  | CHAR    { Char }
-  | NAME    { Typevar $1 }
+  | STRING { String }
+  | CHAR { Char }
+  | NAME { Typevar $1 }
