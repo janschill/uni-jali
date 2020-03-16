@@ -50,120 +50,120 @@
 %nonassoc NOT
 
 %start Main
-%type <AbstractSyntax.Expr> Main Value Expr Exp ADT FuncDef
+%type <AbstractSyntax.Expr> Main Expression ADT FunctionBinding
 %type <AbstractSyntax.Type> TypeSpec
 %%
 
+/*
+# Grammar
+
+AtomicExpression:
+  Constant literal
+  Local variable, parameter
+  Local binding
+  Function binding
+  Parenthesized expression
+
+AppExpression:
+  One-argument function call
+  Multi-argument function call
+
+Expression:
+  Atomic expression
+  Function call
+  Conditional expression
+  Logical negation
+  Arithemtic, comparison
+*/
+
 Main:
-    Program EOF { $1 }
+    Expression EOF { $1 }
 ;
 
-Program: DeclarationList  { Program( $1 ) }
+Expression:
+  | AtomicExpression { $1 }
+  | AppExpression { $1 }
+  | ConditionalExpression { $1 }
+  | LogicalNegation { $1 }
+  | ArtihemticExpression { $1 }
+  | ComparisonExpression { $1 }
 
-DeclarationList:
-  | Declaration { [$1] }
-  | Declaration NEWLINE { [$1] } // handles newlines at end of file
-  | Declaration NEWLINE DeclarationList { $1 :: $3 }
-Declaration:
-  | Expr { $1 }
-  | LetBinding { $1 }
-  | FuncDef { $1 }
-  | ADT { $1 }
-  | NEWLINE Declaration { $2 } // handles empty lines
+AtomicExpression:
+  | ConstantLiteral { $1 } // constant literal and local variable, parameter
+  | LocalBinding { $1 }
+  | FunctionBinding { $1 }
+  | ParenthesizedExpression { $1 }
 
-// Stmt:
-// | NAME ASSIGN Expr NEWLINE { Let($1, $3) }
-// | BEGIN StmtList END { Seq(List.rev($2)) }    I want this one :'(
-
-Expr: // Lower precedence
-  | Exp NOTEQL Exp { Prim("!=", $1, $3) }
-  | Exp EQL Exp { Prim("==", $1, $3) }
-  | Exp GT Exp { Prim(">",  $1, $3) }
-  | Exp LT Exp { Prim("<",  $1, $3) }
-  | Exp GE Exp { Prim(">=", $1, $3) }
-  | Exp LE Exp { Prim("<=", $1, $3) }
-  | Exp { $1 }
-Exp: // Higher precedence
-  | Value { $1 }
-  | LetBinding { $1 }
-  | IfStatement { $1 }
-  | FuncDef { $1 }
-  | FuncCall { $1 }
-  | MatchExpr { $1 }
-  | MINUS Exp { Prim("-", Constant (IntegerValue 0), $2) }
-  | Exp PLUS Exp { Prim("+", $1, $3) }
-  | Exp MINUS Exp { Prim("-", $1, $3) }
-  | Exp TIMES Exp { Prim("*", $1, $3) }
-  | Exp DIV Exp { Prim("/", $1, $3) }
-  | Exp MOD Exp { Prim("%", $1, $3) }
-  | LPAR Expr RPAR { $2 }
-
-Value:
-    PrimitiveValue { Constant($1) }
+ConstantLiteral:
+  | CONSTINT { Constant (IntegerValue $1) }
+  | CONSTBOOL { Constant (BooleanValue $1) }
   | NAME { Variable $1 }
-PrimitiveValue:
-    CONSTINT { IntegerValue $1 }
-  | CONSTBOOL { BooleanValue $1 }
   | ADTValue { $1 }
-  | LPAR PrimitiveValue COMMA PrimitiveValue RPAR { Tuple($2, $4) }
+  | LPAR /* what here? */ RPAR { Tuple($2, $4) }
 
-PrimitiveValueList:
+LocalBinding:
+  | NAME ASSIGN Expression NEWLINE Expression { Let($1, $3, $5) }
+
+FunctionBinding:
+  | FUNCTION NAME Params ASSIGN Expression NEWLINE Expression { Function($2, $3, $5, $7) }
+  | FUNCTION NAME Params ASSIGN NEWLINE Expression NEWLINE Expression { Function($2, $3, $6, $8) }
+  // | FUNCTION NAME Params ASSIGN NEWLINE Expression NEWLINE Expression NEWLINE { Function($2, $3, $6, $8) }
+Params:
   | /* empty */ { [] }
-  | PrimitiveValue PrimitiveValueList { $1::$2 }
-ADTValue:
-  | NAME PrimitiveValueList { ADTValue($1, $2) }
+  | NAME Params { $1::$2 }
 
-IfStatement: IF AtExpr THEN AtExp ELSE AtExp { If($2, $4, $6) }
-AtExpr:
-  | Expr NEWLINE { $1 }
-  | Expr { $1 }
-AtExp:
-  | Exp NEWLINE { $1 }
-  | Exp { $1 }
+ParenthesizedExpression:
+  | LPAR Expression RPAR { $2 }
 
-FuncCall: NAME Args { Apply($1, $2) }
+AppExpression:
+  | FunctionCall { $1 }
+
+FunctionCall: NAME Args { Apply($1, $2) }
 Args:
   | /* empty */ { [] }
   | Arg Args { $1::$2 }
 Arg:
-  | Value { $1 }
-  | LPAR Exp RPAR { $2 }
+  | ConstantLiteral { $1 }
+  | LPAR Expression RPAR { $2 }
 
-MatchExpr: MATCH Expr WITH NEWLINE PatternBody { Pattern($2, $5) }
-PatternParameter:
-    Expr { [$1] }
-  | Expr COMMA PatternParameter { $1::$3 }
+ConditionalExpression:
+  | IfStatement { $1 }
+  | MatchExpr { $1 }
+
+IfStatement:
+  | IF Expression THEN Expression ELSE Expression { If($2, $4, $6) }
+
+MatchExpr: MATCH Expression WITH NEWLINE PatternBody { Pattern($2, $5) }
 PatternBody:
-    PIPE Value RARROW Expr { [($2, $4)] }
-  | PIPE Value RARROW Expr NEWLINE PatternBody { ($2, $4)::$6 }
+    PIPE ConstantLiteral RARROW Expression { [($2, $4)] }
+  | PIPE ConstantLiteral RARROW Expression NEWLINE PatternBody { ($2, $4)::$6 }
   // | PIPE USCORE RARROW FuncExprList NEWLINE PatternBody { ($2, $4)::$6 }
 
-LetBinding:
-  | NAME ASSIGN Expr NEWLINE Expr { Let($1, $3, $5) }
-  | NAME ASSIGN Expr NEWLINE Declaration { Let($1, $3, $5) }
+LogicalNegation:
+  | MINUS Expression { Prim("-", Constant (IntegerValue 0), $2) }
+ArtihemticExpression:
+  | Expression PLUS Expression { Prim("+", $1, $3) }
+  | Expression MINUS Expression { Prim("-", $1, $3) }
+  | Expression TIMES Expression { Prim("*", $1, $3) }
+  | Expression DIV Expression { Prim("/", $1, $3) }
+  | Expression MOD Expression { Prim("%", $1, $3) }
+ComparisonExpression:
+  | Expression NOTEQL Expression { Prim("!=", $1, $3) }
+  | Expression EQL Expression { Prim("==", $1, $3) }
+  | Expression GT Expression { Prim(">",  $1, $3) }
+  | Expression LT Expression { Prim("<",  $1, $3) }
+  | Expression GE Expression { Prim(">=", $1, $3) }
+  | Expression LE Expression { Prim("<=", $1, $3) }
 
-FuncDef:
-  | FUNCTION NAME Params ASSIGN Expr NEWLINE Expr { Function($2, $3, $5, $7) }
-  | FUNCTION NAME Params ASSIGN NEWLINE Expr NEWLINE Expr { Function($2, $3, $6, $8) }
-  // | FUNCTION NAME Params ASSIGN NEWLINE Expr NEWLINE Expr NEWLINE { Function($2, $3, $6, $8) }
-Params:
-  | /* empty */        { [] }
-  | NAME Params { $1::$2 }
-
-// THIS IS OUR PROGRAM??
-// FuncDef:
-//   | FUNCTION NAME Params ASSIGN Expr { Function($2, $3, $5 ) }
-//   | FUNCTION NAME Params ASSIGN NEWLINE FuncExprList END { Function($2, $3, $6 ) }
-// Params:
-//   | /* empty */        { [] }
-//   | NAME Params { $1::$2 }
-// FuncExprList:
-//   | Expr NEWLINE { [$1] }
-//   | LetBinding NEWLINE FuncExprList   { $1 :: $3 }
-//   | FuncDef FuncExprList              { $1 :: $2 }
+// ====================
 
 
-// ====== ADT grammar rules: =======
+PrimitiveValueList:
+  | /* empty */ { [] }
+  | ConstantLiteral PrimitiveValueList { $1::$2 }
+ADTValue:
+  | NAME PrimitiveValueList { ADTValue($1, $2) }
+
 ADT:
   TYPE NAME ASSIGN ADTContructor { ADT($2, $4) }
 
