@@ -78,7 +78,7 @@ match x with
 end
 """
 let ifstmt = """
-if 3>4
+if 3 > 4
 then 3
 else 4
 """
