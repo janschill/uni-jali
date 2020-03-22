@@ -24,24 +24,35 @@ let evalString (str: string): Value = eval (fromString str) []
 
 let testEval = """
 3 + 4
-7 == 9
 """
 
 let simplefunction = """
-func f x = x + y
+func f x =
+  x + y
+end
+0
 """
 let simplefunction2 = """
 func f x =
-    x = 2
+    x = 2 in
     x
 end
+0
 """
 let complexfunction = """
 func f x y z =
-  k = x + y * z
+  k = x + y * z in
   k
 end
+0
 """
+let ifstmt = """
+if 3 > 4
+then 3
+else 4
+"""
+
+// ========== to be implemented: ==========
 
 let adta = """type DisjointSum = Ctor1 Integer | Ctor2 String String"""
 let adtb = """type DisjointSum =
@@ -76,11 +87,6 @@ match x with
    | Ctor4 -> 45
 
 end
-"""
-let ifstmt = """
-if 3 > 4
-then 3
-else 4
 """
 
 let program = System.IO.File.ReadAllText "./program.javi"

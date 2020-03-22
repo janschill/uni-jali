@@ -25,32 +25,33 @@ let keyword s =
     | "type"    -> TYPE
     | "match"   -> MATCH
     | "with"    -> WITH
+    | "in"      -> IN
     | _         -> NAME s
 }
 
 rule Token = parse
-  | [' ' '\r' '\t'] { Token lexbuf }
-  | '\n'            { lexbuf.EndPos <- lexbuf.EndPos.NextLine; NEWLINE }
-  | ['0'-'9']+      { CONSTINT (System.Int32.Parse (lexemeAsString lexbuf)) }
+  | [' ' '\r' '\t']+ { Token lexbuf }
+  | ['\n' '\012']    { lexbuf.EndPos <- lexbuf.EndPos.NextLine; Token lexbuf }
+  | ['0'-'9']+       { CONSTINT (System.Int32.Parse (lexemeAsString lexbuf)) }
   | ['a'-'z''A'-'Z']['a'-'z''A'-'Z''0'-'9']*  { keyword (lexemeAsString lexbuf) }
-  | '+'             { PLUS }
-  | '-'             { MINUS }
-  | '*'             { TIMES }
-  | '/'             { DIV }
-  | '%'             { MOD }
-  | '='             { ASSIGN }
-  | "=="            { EQL }
-  | "!="            { NOTEQL }
-  | '>'             { GT }
-  | '<'             { LT }
-  | ">="            { GE }
-  | "<="            { LE }
-  | '!'             { NOT }
-  | '('             { LPAR }
-  | ')'             { RPAR }
-  | eof             { EOF }
-  | ','             { COMMA }
-  | '|'             { PIPE }
-  | "<-"            { LARROW }
-  | "->"            { RARROW }
-  | '_'             { USCORE }
+  | '+'              { PLUS }
+  | '-'              { MINUS }
+  | '*'              { TIMES }
+  | '/'              { DIV }
+  | '%'              { MOD }
+  | '='              { ASSIGN }
+  | "=="             { EQL }
+  | "!="             { NOTEQL }
+  | '>'              { GT }
+  | '<'              { LT }
+  | ">="             { GE }
+  | "<="             { LE }
+  | '!'              { NOT }
+  | '('              { LPAR }
+  | ')'              { RPAR }
+  | eof              { EOF }
+  | ','              { COMMA }
+  | '|'              { PIPE }
+  | "<-"             { LARROW }
+  | "->"             { RARROW }
+  | '_'              { USCORE }
