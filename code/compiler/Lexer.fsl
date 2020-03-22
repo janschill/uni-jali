@@ -25,7 +25,6 @@ let keyword s =
     | "type"    -> TYPE
     | "match"   -> MATCH
     | "with"    -> WITH
-    | "in"      -> IN
     | _         -> NAME s
 }
 
@@ -52,6 +51,7 @@ rule Token = parse
   | eof              { EOF }
   | ','              { COMMA }
   | '|'              { PIPE }
+  | ';'              { SEMICOLON }
   | "<-"             { LARROW }
   | "->"             { RARROW }
   | '_'              { USCORE }
