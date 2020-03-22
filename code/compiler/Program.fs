@@ -94,8 +94,7 @@ let adte = """type DisjointSum =
 
 let adtvalue = """
 x = Ctor1 0 1;
-x;
-0
+x
 """
 let program = System.IO.File.ReadAllText "./program.javi"
 

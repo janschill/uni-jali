@@ -10,9 +10,6 @@ let rec lookup env x =
 
 let rec eval (e: Expr) (env: Value Env): Value =
     match e with
-    | Program(x :: xs) ->
-        let xval = eval x env
-        if xs.IsEmpty then xval else eval (Program(xs)) env // TODO: this just returns the last value in the program...
     | Constant c -> c
     | Variable v -> lookup env v
     | Prim(operation, expression1, expression2) ->
@@ -43,9 +40,17 @@ let rec eval (e: Expr) (env: Value Env): Value =
         | BooleanValue true -> eval thenExpr env
         | BooleanValue false -> eval elseExpr env
         | _ -> failwith "Evaluator failed on if-statement: condition must be a boolean value"
-    | Function(name, parameters, expression, expression2) -> 
+    | Function(name, parameters, expression, expression2) ->
         let closure = Closure(name, parameters, expression, env)
-        let newEnv = (name, closure)::env;
+        let newEnv = (name, closure) :: env
         eval expression2 newEnv
-    | Apply(name, expressions) -> failwith "not implemented"
-    | ADT(adtName, (constructors: ADTConstructor list)) -> failwith "not implemented"
+    | Apply(fname, farguments) ->
+        let fclosure = lookup env fname
+        match fclosure with
+        | Closure(cname, cparameters, cexpression, cenv) ->
+            let paramArgu = List.zip cparameters farguments
+            let newEnv = List.fold (fun env (name, arg) -> (name, eval arg env) :: cenv) farguments
+            let a = (cname, fclosure) :: newEnv
+            eval cexpression a
+
+    | ADT(adtName, (constructors: ADTConstructor list), a) -> failwith "not implemented"

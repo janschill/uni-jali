@@ -20,14 +20,13 @@ type Value =
     | Closure of string * string list * Expr * Value Env (* (f, x, fBody, fDeclEnv) *)
 
 and Expr =
-    | Program of Expr list
     | Constant of Value
     | Variable of string
     | Prim of string * Expr * Expr
     | Let of string * Expr * Expr
     | If of Expr * Expr * Expr
-    | Tuple of Expr list
+    | Tuple of Expr * Expr
     | Apply of string * Expr list
     | Pattern of Expr * (Expr * Expr) list
     | Function of string * string list * Expr * Expr (* (f, x, fBody, letBody) *)
-    | ADT of string * ADTConstructor list
+    | ADT of string * ADTConstructor list * Expr

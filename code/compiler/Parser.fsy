@@ -99,7 +99,7 @@ ConstantLiteral:
   | CONSTINT { Constant (IntegerValue $1) }
   | CONSTBOOL { Constant (BooleanValue $1) }
   | NAME { Variable $1 }
-  // | LPAR /* what here? */ RPAR { Tuple($2, $4) }
+  | LPAR Expression COMMA Expression RPAR { Tuple($2, $4) }
 
 LocalBinding:
   | NAME ASSIGN Expression SEMICOLON Expression { Let($1, $3, $5) }
@@ -157,17 +157,15 @@ ComparisonExpression:
   | Expression GE Expression { Prim(">=", $1, $3) }
   | Expression LE Expression { Prim("<=", $1, $3) }
 
-// ====================
-
-// PrimitiveValueList:
+// ExpressionList:
 //   | /* empty */ { [] }
-//   | ConstantLiteral PrimitiveValueList { $1::$2 }
+//   | Expression ExpressionList { $1::$2 }
 
 // ADTValue:
-//   | NAME PrimitiveValueList { ADTValue($1, $2) }
+//   | NAME ExpressionList { ADTValue($1, $2) }
 
 ADT:
-  TYPE NAME ASSIGN ADTContructor { ADT($2, $4) }
+  TYPE NAME ASSIGN ADTContructor Expression { ADT($2, $4, $5) }
 
 ADTContructor:
   | NAME ADTConstructorParameter { [ADTConstructor($1, $2)] }

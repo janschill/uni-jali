@@ -60,7 +60,7 @@ let rec transpile (e: Expr): string =
     //             s + sprintf "%s\n" e) "" exps
 
     //     sprintf "function %s(%s) {\n%s}\n" name parametersTranspiledCut funcbody
-    | ADT(adtName, (constructors: ADTConstructor list)) ->
+    | ADT(adtName, (constructors: ADTConstructor list), a) ->
         let setterGenerator count = "this.p" + string (count) + " = p" + string (count) + ";\n"
         let parameterGenerator count = "p" + string (count) + ", "
         let generateVariables types generatorFunc =
