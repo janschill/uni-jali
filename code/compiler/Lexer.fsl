@@ -28,11 +28,16 @@ let keyword s =
     | _         -> NAME s
 }
 
+(*
+  string literal not working yet
+  rethink the regex
+*)
 rule Token = parse
   | [' ' '\r' '\t']+ { Token lexbuf }
   | ['\n' '\012']    { lexbuf.EndPos <- lexbuf.EndPos.NextLine; Token lexbuf }
   | ['0'-'9']+       { CONSTINT (System.Int32.Parse (lexemeAsString lexbuf)) }
   | ['a'-'z''A'-'Z']['a'-'z''A'-'Z''0'-'9']*  { keyword (lexemeAsString lexbuf) }
+  | ['"']['a'-'z''A'-'Z''0'-'9']*['"']  { STRINGLITERAL }
   | '+'              { PLUS }
   | '-'              { MINUS }
   | '*'              { TIMES }
@@ -54,4 +59,4 @@ rule Token = parse
   | ';'              { SEMICOLON }
   | "<-"             { LARROW }
   | "->"             { RARROW }
-  | '_'              { USCORE }
+  | '_'              { USCORE "_" }

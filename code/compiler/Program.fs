@@ -63,22 +63,45 @@ end
 let pattern = """
 func f x y =
 match x with
-   | Ctor1 -> 42
-   | Ctor2 -> 43
-   | Ctor3 -> 44
-   | Ctor4 -> 45
+   | 1 -> 42
+   | 2 -> 43
+   | 3 -> 44
+   | 4 -> 45
 
 end
-0
+f (3) (4)
 """
 
-let apply = """ 
+let wcpattern = """
+func f x y =
+match x with
+   | 1 -> 42
+   | 2 -> 43
+   | 3 -> 44
+   | _ -> 45
+
+end
+f (5) (0)
+"""
+
+let complexpattern = """
+func f x y =
+match (x, y) with
+   | (1, (2, _)) -> 40
+   | (1, (2, 5)) -> 41
+   | (1, (3, 1)) -> 42
+   | (1, (3, _)) -> 43
+end
+f (1) ((3, 5))
+"""
+
+let apply = """
 func f x y z =
   k = x + y * z;
   k
 end
 
-f 3 2 1 
+f 3 2 1
 """
 
 let tuple = """
