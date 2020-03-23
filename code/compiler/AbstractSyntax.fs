@@ -15,18 +15,20 @@ type 'v Env = (string * 'v) list
 type Value =
     | IntegerValue of int
     | BooleanValue of bool
-    | Tuple of Value * Value
-    | ADTValue of string * Value list
+    | CharValue of char
+    | TupleValue of Value * Value
+    | ADTValue of string * string * Value list
     | Closure of string * string list * Expr * Value Env (* (f, x, fBody, fDeclEnv) *)
 
 and Expr =
-    | Program of Expr list
     | Constant of Value
+    | StringLiteral of string
     | Variable of string
+    | Tuple of Expr * Expr
     | Prim of string * Expr * Expr
     | Let of string * Expr * Expr
     | If of Expr * Expr * Expr
+    | Function of string * string list * Expr * Expr (* (f, x, fBody, letBody) *)
     | Apply of string * Expr list
     | Pattern of Expr * (Expr * Expr) list
-    | Function of string * string list * Expr * Expr (* (f, x, fBody, letBody) *)
-    | ADT of string * ADTConstructor list
+    | ADT of string * ADTConstructor list * Expr

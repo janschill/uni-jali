@@ -1,32 +1,32 @@
-tupleval = (1, (2, 3))
-Model = 0
-booleanval = true
+tupleval = (1, (2, 3));
+Model = 0;
 
-type HTML = TEXT Integer | DIV Integer
+func f x z =
+  y = x+z;
+  y
+end
 
-func f x z = 
-  y = x+z
-  y 
-func m a b = 
+func m a b =
   a
-0
+end
 
 func myfunc x y z =
-  w = (if (3>2) 
-  then 2 
-  else 3)
-  k = w / x + y * z
+  w = if (3 > 2)
+      then 2
+      else 3;
+  k = w / x + y * z;
   k
-0
-
+end
 
 func f x y =
-  match x, y with
+  match x with
     | Ctor1 -> 42
     | Ctor2 -> 43
-
 end
+
+type Disjoint = Ctor1 Integer | Ctor2 String String
 
 func main =
   myfunc (1) (12) (3)
 end
+0

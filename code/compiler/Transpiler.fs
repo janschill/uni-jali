@@ -4,19 +4,13 @@ open AbstractSyntax
 
 let rec transpile (e: Expr): string =
     match e with
-    | Program p ->
-        let rec evalExpressions es =
-            match es with
-            | [] -> ""
-            | e :: exs -> sprintf "%s%s" (transpile e) (evalExpressions exs)
-        evalExpressions p
     | Constant c ->
         let rec transpileConstant ct =
             match ct with
-            | Tuple(value1, value2) -> sprintf "(%s, %s)" (transpileConstant value1) (transpileConstant value2)
+            // | Tuple(value1, value2) -> sprintf "(%s, %s)" (transpileConstant value1) (transpileConstant value2)
             | IntegerValue i -> string i
             | BooleanValue b -> string b
-            // | ADTValue(name, value) -> sprintf "new %s(%s);" name (transpileConstant value)
+        // | ADTValue(name, value) -> sprintf "new %s(%s);" name (transpileConstant value)
         transpileConstant c
     | Variable v -> string v
     | Prim(operation, expression1, expression2) ->
@@ -60,7 +54,7 @@ let rec transpile (e: Expr): string =
     //             s + sprintf "%s\n" e) "" exps
 
     //     sprintf "function %s(%s) {\n%s}\n" name parametersTranspiledCut funcbody
-    | ADT(adtName, (constructors: ADTConstructor list)) ->
+    | ADT(adtName, (constructors: ADTConstructor list), a) ->
         let setterGenerator count = "this.p" + string (count) + " = p" + string (count) + ";\n"
         let parameterGenerator count = "p" + string (count) + ", "
         let generateVariables types generatorFunc =

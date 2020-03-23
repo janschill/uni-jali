@@ -1,5 +1,9 @@
 module Interpreter
 
+(*
+    This interpreter takes our code and executes it using F#
+*)
+
 open AbstractSyntax
 
 let rec lookup env x =
@@ -10,11 +14,9 @@ let rec lookup env x =
 
 let rec eval (e: Expr) (env: Value Env): Value =
     match e with
-    | Program(x :: xs) ->
-        let xval = eval x env
-        if xs.IsEmpty then xval else eval (Program(xs)) env // TODO: this just returns the last value in the program...
     | Constant c -> c
     | Variable v -> lookup env v
+    | Tuple(expr1, expr2) -> TupleValue(eval expr1 env, eval expr2 env)
     | Prim(operation, expression1, expression2) ->
         let value1 = eval expression1 env
         let value2 = eval expression2 env
@@ -43,9 +45,46 @@ let rec eval (e: Expr) (env: Value Env): Value =
         | BooleanValue true -> eval thenExpr env
         | BooleanValue false -> eval elseExpr env
         | _ -> failwith "Evaluator failed on if-statement: condition must be a boolean value"
-    | Function(name, parameters, expression, expression2) -> 
+    | Function(name, parameters, expression, expression2) ->
         let closure = Closure(name, parameters, expression, env)
-        let newEnv = (name, closure)::env;
+        let newEnv = (name, closure) :: env
         eval expression2 newEnv
-    | Apply(name, expressions) -> failwith "not implemented"
-    | ADT(adtName, (constructors: ADTConstructor list)) -> failwith "not implemented"
+    | Apply(fname, farguments) ->
+        let fclosure = lookup env fname
+        match fclosure with
+        | Closure(cname, cparameters, cexpression, declarationEnv) ->
+            let declarationEnv2 = (cname, fclosure) :: declarationEnv
+            let newEnv =
+                List.fold (fun newEnv (name, arg) -> (name, eval arg env) :: newEnv) declarationEnv2  // should evaluated args also be added to env, since later args are evaluated with this env? Also, should we test for duplicate names?
+                    (List.zip cparameters farguments)
+            eval cexpression newEnv
+        | _ -> failwith <| sprintf "Evaluator failed on apply: %s is not a function" fname
+    | Pattern(matchExpression, matchList) ->
+        (*
+            this does not work. We need to pass the parameters as values,
+            because when the actual is a nested tuple with a wildcard,
+            it will try to look up the wildcard as a variable in the env.
+        *)
+        let rec matchSingle (actual: Expr) (pattern: Expr) =
+            match (actual, pattern) with
+            | (Constant c, Constant d) when c = d -> true //Some []
+            | (_, Variable "_") -> true //Some []
+            | (Variable v, p) -> lookup env v = eval p env
+            // | (Variable y, v) -> true // Some [(y, v)]
+            | (Tuple(v1, v2), Tuple(p1, p2)) ->
+                let eval1 = matchSingle v1 p1
+                let eval2 = matchSingle v2 p2
+                (eval1 && eval2)
+            | _, _ -> false // None
+
+        // let eMatch = eval matchExpression env
+
+        let body =
+            List.tryFind (fun ((pattern, exp): Expr * Expr) ->
+                // let ePattern = eval pattern env
+                matchSingle matchExpression pattern) matchList // OR pattern == WILDCARD
+        match body with
+        | Some(e) -> eval (snd e) env
+        | None -> failwith "Pattern match incomplete"
+    | ADT(adtName, (constructors: ADTConstructor list), a) -> failwith "not implemented"
+    | _ -> failwith "What?"
