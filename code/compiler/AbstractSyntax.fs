@@ -15,7 +15,7 @@ type 'v Env = (string * 'v) list
 type Value =
     | IntegerValue of int
     | BooleanValue of bool
-    | TupleValue of Value list
+    | TupleValue of Value * Value
     | ADTValue of string * Value list
     | Closure of string * string list * Expr * Value Env (* (f, x, fBody, fDeclEnv) *)
 

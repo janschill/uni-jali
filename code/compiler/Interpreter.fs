@@ -47,10 +47,11 @@ let rec eval (e: Expr) (env: Value Env): Value =
     | Apply(fname, farguments) ->
         let fclosure = lookup env fname
         match fclosure with
-        | Closure(cname, cparameters, cexpression, cenv) ->
-            let paramArgu = List.zip cparameters farguments
-            let newEnv = List.fold (fun env (name, arg) -> (name, eval arg env) :: cenv) farguments
-            let a = (cname, fclosure) :: newEnv
-            eval cexpression a
-
+        | Closure(cname, cparameters, cexpression, declEnv) ->
+            let declEnv2 = (cname, fclosure) :: declEnv
+            let newEnv = List.fold (fun newEnv (name, arg) -> (name, eval arg env) :: newEnv) // should evaluated args also be added to env, since later args are evaluated with this env? Also, should we test for duplicate names?
+                            declEnv2 (List.zip cparameters farguments)
+            eval cexpression newEnv
+        | _ -> failwith <| sprintf "Evaluator failed on apply: %s is not a function" fname   
     | ADT(adtName, (constructors: ADTConstructor list), a) -> failwith "not implemented"
+    | Tuple(expr1, expr2) -> TupleValue(eval expr1 env, eval expr2 env)

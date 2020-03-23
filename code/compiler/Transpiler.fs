@@ -4,12 +4,6 @@ open AbstractSyntax
 
 let rec transpile (e: Expr): string =
     match e with
-    | Program p ->
-        let rec evalExpressions es =
-            match es with
-            | [] -> ""
-            | e :: exs -> sprintf "%s%s" (transpile e) (evalExpressions exs)
-        evalExpressions p
     | Constant c ->
         let rec transpileConstant ct =
             match ct with

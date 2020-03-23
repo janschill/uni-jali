@@ -72,6 +72,20 @@ end
 0
 """
 
+let apply = """ 
+func f x y z =
+  k = x + y * z;
+  k
+end
+
+f 3 2 1 
+"""
+
+let tuple = """
+x = (1,2);
+x
+"""
+
 // ========== to be implemented: ==========
 
 let adta = """type DisjointSum = Ctor1 Integer | Ctor2 String String"""
