@@ -96,6 +96,18 @@ end
 f (1) ((3, 5))
 """
 
+let booleanpattern = """
+func f x y =
+match (x, y) with
+   | (true, (true, _)) -> 40
+   | (true, (true, true)) -> 41
+   | (true, (true, false)) -> 42
+   | (false, (false, _)) -> 43
+   | (false, (true, _)) -> 44
+end
+f (false) ((true, 5))
+"""
+
 let apply = """
 func f x y z =
   k = x + y * z;

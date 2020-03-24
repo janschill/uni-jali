@@ -60,41 +60,23 @@ let rec eval (e: Expr) (env: Value Env): Value =
             eval cexpression newEnv
         | _ -> failwith <| sprintf "Evaluator failed on apply: %s is not a function" fname
     | Pattern(matchExpression, matchList) ->
-        (*
-            this does not work. We need to pass the parameters as values,
-            because when the actual is a nested tuple with a wildcard,
-            it will try to look up the wildcard as a variable in the env.
-        *)
-        // let rec matchSingle (actual: Expr) (pattern: Expr) =
-        //     match (actual, pattern) with
-        //     | (Constant c, Constant d) when c = d -> true //Some []
-        //     | (_, Variable "_") -> true //Some []
-        //     | (Variable v, p) -> lookup env v = eval p env
-        //     // | (Variable y, v) -> true // Some [(y, v)]
-        //     | (Tuple(v1, v2), Tuple(p1, p2)) ->
-        //         let eval1 = matchSingle v1 p1
-        //         let eval2 = matchSingle v2 p2
-        //         (eval1 && eval2)
-        //     | _, _ -> false // None
-        let rec matchSingle2 (actual: Value) (pattern: Value) =
+        let rec matchSingle (actual: Value) (pattern: Value) =
             match (actual, pattern) with
             | (a, p) when a = p -> true //Some []
             | (_, CharValue '_') -> true //Some []
             // | (Variable y, v) -> true // Some [(y, v)]
             | (TupleValue(v1, v2), TupleValue(p1, p2)) ->
-                let eval1 = matchSingle2 v1 p1
-                let eval2 = matchSingle2 v2 p2
+                let eval1 = matchSingle v1 p1
+                let eval2 = matchSingle v2 p2
                 (eval1 && eval2)
-            | _, _ -> false // None        
-
-        // let eMatch = eval matchExpression env
+            | _, _ -> false
 
         let body =
             List.tryFind (fun ((pattern, exp): Expr * Expr) ->
                 // let ePattern = eval pattern env
-                matchSingle2 (eval matchExpression env) (eval pattern env) ) matchList // OR pattern == WILDCARD
+                matchSingle (eval matchExpression env) (eval pattern env)) matchList
         match body with
         | Some(e) -> eval (snd e) env
         | None -> failwith "Pattern match incomplete"
     | ADT(adtName, (constructors: ADTConstructor list), a) -> failwith "not implemented"
-    | _ -> failwith "What?"
+    | _ -> failwith "No match found"
