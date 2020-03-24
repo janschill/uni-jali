@@ -59,4 +59,4 @@ rule Token = parse
   | ';'              { SEMICOLON }
   | "<-"             { LARROW }
   | "->"             { RARROW }
-  | '_'              { USCORE "_" }
+  | '_'              { USCORE }

@@ -42,7 +42,7 @@
 %token THEN
 %token TIMES
 %token TYPE
-%token <string> USCORE
+%token USCORE
 %token WITH
 
 /* lowest precedence  */
@@ -102,7 +102,7 @@ ConstantLiteral:
   | CONSTINT { Constant (IntegerValue $1) }
   | CONSTBOOL { Constant (BooleanValue $1) }
   | NAME { Variable $1 }
-  | USCORE { Variable $1 }
+  | USCORE { Constant (CharValue '_') }
   | LPAR Expression COMMA Expression RPAR { Tuple($2, $4) }
 
 LocalBinding:
