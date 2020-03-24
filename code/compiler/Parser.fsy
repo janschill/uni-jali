@@ -5,6 +5,7 @@
 %token <bool> CONSTBOOL
 %token <int> CONSTINT
 %token <string> NAME
+%token <string> STRINGLITERAL
 %token ASSIGN
 %token BOOLEAN
 %token CHAR
@@ -22,8 +23,8 @@
 %token IF
 %token INT
 %token LARROW
-%token LE
 %token LBRACKET
+%token LE
 %token LPAR
 %token LT
 %token MATCH
@@ -38,7 +39,6 @@
 %token RPAR
 %token SEMICOLON
 %token STRING
-%token STRINGLITERAL
 %token THEN
 %token TIMES
 %token TYPE
@@ -101,6 +101,7 @@ AtomicExpression:
 ConstantLiteral:
   | CONSTINT { Constant (IntegerValue $1) }
   | CONSTBOOL { Constant (BooleanValue $1) }
+  | STRINGLITERAL { Constant ( StringValue $1 )}
   | NAME { Variable $1 }
   | USCORE { Constant (CharValue '_') }
   | LPAR Expression COMMA Expression RPAR { Tuple($2, $4) }
