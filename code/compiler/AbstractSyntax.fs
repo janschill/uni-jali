@@ -20,6 +20,7 @@ type Value =
     | TupleValue of Value * Value
     | ADTValue of string * string * Value list
     | Closure of string * string list * Expr * Value Env (* (f, x, fBody, fDeclEnv) *)
+    | ADTClosure of ADTConstructor * string * Value Env (* (f, x, fBody, fDeclEnv) *)
 
 and Expr =
     | Constant of Value
@@ -30,6 +31,11 @@ and Expr =
     | Let of string * Expr * Expr
     | If of Expr * Expr * Expr
     | Function of string * string list * Expr * Expr (* (f, x, fBody, letBody) *)
-    | Apply of string * Expr list
-    | Pattern of Expr * (Expr * Expr) list
     | ADT of string * ADTConstructor list * Expr
+    | Apply of string * Expr list
+    // | Pattern of Expr * (Expr * Expr) list
+    | Pattern of Expr * (Value * Expr) list
+
+and Pattern =
+    | ConstPattern of Value
+    | Binding of string

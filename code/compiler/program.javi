@@ -1,32 +1,29 @@
-tupleval = (1, (2, 3));
-Model = 0;
+type Disjoint =
+    Ctor1 Integer
+  | Ctor2 String String;
 
-func f x z =
-  y = x+z;
-  y
-end
+a = 1;
 
-func m a b =
-  a
-end
-
-func myfunc x y z =
-  w = if (3 > 2)
-      then 2
-      else 3;
-  k = w / x + y * z;
-  k
-end
-
-func f x y =
+func g x =
   match x with
-    | Ctor1 -> 42
-    | Ctor2 -> 43
+   | a -> 1
+   | 2 -> 2
 end
 
-type Disjoint = Ctor1 Integer | Ctor2 String String
-
-func main =
-  myfunc (1) (12) (3)
+func f x =
+  match x with
+    | Ctor1 (0) -> 41
+    | Ctor1 (1) -> 42
+    | Ctor1 (2) -> 43
+    | Ctor2 (_) (_) -> 44
+    | _ -> 45
 end
-0
+
+func h x =
+  match x with
+    | 1 -> 41
+    | 2 -> 42
+    | _ -> 45
+end
+
+f (Ctor1 (g (1)) )

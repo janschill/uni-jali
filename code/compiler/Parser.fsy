@@ -142,8 +142,8 @@ IfStatement:
 MatchExpr: MATCH Expression WITH PatternBody { Pattern($2, $4) }
 
 PatternBody:
-  | PIPE Expression RARROW Expression { [($2, $4)] }
-  | PIPE Expression RARROW Expression PatternBody { ($2, $4)::$5 }
+  | PIPE ConstantLiteral RARROW Expression { [($2, $4)] }
+  | PIPE ConstantLiteral RARROW Expression PatternBody { ($2, $4)::$5 }
 
 LogicalNegation:
   | MINUS Expression { Prim("-", Constant (IntegerValue 0), $2) }
@@ -172,7 +172,7 @@ ComparisonExpression:
   // Apply(Ctor2, ["hello" "jan"])
 
 ADT:
-  TYPE NAME ASSIGN ADTContructor Expression { ADT($2, $4, $5) }
+  TYPE NAME ASSIGN ADTContructor SEMICOLON Expression { ADT($2, $4, $6) }
 
 ADTContructor:
   | NAME ADTConstructorParameter { [ADTConstructor($1, $2)] }

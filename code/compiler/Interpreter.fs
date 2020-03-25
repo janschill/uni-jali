@@ -49,6 +49,11 @@ let rec eval (e: Expr) (env: Value Env): Value =
         let closure = Closure(name, parameters, expression, env)
         let newEnv = (name, closure) :: env
         eval expression2 newEnv
+    | ADT(adtName, (constructors: ADTConstructor list), expression) ->
+        let finalEnv =
+            List.fold (fun newEnv constructor -> (fst constructor, ADTClosure(constructor, adtName, env)) :: newEnv)
+                env constructors
+        eval expression finalEnv
     | Apply(fname, farguments) ->
         let fclosure = lookup env fname
         match fclosure with
@@ -58,13 +63,24 @@ let rec eval (e: Expr) (env: Value Env): Value =
                 List.fold (fun newEnv (name, arg) -> (name, eval arg env) :: newEnv) declarationEnv2  // should evaluated args also be added to env, since later args are evaluated with this env? Also, should we test for duplicate names?
                     (List.zip cparameters farguments)
             eval cexpression newEnv
+        | ADTClosure((constructor: string * Type list), adtName, declarationEnv) ->
+            let values = List.map (fun arg -> eval arg env) farguments
+            ADTValue(fst constructor, adtName, values) // we chould check whether the arguments have the same length and types as the type list ??
         | _ -> failwith <| sprintf "Evaluator failed on apply: %s is not a function" fname
     | Pattern(matchExpression, matchList) ->
-        let rec matchSingle (actual: Value) (pattern: Value) =
+        let rec matchSingle (actual: Value) (pattern: Expr) =
             match (actual, pattern) with
-            | (a, p) when a = p -> true //Some []
-            | (_, CharValue '_') -> true //Some []
-            // | (Variable y, v) -> true // Some [(y, v)]
+            | (_, Constant(CharValue '_')) -> Some []
+            | (a, Constant v) when a = v -> Some []
+            | (a, Variable x) -> Some [ (x, a) ]
+            | (ADTValue(n, sn, vs), Apply(cn, exprs)) ->
+                if n = cn then
+                    let xs = List.map2 matchSingle vs exprs
+                    if List.forall Option.isSome xs then Some(List.collect Option.get xs) else None
+                else
+                    None
+
+            // (n = cn && (List.forall2 (matchSingle) vs exprs))
             | (TupleValue(v1, v2), TupleValue(p1, p2)) ->
                 let eval1 = matchSingle v1 p1
                 let eval2 = matchSingle v2 p2
@@ -78,5 +94,4 @@ let rec eval (e: Expr) (env: Value Env): Value =
         match body with
         | Some(e) -> eval (snd e) env
         | None -> failwith "Pattern match incomplete"
-    | ADT(adtName, (constructors: ADTConstructor list), a) -> failwith "not implemented"
     | _ -> failwith "No match found"

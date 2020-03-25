@@ -122,24 +122,16 @@ x = (1,2);
 x
 """
 
-// ========== to be implemented: ==========
-
-let adta = """type DisjointSum = Ctor1 Integer | Ctor2 String String"""
-let adtb = """type DisjointSum =
-  Ctor1 Integer | Ctor2 String String
-"""
-let adtc = """type DisjointSum =
+let adt = """type DisjointSum =
     Ctor1 Integer
-  | Ctor2 String String
+  | Ctor2 String String;
+  Ctor2 "a" "b"
 """
-let adtd = """type DisjointSum =
-   Ctor1 Integer |
-   Ctor2 String String
-"""
-// does not work:
-let adte = """type DisjointSum =
-   | Ctor1 Integer
-   | Ctor2 String String
+
+let adtpattern = """
+type DisjointSum =
+    Ctor1 Integer
+  | Ctor2 String String;
 """
 
 let adtvalue = """
