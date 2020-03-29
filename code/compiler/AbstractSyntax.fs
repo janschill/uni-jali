@@ -33,8 +33,7 @@ and Expr =
     | Function of string * string list * Expr * Expr (* (f, x, fBody, letBody) *)
     | ADT of string * ADTConstructor list * Expr
     | Apply of string * Expr list
-    // | Pattern of Expr * (Expr * Expr) list
-    | Pattern of Expr * (Value * Expr) list
+    | Pattern of Expr * (Expr * Expr) list
 
 and Pattern =
     | ConstPattern of Value

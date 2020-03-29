@@ -62,17 +62,17 @@ let rec eval (e: Expr) (env: Value Env): Value =
         let fclosure = lookup env fname
         match fclosure with
         | Closure(cname, cparameters, cexpression, declarationEnv) ->
-            let newEnv =
-                List.fold 
-                    (fun dEnv (name, arg) -> (name, eval arg env) :: dEnv) 
-                    ((cname, fclosure) :: declarationEnv) 
-                    (List.zip cparameters farguments)  // should evaluated args also be added to env, since later args are evaluated with this env? Also, should we test for duplicate names?
+            let newEnv = 
+                List.fold2 
+                    (fun dEnv parameterName argument -> (parameterName, eval argument env) :: dEnv)  
+                    ((cname, fclosure) :: declarationEnv)
+                    cparameters farguments // should evaluated args also be added to env, since later args are evaluated with this env? Also, should we test for duplicate names?
             eval cexpression newEnv
         | ADTClosure((constructor: string * Type list), adtName, declarationEnv) ->
             let values = List.map (fun arg -> eval arg env) farguments
             ADTValue(fst constructor, adtName, values) // we chould check whether the arguments have the same length and types as the type list ??
         | _ -> failwith <| sprintf "Evaluator failed on apply: %s is not a function" fname
-    | Pattern(matchExpression, matchList) ->
+    | Pattern(matchExpression, (patternList)) ->
         let rec matchSingle (actual: Value) (pattern: Expr) =
             match (actual, pattern) with
             | (_, Constant(CharValue '_')) -> Some []
@@ -84,18 +84,19 @@ let rec eval (e: Expr) (env: Value Env): Value =
                     if List.forall Option.isSome evaluatedArguments then Some(List.collect Option.get evaluatedArguments) else None
                 else
                     None
-
-            // (n = cn && (List.forall2 (matchSingle) vs exprs))
-            | (TupleValue(v1, v2), TupleValue(p1, p2)) ->
+            | (TupleValue(v1, v2), Tuple(p1, p2)) ->
                 let eval1 = matchSingle v1 p1
                 let eval2 = matchSingle v2 p2
-                (eval1 && eval2)
-            | _, _ -> false
+                Option.map2 (@) eval1 eval2
+                // match (matchSingle v1 p1, matchSingle v2 p2) with
+                // | (Some(v1), Some(v2)) -> Some(v1@v2)
+                // | _ -> None
+            | _, _ -> None
 
         let body =
-            List.tryFind (fun ((pattern, exp): Expr * Expr) ->
-                // let ePattern = eval pattern env
-                matchSingle (eval matchExpression env) (eval pattern env)) matchList
+            let x = eval matchExpression env
+            List.tryFind (fun (case,expr) -> Option.isSome (matchSingle x case)) patternList
+
         match body with
         | Some(e) -> eval (snd e) env
         | None -> failwith "Pattern match incomplete"
