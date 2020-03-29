@@ -45,28 +45,26 @@ let rec eval (e: Expr) (env: Value Env): Value =
         | BooleanValue true -> eval thenExpr env
         | BooleanValue false -> eval elseExpr env
         | _ -> failwith "Evaluator failed on if-statement: condition must be a boolean value"
-    | Function(name, parameters, expression, expression2) ->    // should we check for duplicate names in paramaters?
+    | Function(name, parameters, expression, expression2) ->
         let closure = Closure(name, parameters, expression, env)
         let newEnv = (name, closure) :: env
         eval expression2 newEnv
     | ADT(adtName, (constructors: (string * Type list) list), expression) ->
         let newADT env adtName constructor = ADTClosure(constructor, adtName, env)
+
         let finalEnv =
-            List.fold (fun newEnv constructorDeclaration -> 
+            List.fold (fun newEnv constructorDeclaration ->
                 let constructorName = fst constructorDeclaration
                 let constructor = ADTClosure(constructorDeclaration, adtName, env)
-                (constructorName, constructor) :: newEnv
-            ) env constructors
+                (constructorName, constructor) :: newEnv) env constructors
         eval expression finalEnv
     | Apply(fname, farguments) ->
         let fclosure = lookup env fname
         match fclosure with
         | Closure(cname, cparameters, cexpression, declarationEnv) ->
-            let newEnv = 
-                List.fold2 
-                    (fun dEnv parameterName argument -> (parameterName, eval argument env) :: dEnv)  
-                    ((cname, fclosure) :: declarationEnv)
-                    cparameters farguments // should evaluated args also be added to env, since later args are evaluated with this env? Also, should we test for duplicate names?
+            let newEnv =
+                List.fold2 (fun dEnv parameterName argument -> (parameterName, eval argument env) :: dEnv)
+                    ((cname, fclosure) :: declarationEnv) cparameters farguments // should evaluated args also be added to env, since later args are evaluated with this env? Also, should we test for duplicate names?
             eval cexpression newEnv
         | ADTClosure((constructor: string * Type list), adtName, declarationEnv) ->
             let values = List.map (fun arg -> eval arg env) farguments
@@ -78,24 +76,26 @@ let rec eval (e: Expr) (env: Value Env): Value =
             | (_, Constant(CharValue '_')) -> Some []
             | (a, Constant v) when a = v -> Some []
             | (a, Variable x) -> Some [ (x, a) ]
-            | (ADTValue(constructorName, superName, values), Apply(callName, exprs)) -> // could write 'when constructorName = callName'??
+            | (ADTValue(constructorName, superName, values), Apply(callName, exprs)) ->
                 if constructorName = callName then
                     let evaluatedArguments = List.map2 matchSingle values exprs
-                    if List.forall Option.isSome evaluatedArguments then Some(List.collect Option.get evaluatedArguments) else None
+                    if List.forall Option.isSome evaluatedArguments
+                    then Some(List.collect Option.get evaluatedArguments)
+                    else None
                 else
                     None
             | (TupleValue(v1, v2), Tuple(p1, p2)) ->
                 let eval1 = matchSingle v1 p1
                 let eval2 = matchSingle v2 p2
                 Option.map2 (@) eval1 eval2
-                // match (matchSingle v1 p1, matchSingle v2 p2) with
-                // | (Some(v1), Some(v2)) -> Some(v1@v2)
-                // | _ -> None
+            // match (matchSingle v1 p1, matchSingle v2 p2) with
+            // | (Some(v1), Some(v2)) -> Some(v1@v2)
+            // | _ -> None
             | _, _ -> None
 
         let body =
             let x = eval matchExpression env
-            List.tryFind (fun (case,expr) -> Option.isSome (matchSingle x case)) patternList
+            List.tryFind (fun (case, expr) -> Option.isSome (matchSingle x case)) patternList
 
         match body with
         | Some(e) -> eval (snd e) env
