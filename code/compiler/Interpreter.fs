@@ -45,23 +45,28 @@ let rec eval (e: Expr) (env: Value Env): Value =
         | BooleanValue true -> eval thenExpr env
         | BooleanValue false -> eval elseExpr env
         | _ -> failwith "Evaluator failed on if-statement: condition must be a boolean value"
-    | Function(name, parameters, expression, expression2) ->
+    | Function(name, parameters, expression, expression2) ->    // should we check for duplicate names in paramaters?
         let closure = Closure(name, parameters, expression, env)
         let newEnv = (name, closure) :: env
         eval expression2 newEnv
-    | ADT(adtName, (constructors: ADTConstructor list), expression) ->
+    | ADT(adtName, (constructors: (string * Type list) list), expression) ->
+        let newADT env adtName constructor = ADTClosure(constructor, adtName, env)
         let finalEnv =
-            List.fold (fun newEnv constructor -> (fst constructor, ADTClosure(constructor, adtName, env)) :: newEnv)
-                env constructors
+            List.fold (fun newEnv constructorDeclaration -> 
+                let constructorName = fst constructorDeclaration
+                let constructor = ADTClosure(constructorDeclaration, adtName, env)
+                (constructorName, constructor) :: newEnv
+            ) env constructors
         eval expression finalEnv
     | Apply(fname, farguments) ->
         let fclosure = lookup env fname
         match fclosure with
         | Closure(cname, cparameters, cexpression, declarationEnv) ->
-            let declarationEnv2 = (cname, fclosure) :: declarationEnv
             let newEnv =
-                List.fold (fun newEnv (name, arg) -> (name, eval arg env) :: newEnv) declarationEnv2  // should evaluated args also be added to env, since later args are evaluated with this env? Also, should we test for duplicate names?
-                    (List.zip cparameters farguments)
+                List.fold 
+                    (fun dEnv (name, arg) -> (name, eval arg env) :: dEnv) 
+                    ((cname, fclosure) :: declarationEnv) 
+                    (List.zip cparameters farguments)  // should evaluated args also be added to env, since later args are evaluated with this env? Also, should we test for duplicate names?
             eval cexpression newEnv
         | ADTClosure((constructor: string * Type list), adtName, declarationEnv) ->
             let values = List.map (fun arg -> eval arg env) farguments
@@ -73,10 +78,10 @@ let rec eval (e: Expr) (env: Value Env): Value =
             | (_, Constant(CharValue '_')) -> Some []
             | (a, Constant v) when a = v -> Some []
             | (a, Variable x) -> Some [ (x, a) ]
-            | (ADTValue(n, sn, vs), Apply(cn, exprs)) ->
-                if n = cn then
-                    let xs = List.map2 matchSingle vs exprs
-                    if List.forall Option.isSome xs then Some(List.collect Option.get xs) else None
+            | (ADTValue(constructorName, superName, values), Apply(callName, exprs)) -> // could write 'when constructorName = callName'??
+                if constructorName = callName then
+                    let evaluatedArguments = List.map2 matchSingle values exprs
+                    if List.forall Option.isSome evaluatedArguments then Some(List.collect Option.get evaluatedArguments) else None
                 else
                     None
 
