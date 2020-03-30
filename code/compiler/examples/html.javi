@@ -1,0 +1,39 @@
+type Attribute = Tuple;
+type AttributeList = EAttr | CAttr Attribute AttributeList;
+type Name = StringLiteral;
+type Tag = Pair Name AttributeList Xml | Empty Name AttributeList;
+type XmlNode = Element Tag | TextNode String;
+type XmlList = EXml | CXml XmlNode XmlList;
+type Xml = Tree XmlNode XmlList;
+
+func tag name attributes xml =
+  Pair (name) (attributes) (xml)
+end
+
+func text value =
+  Tree (TextNode value)
+end
+
+func button attributes textValue =
+  tag ("button") (attributes) (text (textValue))
+end
+
+func div attributes xml =
+  tag ("div") (attributes) (xml)
+end
+
+attributesDecrement = CAttr ("onClick", "Decrement") (EAttr);
+attributesIncrement = CAttr ("onClick", "Increment") (EAttr);
+attributesEmpty = EAttr;
+
+div (attributesEmpty) (
+  Tree
+    (button (attributesDecrement) ("minus"))
+    (CXml
+      (Element (div (attributesEmpty) (text ("Current counter is "))))
+      (CXml
+        (button (attributesIncrement) ("plus"))
+        (EXml)
+      )
+    )
+)

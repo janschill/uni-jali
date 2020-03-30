@@ -138,7 +138,7 @@ let adtvalue = """
 x = Ctor1 0 1;
 x
 """
-let program = System.IO.File.ReadAllText "./program.javi"
+let program = System.IO.File.ReadAllText "./examples/program.javi"
 
 // let abpro = fromString program
 // let trpro = transpile abpro

@@ -38,7 +38,7 @@ rule Token = parse
   | ['\n' '\012']    { lexbuf.EndPos <- lexbuf.EndPos.NextLine; Token lexbuf }
   | ['0'-'9']+       { CONSTINT (System.Int32.Parse (lexemeAsString lexbuf)) }
   | ['a'-'z''A'-'Z']['a'-'z''A'-'Z''0'-'9']*  { keyword (lexemeAsString lexbuf) }
-  | ['"']['a'-'z''A'-'Z''0'-'9']*['"']  { STRINGLITERAL (lexemeAsString lexbuf) }
+  | ['"']['a'-'z''A'-'Z''0'-'9'' ']*['"']  { STRINGLITERAL (lexemeAsString lexbuf) }
   | '+'              { PLUS }
   | '-'              { MINUS }
   | '*'              { TIMES }
