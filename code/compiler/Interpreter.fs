@@ -12,6 +12,12 @@ let rec lookup env x =
     | (y, v) :: r ->
         if x = y then v else lookup r x
 
+let rec tryLookup env x =
+    match env with
+    | [] -> None
+    | (y, v) :: r ->
+        if x = y then Some(v) else tryLookup r x
+
 let rec eval (e: Expr) (env: Value Env): Value =
     match e with
     | Constant c -> c
@@ -75,29 +81,35 @@ let rec eval (e: Expr) (env: Value Env): Value =
             match (actual, pattern) with
             | (_, Constant(CharValue '_')) -> Some []
             | (a, Constant v) when a = v -> Some []
-            | (a, Variable x) -> Some [ (x, a) ]
-            | (ADTValue(constructorName, superName, values), Apply(callName, exprs)) ->
-                if constructorName = callName then
-                    let evaluatedArguments = List.map2 matchSingle values exprs
-                    if List.forall Option.isSome evaluatedArguments
-                    then Some(List.collect Option.get evaluatedArguments)
-                    else None
-                else
-                    None
+            | (a, Variable x) ->
+                let value = tryLookup env x
+                if value.IsNone
+                then Some [ (x, a) ]
+                else matchSingle actual (Constant(Option.get (value)))
+            | (ADTValue(constructorName, superName, values), Apply(callName, exprs)) when constructorName = callName ->
+                let evaluatedArguments = List.map2 matchSingle values exprs
+                if List.forall Option.isSome evaluatedArguments
+                then Some(List.collect Option.get evaluatedArguments)
+                else None
             | (TupleValue(v1, v2), Tuple(p1, p2)) ->
-                let eval1 = matchSingle v1 p1
-                let eval2 = matchSingle v2 p2
-                Option.map2 (@) eval1 eval2
-            // match (matchSingle v1 p1, matchSingle v2 p2) with
-            // | (Some(v1), Some(v2)) -> Some(v1@v2)
-            // | _ -> None
+                match (matchSingle v1 p1, matchSingle v2 p2) with
+                | (Some(v1), Some(v2)) -> Some(v1 @ v2)
+                | _ -> None
             | _, _ -> None
+
+        let rec find x =
+            function
+            | (case, expr) :: ps ->
+                match matchSingle x case with
+                | None -> find x ps
+                | Some(bindings) -> Some(expr, bindings)
+            | [] -> None
 
         let body =
             let x = eval matchExpression env
-            List.tryFind (fun (case, expr) -> Option.isSome (matchSingle x case)) patternList
+            find x patternList
 
         match body with
-        | Some(e) -> eval (snd e) env
+        | Some(expr, bindings) -> env @ bindings |> eval expr
         | None -> failwith "Pattern match incomplete"
     | _ -> failwith "No match found"

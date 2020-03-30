@@ -4,6 +4,16 @@ type Disjoint =
 
 a = 1;
 
+type Attr =
+    Attr1 String Attr
+  | Attr0;
+
+type Html =
+    Div Attr Html Html
+  | Button String
+  | Text String
+  | Nothing;
+
 func g x =
   match x with
    | a -> 1
@@ -12,12 +22,14 @@ end
 
 func f x =
   match x with
-    | Ctor1 (0) -> 41
-    | Ctor1 (1) -> 42
-    | Ctor1 (2) -> 43
-    | Ctor2 (_) (_) -> 44
+    | Ctor1 0 -> 41
+    | Ctor1 1 -> 42
+    | Ctor1 2 -> 43
+    | Ctor2 _ _ -> 44
     | _ -> 45
 end
+
+x = Ctor2 "hello" "world";
 
 func h x =
   match x with
@@ -27,3 +39,19 @@ func h x =
 end
 
 f (Ctor1 (g (1)) )
+
+type Test =
+    A
+  | B;
+
+func something x =
+  match x with
+  | 2 ->  1
+  | a -> if a > 3 then 2 else 3
+  | _ -> 4
+end
+
+something (4)
+
+
+something 1

@@ -35,6 +35,6 @@ and Expr =
     | Apply of string * Expr list
     | Pattern of Expr * (Expr * Expr) list
 
-and Pattern =
-    | ConstPattern of Value
-    | Binding of string
+// and Pattern =
+//     | ConstPattern of Value
+//     | Binding of string
