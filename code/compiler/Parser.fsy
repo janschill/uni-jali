@@ -1,4 +1,5 @@
 %{
+
   open AbstractSyntax;
 %}
 
@@ -23,9 +24,9 @@
 %token IF
 %token INT
 %token LARROW
-%token LBRACKET
 %token LE
 %token LPAR
+%token LSQUARE
 %token LT
 %token MATCH
 %token MINUS
@@ -35,8 +36,8 @@
 %token PIPE
 %token PLUS
 %token RARROW
-%token RBRACKET
 %token RPAR
+%token RSQUARE
 %token SEMICOLON
 %token STRING
 %token THEN
@@ -96,7 +97,12 @@ AtomicExpression:
   | LocalBinding { $1 }
   | FunctionBinding { $1 }
   | ParenthesizedExpression { $1 }
+  | LSQUARE ExpressionList RSQUARE { $2 }
   | ADT { $1 }
+
+ExpressionList:
+  | /* empty */ { Empty }
+  | ConstantLiteral COMMA ExpressionList { Tuple($1, $3) }
 
 ConstantLiteral:
   | CONSTINT { Constant (IntegerValue $1) }
@@ -161,10 +167,6 @@ ComparisonExpression:
   | Expression LT Expression { Prim("<",  $1, $3) }
   | Expression GE Expression { Prim(">=", $1, $3) }
   | Expression LE Expression { Prim("<=", $1, $3) }
-
-// ExpressionList:
-//   | /* empty */ { [] }
-//   | Expression ExpressionList { $1::$2 }
 
 // ADTValue:
 //   | NAME Args { Apply($1, $2, $3) }

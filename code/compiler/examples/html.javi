@@ -11,7 +11,7 @@ func tag name attributes xml =
 end
 
 func text value =
-  Tree (TextNode value)
+  Tree (TextNode value) (EXml)
 end
 
 func button attributes textValue =

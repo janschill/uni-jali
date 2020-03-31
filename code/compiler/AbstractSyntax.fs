@@ -23,6 +23,7 @@ type Value =
     | ADTClosure of ADTConstructor * string * Value Env (* (f, x, fBody, fDeclEnv) *)
 
 and Expr =
+    | Empty
     | Constant of Value
     | StringLiteral of string
     | Variable of string

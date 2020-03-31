@@ -54,6 +54,8 @@ rule Token = parse
   | '!'              { NOT }
   | '('              { LPAR }
   | ')'              { RPAR }
+  | '['              { LSQUARE }
+  | ']'              { RSQUARE }
   | eof              { EOF }
   | ','              { COMMA }
   | '|'              { PIPE }
