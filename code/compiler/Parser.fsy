@@ -184,6 +184,7 @@ ADTContructor:
 ADTConstructorParameter:
   | /* empty */ { [] }
   | TypeSpec ADTConstructorParameter { $1::$2 }
+  | LSQUARE TypeSpec RSQUARE ADTConstructorParameter { $2::$4 }
 
 TypeSpec:
   | INT { Int }

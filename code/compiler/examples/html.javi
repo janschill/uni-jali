@@ -1,39 +1,32 @@
+type Message = Increment | Decrement;
+type Xml = Tag;
 type Attribute = Tuple;
-type AttributeList = EAttr | CAttr Attribute AttributeList;
-type Name = StringLiteral;
-type Tag = Pair Name AttributeList Xml | Empty Name AttributeList;
-type XmlNode = Element Tag | TextNode String;
-type XmlList = EXml | CXml XmlNode XmlList;
-type Xml = Tree XmlNode XmlList;
+type Tag =
+    ETag String [Attribute]
+  | CTag String [Attribute] [Node];
+type Node =
+    Text StringLiteral
+  | CNode Tag;
 
-func tag name attributes xml =
-  Pair (name) (attributes) (xml)
+func tag name attributes nodes =
+  ETag (name) (attributes) (nodes)
 end
 
 func text value =
-  Tree (TextNode value) (EXml)
+  Text (value)
 end
 
 func button attributes textValue =
   tag ("button") (attributes) (text (textValue))
 end
 
-func div attributes xml =
-  tag ("div") (attributes) (xml)
+func div attributes nodes =
+  tag ("div") (attributes) (nodes)
 end
 
-attributesDecrement = CAttr ("onClick", "Decrement") (EAttr);
-attributesIncrement = CAttr ("onClick", "Increment") (EAttr);
-attributesEmpty = EAttr;
+div ([]) ([
+  button ([("onClick", Decrement),]) ("Decrement"),
+  div ([]) ([text ("Counter is"),]),
+  button ([("onClick", Increment),]) ("Increment"),
+])
 
-div (attributesEmpty) (
-  Tree
-    (button (attributesDecrement) ("minus"))
-    (CXml
-      (Element (div (attributesEmpty) (text ("Current counter is "))))
-      (CXml
-        (button (attributesIncrement) ("plus"))
-        (EXml)
-      )
-    )
-)
