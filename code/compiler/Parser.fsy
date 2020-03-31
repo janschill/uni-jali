@@ -101,7 +101,7 @@ AtomicExpression:
   | ADT { $1 }
 
 ExpressionList:
-  | /* empty */ { Empty }
+  | ConstantLiteral { Tuple($1, Empty) }
   | ConstantLiteral COMMA ExpressionList { Tuple($1, $3) }
 
 ConstantLiteral:
