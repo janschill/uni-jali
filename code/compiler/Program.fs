@@ -139,6 +139,7 @@ x = Ctor1 0 1;
 x
 """
 let program = System.IO.File.ReadAllText "./examples/program.javi"
+let html = System.IO.File.ReadAllText "./examples/html.javi"
 
 // let abpro = fromString program
 // let trpro = transpile abpro

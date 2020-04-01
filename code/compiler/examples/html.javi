@@ -1,15 +1,16 @@
 type Message = Increment | Decrement;
-type Xml = Tag;
-type Attribute = Tuple;
-type Tag =
-    ETag String [Attribute]
-  | CTag String [Attribute] [Node];
+
+type Tag = Tag String AttributeList NodeList;
 type Node =
     Text StringLiteral
   | CNode Tag;
+type Xml = Tag;
+
+type NodeList =  NilNode | ConsNode Node NodeList;
+type AttributeList = NilAtt | ConsAtt Tuple AttributeList;
 
 func tag name attributes nodes =
-  ETag (name) (attributes) (nodes)
+  Tag (name) (attributes) (nodes)
 end
 
 func text value =
@@ -17,16 +18,29 @@ func text value =
 end
 
 func button attributes textValue =
-  tag ("button") (attributes) (text (textValue))
+  Tag ("button") (attributes) (text (textValue))
 end
 
 func div attributes nodes =
-  tag ("div") (attributes) (nodes)
+  Tag ("div") (attributes) (nodes)
 end
 
-div ([]) ([
-  button ([("onClick", Decrement),]) ("Decrement"),
-  div ([]) ([text ("Counter is"),]),
-  button ([("onClick", Increment),]) ("Increment"),
-])
+func singleAtt attribute = 
+  ConsAtt (attribute) (NilAtt)
+end
 
+func singleNode node = 
+  ConsNode (node) (NilNode)
+end
+
+
+
+div (NilAtt) ( 
+  (ConsNode( button (singleAtt("onClick", Decrement)) ("Decrement") ) 
+    (ConsNode( div (NilAtt) (singleNode(text ("Counter is")))) 
+      (ConsNode( button (singleAtt("onClick", Increment)) ("Increment")) 
+        (NilNode)
+      )
+    )
+  )
+)
