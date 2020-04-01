@@ -22,11 +22,11 @@ func div attributes nodes =
 end
 
 func singleAtt attribute =
-  ConsAtt (attribute) (NilAtt())
+  ConsAtt (attribute) (NilAtt)
 end
 
 func singleNode node =
-  ConsNode (node) (NilNode())
+  ConsNode (node) (NilNode)
 end
 
 func update msg model =
@@ -36,13 +36,13 @@ func update msg model =
 end
 
 func view model =
-  div (NilAtt()) ((ConsNode(
-    button (singleAtt("onClick", Decrement())) ("Decrement")) (ConsNode(
-    div (NilAtt()) (singleNode(
+  div (NilAtt) (ConsNode(
+    button (singleAtt("onClick", Decrement)) ("Decrement")) (ConsNode(
+    div (NilAtt) (singleNode(
       text (model)))) (ConsNode(
-    button (singleAtt("onClick", Increment())) ("Increment"))(NilNode()))
-    )
-  ))
+    button (singleAtt("onClick", Increment)) ("Increment"))(NilNode)
+    ))
+  )
 end
 
 init = 0;

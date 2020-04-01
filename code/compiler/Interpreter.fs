@@ -56,13 +56,16 @@ let rec eval (e: Expr) (env: Value Env): Value =
         let newEnv = (name, closure) :: env
         eval expression2 newEnv
     | ADT(adtName, (constructors: (string * Type list) list), expression) ->
-        let newADT env adtName constructor = ADTClosure(constructor, adtName, env)
+        let newAdt constructorDeclaration =
+            if List.isEmpty (snd constructorDeclaration)
+            then ADTValue(fst constructorDeclaration, adtName, [])
+            else ADTClosure(constructorDeclaration, adtName, env)
 
         let finalEnv =
             List.fold (fun newEnv constructorDeclaration ->
-                let constructorName = fst constructorDeclaration
-                let constructor = ADTClosure(constructorDeclaration, adtName, env)
-                (constructorName, constructor) :: newEnv) env constructors
+                let name = fst constructorDeclaration
+                (name, newAdt constructorDeclaration) :: newEnv) env constructors
+
         eval expression finalEnv
     | Apply(fname, farguments) ->
         let fclosure = lookup env fname

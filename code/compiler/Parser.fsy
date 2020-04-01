@@ -140,7 +140,7 @@ AppExpression:
 
 FunctionCall: 
   | NAME Args { Apply($1, $2) } 
-  | NAME LPAR ExpressionList RPAR { Apply($1, $3) } // THIS IS NEW, NOT TESTED PROBERLY. Was made to handle empty function calls
+  | NAME LPAR RPAR { Apply($1, []) } // THIS IS NEW, NOT TESTED PROBERLY. Was made to handle empty function calls
 
 Args:
   | /* empty */ { [] }
@@ -149,11 +149,6 @@ Args:
 Arg:
   | ConstantLiteral { $1 }
   | LPAR Expression RPAR { $2 }
-
-ExpressionList: // THIS IS NEW, NOT TESTED PROBERLY. Was made to handle empty function calls and opportunity to seperate with commas
-  | /* empty */ { [] }
-  | Expression { [$1] }
-  | Expression COMMA ExpressionList { $1::$3 }
 
 ConditionalExpression:
   | IfStatement { $1 }
