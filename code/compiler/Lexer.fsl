@@ -8,6 +8,10 @@ open System.Text;;
 let lexemeAsString lexbuf =
   LexBuffer<char>.LexemeString lexbuf
 
+(* Start of outermost comment currently being scanned *)
+let commentStart = ref Position.Empty;  
+let commentDepth = ref 0;  (* Current comment nesting *)
+
 let keyword s =
     match s with
     | "else"    -> ELSE
@@ -63,3 +67,16 @@ rule Token = parse
   | "<-"             { LARROW }
   | "->"             { RARROW }
   | '_'              { USCORE }
+  | "(*"            { commentStart := lexbuf.StartPos;
+                    commentDepth := 1; 
+                    SkipComment lexbuf; Token lexbuf }
+
+and SkipComment = parse
+    "*)"            { commentDepth := !commentDepth - 1;  
+                      if !commentDepth = 0 then ()
+                      else SkipComment lexbuf 
+                    } 
+   | "(*"           { commentDepth := !commentDepth + 1; 
+                      SkipComment lexbuf }
+   | eof            { failwith "Lexer error: unterminated comment" }
+   | _              { SkipComment lexbuf }
