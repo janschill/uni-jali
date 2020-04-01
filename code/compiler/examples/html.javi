@@ -21,20 +21,39 @@ func div attributes nodes =
   Tag ("div") (attributes) (nodes)
 end
 
-func singleAtt attribute = 
+func singleAtt attribute =
   ConsAtt (attribute) (NilAtt())
 end
 
-func singleNode node = 
+func singleNode node =
   ConsNode (node) (NilNode())
 end
 
-div (NilAtt()) ( 
-  (ConsNode( button (singleAtt("onClick", Decrement())) ("Decrement") ) 
-    (ConsNode( div (NilAtt()) (singleNode(text ("Counter is")))) 
-      (ConsNode( button (singleAtt("onClick", Increment())) ("Increment")) 
-        (NilNode())
-      )
+func update msg model =
+  match msg with
+    | Increment -> model + 1
+    | Decrement -> model - 1
+end
+
+func view model =
+  div (NilAtt()) ((ConsNode(
+    button (singleAtt("onClick", Decrement())) ("Decrement")) (ConsNode(
+    div (NilAtt()) (singleNode(
+      text (model)))) (ConsNode(
+    button (singleAtt("onClick", Increment())) ("Increment"))(NilNode()))
     )
-  )
-)
+  ))
+end
+
+init = 0;
+
+func main =
+  init = update (Increment) (init);
+  init = update (Increment) (init);
+  init = update (Decrement) (init);
+  init = update (Increment) (init);
+  init = update (Increment) (init);
+  view (init)
+end
+
+main()
