@@ -97,12 +97,21 @@ AtomicExpression:
   | LocalBinding { $1 }
   | FunctionBinding { $1 }
   | ParenthesizedExpression { $1 }
-  | LSQUARE ExpressionList RSQUARE { $2 }
+  | LSQUARE List RSQUARE { $2 }
   | ADT { $1 }
 
-ExpressionList:
+// List: 
+//   | LSQUARE RSQUARE { Empty }
+//   | LSQUARE ListItems RSQUARE { $2 }
+
+// ListItems:
+//   | ConstantLiteral COMMA ListItems { Tuple($1, $3) }
+//   | ConstantLiteral { Tuple($1, Empty) }
+
+List:
+  | /* empty */  { Empty }
   | ConstantLiteral { Tuple($1, Empty) }
-  | ConstantLiteral COMMA ExpressionList { Tuple($1, $3) }
+  | ConstantLiteral COMMA List { Tuple($1, $3) }
 
 ConstantLiteral:
   | CONSTINT { Constant (IntegerValue $1) }
@@ -129,7 +138,9 @@ ParenthesizedExpression:
 AppExpression:
   | FunctionCall { $1 }
 
-FunctionCall: NAME Args { Apply($1, $2) }
+FunctionCall: 
+  | NAME Args { Apply($1, $2) } 
+  | NAME LPAR ExpressionList RPAR { Apply($1, $3) } // THIS IS NEW, NOT TESTED PROBERLY. Was made to handle empty function calls
 
 Args:
   | /* empty */ { [] }
@@ -138,6 +149,11 @@ Args:
 Arg:
   | ConstantLiteral { $1 }
   | LPAR Expression RPAR { $2 }
+
+ExpressionList: // THIS IS NEW, NOT TESTED PROBERLY. Was made to handle empty function calls and opportunity to seperate with commas
+  | /* empty */ { [] }
+  | Expression { [$1] }
+  | Expression COMMA ExpressionList { $1::$3 }
 
 ConditionalExpression:
   | IfStatement { $1 }
