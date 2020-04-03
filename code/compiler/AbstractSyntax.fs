@@ -26,7 +26,7 @@ type Value =
 
 and Expr =
     | Empty
-    | ConC of Expr * Expr
+    // | ConC of Expr * Expr
     | Constant of Value
     // | StringLiteral of string
     | Variable of string
