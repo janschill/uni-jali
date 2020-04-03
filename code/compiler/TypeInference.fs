@@ -295,11 +295,14 @@ let rec typ (lvl: int) (env: tenv) (e: Expr): typ =
         let bodyEnv = (f, generalize lvl fTyp) :: env
         typ lvl bodyEnv letBody
     | Apply(eFun, args) ->
-        let tf = specialize lvl (lookup env eFun)
+        let tf = specialize lvl (lookup env eFun) // Should eFun be an expressipn instead of string??
         let txs = List.map (fun a -> typ lvl env a) args
         let tr = TypV(newTypeVar lvl)
         unify tf (TypF(txs, tr))
         tr
+// | ADT(adtName, (constructors: (string * Type list) list), expression) ->
+//     let sTyp = TypV(newTypeVar lvl)
+
 
 (* Type inference: tyinf e0 returns the type of e0, if any *)
 
