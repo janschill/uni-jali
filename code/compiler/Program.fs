@@ -1,3 +1,4 @@
+[<AutoOpen>]
 module Program
 
 open System
@@ -8,6 +9,7 @@ open Transpiler
 open Lexer
 open Parser
 open Interpreter
+open TypeInference
 
 exception SyntaxError of int * int with
     override this.Message = sprintf "Syntax error at line %d, column %d." this.Data0 this.Data1
@@ -22,29 +24,35 @@ let fromString (str: string): Expr =
 
 let evalString (str: string): Value = eval (fromString str) []
 
+let inferType = TypeInference.inferType
+let inferTypeFromString = fromString >> inferType
+
 let testEval = """
 3 + 4
 """
 
 let simplefunction = """
+y = 1;
+
 func f x =
   x + y
 end
-0
+f
 """
+
 let simplefunction2 = """
 func f x =
     x = 2;
     x
 end
-0
+f
 """
 let complexfunction = """
 func f x y z =
   k = x + y * z;
   k
 end
-0
+f
 """
 let ifstmt = """
 if 3 > 4

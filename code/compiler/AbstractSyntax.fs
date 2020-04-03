@@ -6,8 +6,9 @@ type Type =
     | Boolean
     | String
     | Char
-    // | List
+    | Tuple of Type
     | Typevar of string
+    | TypL of Type
 
 type ADTConstructor = string * Type list
 
@@ -25,8 +26,9 @@ type Value =
 
 and Expr =
     | Empty
+    | ConC of Expr * Expr
     | Constant of Value
-    | StringLiteral of string
+    // | StringLiteral of string
     | Variable of string
     | Tuple of Expr * Expr
     | Prim of string * Expr * Expr
