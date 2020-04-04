@@ -30,8 +30,14 @@ Denoted as `(pp, store)` where:
     - current point of control
 * store
     - current values of all program variables
+    - values of static variables
+    - values of dynamic variables are unknown
 
 Specialization Time is the time where optimize/reduce our Abstract Syntax Tree by returning a reduced one, that has been partially evaluated at some states.
+
+Specialized program point (pp, vs) represents a set of states of the subject program's computation.
+
+Poly is called the set of all specialized program points that are reachable.
 
 * reduce program with given input (not all is given yet)
 * during specialization time (when not all inputs are given)
@@ -39,6 +45,7 @@ Specialization Time is the time where optimize/reduce our Abstract Syntax Tree b
 * thus store is incomplete
 * static: can be evaluate during specialization time
 * dynamic: cannot be evaluate - "" -
+
 
 
 ## Elm button example

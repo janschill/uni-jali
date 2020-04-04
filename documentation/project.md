@@ -35,7 +35,7 @@ func update model message =
 end
 ```
 
-In this program we know that the function update can only have two valid inputs, which are also already know during compile time: Increment and Decrement. These variables are called static data. The then called residual program, are all the program where the static data is precomputed during compiling.
+In this program we know that the function update can only have two valid inputs, which are also already know during compile time: Increment and Decrement. These variables are called static data. The then called residual program, are all the programs where the static data is precomputed during compiling.
 The example program would produced two residual programs:
 
 ```
@@ -43,10 +43,4 @@ update_increment model = model + 1
 update_decrement model = model - 1
 ```
 
-
-
-partial evaluation to optimise update view diff cycle
-https://en.wikipedia.org/wiki/Constant_folding
-https://en.wikipedia.org/wiki/Partial_evaluation
-https://en.wikipedia.org/wiki/Symbolic_execution
-
+Which are more efficient during run-time due to them being already evaluated.

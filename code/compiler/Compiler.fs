@@ -11,6 +11,36 @@ let rec eval (e: Expr) (vs: Value Env): Option<Expr> =
         if e = y then Some(v) else eval e vsr
 
 (*
+
+TODO:
+
+(specialized) program point:
+  - specialized function name (f, vs)
+  - f: original function name
+  - vs: static parameters of f
+  - conditionals can also be pp
+
+value store: holds all evaluated static expressions
+
+value domain {S,D}:
+  - S: ordinary values (static results)
+  - D: residual expressions & values (dynamic results)
+
+find division: assign variables either static or dynamic
+
+two functions:
+  - eval(exp, vs): evaluates static expression
+  - reduce(exp, vs): applies constant folding of static parts
+                     in dynamic expression
+
+specialization algorithm:
+  - pending: set of functions to bet specialized
+  - marked: set with already specialized
+  - as long as pending, construct version of f,
+    specialized to the values vs of its static params
+  - add new functions from f‘s body to pending
+
+--------
 type Msg = Increment | Decrement
 func update model msg =
   if msg == Increment
@@ -21,7 +51,7 @@ end
 update_increment model = model + 1
 update_decrement model = model - 1
 
-vs/poly? [
+poly [
     {update, update_increment model = model + 1}
     {update, update_decrement model = model - 1}
 ]
