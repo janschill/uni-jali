@@ -1,6 +1,6 @@
 type Attribute = Att Tuple;
 type AttributeList = NilAtt | ConsAtt Attribute AttributeList;
-type Node = Text StringLiteral | Tag String AttributeList NodeList;
+type Node = Text String | Tag String AttributeList NodeList;
 type NodeList =  NilNode | ConsNode Node NodeList;
 
 type Message = Increment | Decrement;
