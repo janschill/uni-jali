@@ -1,5 +1,46 @@
 # Partial evaluation
 
+```
+type Msg = Increment | Decrement
+func update model msg =
+  if msg == Increment
+  then model + 1
+  else model - 1
+end
+--------
+update_increment model = model + 1
+update_decrement model = model - 1
+
+vs/poly? [
+    {update, update_increment model = model + 1}
+    {update, update_decrement model = model - 1}
+]
+
+poly [
+    {update, (Increment)}
+    {update, (Decrement)}
+]
+```
+
+Computational State
+
+Denoted as `(pp, store)` where:
+
+* pp
+    - current point of control
+* store
+    - current values of all program variables
+
+Specialization Time is the time where optimize/reduce our Abstract Syntax Tree by returning a reduced one, that has been partially evaluated at some states.
+
+* reduce program with given input (not all is given yet)
+* during specialization time (when not all inputs are given)
+    we cannot evaluate all expression, due to missing inputs
+* thus store is incomplete
+* static: can be evaluate during specialization time
+* dynamic: cannot be evaluate - "" -
+
+
 ## Elm button example
 
 ```
@@ -75,3 +116,30 @@ new_view = view (update I model)
 compare :: Value -> Value -> Value
 compare old_view new_view =
 
+## Notes from book
+
+__Book: Partial Evaluation by Peter Sestoft__
+
+Partial application or currying is the specialization of a two-argument function to a one-argument function by returning a function with an argument.
+
+A partial evaluation is the same concept but in program context:
+Given some input data it produces a reduced residual program, with given inputs applied.
+
+A partial evalutor is given some (static) input and a subject program that constructs a new program with the input applied, when given the remaining input (dynamic) it yields the same result that the subject program would have produced given both inputs.
+
+Three partial evaluation techniques are well known:
+
+1. Symbolic evaluation
+2. Unfolding (function calls)
+3. Program point specialization
+
+### Equational definition
+
+```
+out = [[p]] [in1, in2]
+
+p_in1 = [[mix]] [p, in1]
+out = [[p_in1]] in2
+
+[[p]] [in1, in2] = [[ [[mix]] [p, in1] ]] in2
+```
