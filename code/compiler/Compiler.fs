@@ -2,13 +2,20 @@ module Compiler
 
 open AbstractSyntax
 
-let rec specalize = 0
-
-let rec eval (e: Expr) (vs: Value Env): Option<Expr> =
+let rec eval (e: Expr) (vs: Value Env): Option<Value> =
     match vs with
     | [] -> None
-    | (y, v) :: vsr ->
-        if e = y then Some(v) else eval e vsr
+    | (key, value) :: vsr ->
+        if e = key then Some(value) else eval e vsr
+
+let rec reduce (e: Expr) (vs: Value Env): Expr = e
+
+(*
+  Iterates through AST and return specialized AST
+*)
+let rec specalize (ast: Expr): Expr =
+    match ast with
+    | Function(name, parameters, expression, expression2) -> ast
 
 (*
 

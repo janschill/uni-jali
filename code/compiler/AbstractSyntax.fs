@@ -11,8 +11,6 @@ type Type =
 
 type ADTConstructor = string * Type list
 
-type 'v Env = (string * 'v) list
-
 type Value =
     | IntegerValue of int
     | BooleanValue of bool
@@ -36,6 +34,8 @@ and Expr =
     | ADT of string * ADTConstructor list * Expr
     | Apply of string * Expr list
     | Pattern of Expr * (Expr * Expr) list
+
+type 'v Env = (Expr * 'v) list
 
 // and Pattern =
 //     | ConstPattern of Value
