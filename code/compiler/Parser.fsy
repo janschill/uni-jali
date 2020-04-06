@@ -109,8 +109,8 @@ AtomicExpression:
 //   | ConstantLiteral { Tuple($1, Empty) }
 
 List:
-  | /* empty */  { Empty }
-  | ConstantLiteral { Tuple($1, Empty) }
+  | /* empty */  { Empt }
+  | ConstantLiteral { Tuple($1, Empt) }
   | ConstantLiteral COMMA List { Tuple($1, $3) }
 
 ConstantLiteral:
