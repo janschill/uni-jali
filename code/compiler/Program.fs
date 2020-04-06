@@ -1,3 +1,4 @@
+[<AutoOpen>]
 module Program
 
 open System
@@ -37,7 +38,7 @@ func f x =
     x = 2;
     x
 end
-0
+f (3)
 """
 let complexfunction = """
 func f x y z =
@@ -66,7 +67,7 @@ match x with
    | 1 -> 42
    | 2 -> 43
    | 3 -> 44
-   | 4 -> 45
+   | _ -> 45
 
 end
 f (3) (4)

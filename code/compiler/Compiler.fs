@@ -168,7 +168,7 @@ let rec reduce (e: Expr) (store: Ds Env): Expr =
     | Constant c -> Constant c
     | Variable v ->
         match lookup v store with
-        | Dynamic e -> e // Do we really want this? Or do we wanna return Variable v?
+        | Dynamic e -> e // Do we really want to return e? Or do we wanna return Variable v?
         | Static vv -> Constant(vv)
     | Tuple(expr1, expr2) -> Tuple(reduce expr1 store, reduce expr2 store)
     | Prim(operation, expression1, expression2) ->
@@ -195,11 +195,9 @@ let rec reduce (e: Expr) (store: Ds Env): Expr =
     | Function(name, parameters, expression, expression2) ->
         let storeWithParams = List.fold (fun s p -> (p, Dynamic(Variable p)) :: s) store parameters
         let rbody = reduce expression storeWithParams
-
-        let storeWithFunc = (name, Dynamic(Variable name)) :: store
-        let rExpr = reduce expression2 storeWithFunc
-
-        Function(name, parameters, rbody, rExpr)
+        match rbody with
+        | Constant c -> (name, Static(c)) :: store |> reduce expression2
+        | expr -> (name, Dynamic(Function(name, parameters, rbody, expression2))) :: store |> reduce expression2
     | ADT(adtName, (constructors: (string * Type list) list), expression) ->
         let eval (name, argTypes) =
             if List.isEmpty (argTypes)
@@ -212,6 +210,7 @@ let rec reduce (e: Expr) (store: Ds Env): Expr =
     | Apply(fname, farguments) ->
         let func = reduce (Variable(fname)) (store) // This seems like a hack?
         match func with
+        | Constant c -> func
         | Function(name, parameters, expression, expression2) ->
             // this will never be variables, because they have been replaced by their expressions -> is this really correct?
             let rargs = List.map (fun arg -> reduce arg store) farguments
@@ -230,10 +229,11 @@ let rec reduce (e: Expr) (store: Ds Env): Expr =
                 | rexp -> (name, Dynamic(rexp)) :: store
 
             reduce expression2 nextStore
-        | _ -> failwith <| sprintf "Evaluator failed on apply: %s is not a function" fname
+        | _ -> failwith <| sprintf "Reduce failed on apply: %O is not a function" func
     | Pattern(matchExpression, (patternList)) ->
         let rec matchSingle (actual: Expr) (pattern: Expr) =
             match (actual, pattern) with
+            // | (Variable x, _) -> ??
             | (Constant v, Variable bindName) -> Some [ (bindName, Static(v)) ]
             | (expr, Variable bindName) -> Some [ (bindName, Dynamic(expr)) ]
             | (_, Constant(CharValue '_')) -> Some []
