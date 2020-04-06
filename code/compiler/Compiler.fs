@@ -1,24 +1,10 @@
+[<AutoOpen>]
 module Compiler
 
 open AbstractSyntax
-
-let rec eval (e: Expr) (vs: Value Env): Option<Value> =
-    match vs with
-    | [] -> None
-    | (key, value) :: vsr ->
-        if e = key then Some(value) else eval e vsr
-
-let rec reduce (e: Expr) (vs: Value Env): Expr = e
+open Interpreter
 
 (*
-  Iterates through AST and return specialized AST
-*)
-let rec specalize (ast: Expr): Expr =
-    match ast with
-    | Function(name, parameters, expression, expression2) -> ast
-
-(*
-
 TODO:
 
 (specialized) program point:
@@ -47,25 +33,36 @@ specialization algorithm:
     specialized to the values vs of its static params
   - add new functions from f‘s body to pending
 
+Should be parsed as AST:
+Subject program:
 --------
 type Msg = Increment | Decrement
-func update model msg =
+model = 1
+func update msg model =
   if msg == Increment
   then model + 1
   else model - 1
 end
+model = update (Increment) (model)
+model = update (Decrement) (model)
 --------
-update_increment model = model + 1
-update_decrement model = model - 1
+Specialized/target program:
+--------
+type Msg = Increment | Decrement
+model = 1
+func update_increment model =
+  model + 1
+end
+func update_decrement model =
+  model - 1
+end
+model = update_increment (model)
+model = update_decrement (model)
+--------
 
 poly [
     {update, update_increment model = model + 1}
     {update, update_decrement model = model - 1}
-]
-
-poly [
-    {update, (Increment)}
-    {update, (Decrement)}
 ]
 
 (pp, store)
@@ -83,90 +80,187 @@ specialization time:
   - static: can be evaluate during specialization time
   - dynamic: cannot be evaluate - "" -
 
+func f x = x + 1
+z = 3;
+
+func myFun x y =
+  a = x + f (3);
+  a
+end
+
+func hello x =
+  b = 3 + myFun 4
+  b
+end
+
+myFun (4) (5);
 *)
 
-let rec reduce (e: Expr) (vs: Value Env): Expr =
+(*
+Chat:
+12:27:34 From Søren Debois : Let f x y = x + y
+12:27:55 From Søren Debois : Let f x  = x + 2
+12:28:10 From Søren Debois : Constant 2
+12:28:55 From Søren Debois : Rexpr1 = Variable x
+12:29:01 From Søren Debois : Rexpr2 = Constant 2
+12:29:15 From Søren Debois : Plus (Rexpr1, Rexpr2)
+12:35:16 From Søren Debois : Let x = Cons (static, dynamic) in match x with Cons (s, _) -> s + 1 end
+12:35:54 From Søren Debois : rexpr
+12:36:04 From Søren Debois : x -> Dynamic (rexpr)
+12:40:48 From Søren Debois : Match (Cons (static, dynamic) with Cons (s, …) -> s
+12:43:40 From Søren Debois : Match (Cons (static, dynamic) with Cons (s, d) -> s
+
+
+- are we on the right track?
+- are we creating several functions for the same functions? E.g. update should be two functions, one for increment, and one for decrement?
+- when do we do that? In the apply or the function definition?
+- dynamic values?
+- Should we follow Sestoft?:
+    - Binding-time analysis by abstract interpretation
+        (division - mapping function names to a binding-time environment T, which maps variables xj to their
+        bindingtime tj, where tj E {S,D})
+    - Annotate the program as dynamic/static calls
+        (From division to annotation - creating a two-level syntax)
+    - Specializing
+        (reducing, unfolding based on certain rules)
+    - Pre
+- confused about env, value store (static), value domain (static and dynamic), list of function versions
+
+Subject program:
+--------
+type Msg = Increment | Decrement
+model = 1
+func update msg model =
+  if msg == Increment
+  then model + 1
+  else model - 1
+end
+model = update (Increment) (model)
+model = update (Decrement) (model)
+--------
+Specialized/target program:
+--------
+type Msg = Increment | Decrement
+model = 1
+func update_increment model =
+  model + 1
+end
+func update_decrement model =
+  model - 1
+end
+model = update_increment (model)
+model = update_decrement (model)
+--------
+*)
+
+type Ds =
+    | Dynamic of Expr
+    | Static of Value
+
+let rec lookup (e: string) (staticStore: Ds Env): Ds =
+    match staticStore with
+    | [] -> failwithf "%s not found" e
+    | (key, value) :: rest ->
+        if e = key then value else lookup e rest
+
+let rec reduce (e: Expr) (store: Ds Env): Expr =
     match e with
     | Constant c -> Constant c
-    // | Variable v -> lookup env v
-    | Tuple(expr1, expr2) -> Tuple(reduce expr1 env, reduce expr2 env)
+    | Variable v ->
+        match lookup v store with
+        | Dynamic e -> e // Do we really want this? Or do we wanna return Variable v?
+        | Static vv -> Constant(vv)
+    | Tuple(expr1, expr2) -> Tuple(reduce expr1 store, reduce expr2 store)
     | Prim(operation, expression1, expression2) ->
-        let expr1 = reduce expression1 env
-        let expr2 = reduce expression2 env
-        Prim(operation, expr1, expr2)
+        let rexpr1 = reduce expression1 store
+        let rexpr2 = reduce expression2 store
+        let rprim = Prim(operation, rexpr1, rexpr2)
+        match (rexpr1, rexpr2) with
+        | (Constant(IntegerValue(v1)), Constant(IntegerValue(v2))) -> Constant(eval rprim [])
+        | _ -> rprim
     | Let(name, expression1, expression2) ->
-        let expr = reduce expression1 env
-        let newEnv = (name, expr) :: env
-        Let(name, expr, reduce expression2 newEnv)
+        match reduce expression1 store with
+        | Constant c ->
+            let newStore = (name, Static(c)) :: store
+            reduce expression2 newStore
+        | rexpr ->
+            let newStore = (name, Dynamic(rexpr)) :: store
+            Let(name, rexpr, reduce expression2 newStore)
     | If(cond, thenExpr, elseExpr) ->
-        let staticCond = eval (cond) vs
-        match staticCond with
-        | None -> If(reduce (cond), reduce (thenExpr), reduce (elseExpr))
-        | Some(v) ->
-            if v then thenExpr else elseExpr
-
+        let rcond = reduce (cond) store
+        match rcond with
+        | Constant(BooleanValue(b)) ->
+            if b then reduce thenExpr store else reduce elseExpr store
+        | _ -> If(rcond, reduce thenExpr store, reduce elseExpr store)
     | Function(name, parameters, expression, expression2) ->
-        let closure = Closure(name, parameters, expression, env)
-        let newEnv = (name, closure) :: env
-        eval expression2 newEnv
+        let storeWithParams = List.fold (fun s p -> (p, Dynamic(Variable p)) :: s) store parameters
+        let rbody = reduce expression storeWithParams
+
+        let storeWithFunc = (name, Dynamic(Variable name)) :: store
+        let rExpr = reduce expression2 storeWithFunc
+
+        Function(name, parameters, rbody, rExpr)
     | ADT(adtName, (constructors: (string * Type list) list), expression) ->
-        let newAdt constructorDeclaration =
-            if List.isEmpty (snd constructorDeclaration)
-            then ADTValue(fst constructorDeclaration, adtName, [])
-            else ADTClosure(constructorDeclaration, adtName, env)
+        let eval (name, argTypes) =
+            if List.isEmpty (argTypes)
+            then (name, Static(ADTValue(name, adtName, [])))
+            else (name, Dynamic(Variable name))
 
-        let finalEnv =
-            List.fold (fun newEnv constructorDeclaration ->
-                let name = fst constructorDeclaration
-                (name, newAdt constructorDeclaration) :: newEnv) env constructors
+        let storeWithConstructors = List.fold (fun s c -> eval c :: s) store constructors
 
-        eval expression finalEnv
+        ADT(adtName, constructors, reduce expression storeWithConstructors)
     | Apply(fname, farguments) ->
-        let fclosure = lookup env fname
-        match fclosure with
-        | Closure(cname, cparameters, cexpression, declarationEnv) ->
-            let newEnv =
-                List.fold2 (fun dEnv parameterName argument -> (parameterName, eval argument env) :: dEnv)
-                    ((cname, fclosure) :: declarationEnv) cparameters farguments // should evaluated args also be added to env, since later args are evaluated with this env? Also, should we test for duplicate names?
-            eval cexpression newEnv
-        | ADTClosure((constructor: string * Type list), adtName, declarationEnv) ->
-            let values = List.map (fun arg -> eval arg env) farguments
-            ADTValue(fst constructor, adtName, values) // we chould check whether the arguments have the same length and types as the type list ??
+        let func = reduce (Variable(fname)) (store) // This seems like a hack?
+        match func with
+        | Function(name, parameters, expression, expression2) ->
+            // this will never be variables, because they have been replaced by their expressions -> is this really correct?
+            let rargs = List.map (fun arg -> reduce arg store) farguments
+
+            let bodyStore =
+                List.fold2 (fun s name ra ->
+                    match ra with
+                    | Constant(c) -> (name, Static(c)) :: s
+                    | rexp -> (name, Dynamic(rexp)) :: s) store parameters rargs
+
+            let rfun = reduce expression bodyStore
+
+            let nextStore =
+                match rfun with
+                | Constant(c) -> (name, Static(c)) :: store
+                | rexp -> (name, Dynamic(rexp)) :: store
+
+            reduce expression2 nextStore
         | _ -> failwith <| sprintf "Evaluator failed on apply: %s is not a function" fname
     | Pattern(matchExpression, (patternList)) ->
-        let rec matchSingle (actual: Value) (pattern: Expr) =
+        let rec matchSingle (actual: Expr) (pattern: Expr) =
             match (actual, pattern) with
+            | (Constant v, Variable bindName) -> Some [ (bindName, Static(v)) ]
+            | (expr, Variable bindName) -> Some [ (bindName, Dynamic(expr)) ]
             | (_, Constant(CharValue '_')) -> Some []
-            | (a, Constant v) when a = v -> Some []
-            | (a, Variable x) ->
-                let value = tryLookup env x
-                if value.IsNone
-                then Some [ (x, a) ]
-                else matchSingle actual (Constant(Option.get (value)))
-            | (ADTValue(constructorName, superName, values), Apply(callName, exprs)) when constructorName = callName ->
-                let evaluatedArguments = List.map2 matchSingle values exprs
+            | (Constant av, Constant pv) when av = pv -> Some []
+            | (Apply(aConstructorName, aValues), Apply(pConstructorName, pValues)) when aConstructorName =
+                                                                                            pConstructorName ->
+                let evaluatedArguments = List.map2 matchSingle aValues pValues
                 if List.forall Option.isSome evaluatedArguments
                 then Some(List.collect Option.get evaluatedArguments)
                 else None
-            | (TupleValue(v1, v2), Tuple(p1, p2)) ->
+            | (Tuple(v1, v2), Tuple(p1, p2)) ->
                 match (matchSingle v1 p1, matchSingle v2 p2) with
                 | (Some(v1), Some(v2)) -> Some(v1 @ v2)
                 | _ -> None
             | _, _ -> None
 
-        let rec find x =
-            function
-            | (case, expr) :: ps ->
+        let rec findMatch x patterns =
+            match patterns with
+            | (case, expr) :: tail ->
                 match matchSingle x case with
-                | None -> find x ps
+                | None -> findMatch x tail
                 | Some(bindings) -> Some(expr, bindings)
             | [] -> None
 
-        let body =
-            let x = eval matchExpression env
-            find x patternList
+        let rActual = reduce matchExpression store
 
-        match body with
-        | Some(expr, bindings) -> env @ bindings |> eval expr
+        match findMatch rActual patternList with
+        | Some(expr, bindings) -> List.foldBack (fun b s -> b :: s) bindings store |> reduce expr
         | None -> failwith "Pattern match incomplete"
     | _ -> failwith "No match found"
