@@ -2,7 +2,7 @@
 
 ## Context
 
-Modern web frameworks that are being used to build reactive frontends are using mostly a virtual document object model (vDOM). Reactive frontends are websites that allow new content to be loaded without breaking the site (white screen in between the loading of content). This is achieved with the help of the vDOM and traversing this vDOM and comparing it to the old vDOM. When it detects a change it switches out the parts and tells the browser to re-render that particular part ii the real DOM. This comparison is expensive and we believe that we can optimize it.
+Modern web frameworks that are being used to build reactive frontends are using mostly a virtual document object model (vDOM). Reactive frontends are websites that allow new content to be loaded without breaking the site (white screen in between the loading of content). This is achieved with the help of the vDOM and traversing this vDOM and comparing it to the old vDOM. When it detects a change it switches out the parts and tells the browser to re-render that particular part in the real DOM. This comparison is expensive and we believe that we can optimize it.
 An optimization would mean faster computation of the new view/DOM during run-time. With the idea to improve the compiler and thus the irrelevance of a vDOM, we believe we can have a web framework that has the ability to dynamically update the DOM and is much more efficient than the ones using a vDOM.
 
 ## Outline problem
