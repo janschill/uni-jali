@@ -10,10 +10,12 @@ An optimization would mean faster computation of the new view/DOM during run-tim
 The general problem is that frameworks maintain an in-memory representation of the real DOM of the view that had been rendered. When then an update is executed, the framework needs to compare the old view and the newly generated one by traversing the tree structure. This is slow and inefficient, when the change is minimal and already known, which part will always change on a certain action.
 
 ## Closest to solving this problem
+Should we write anything about this??
 
 ## Outline idea to solve it
+We are going to exploit the fact that often, it is already well known at compile time, what parts of the page should change, giving a user input. Take as example a button that increments a counter on the screen. We now exactly what part of the DOM should be changed, when this button is pressed. Therefore, it is inefficient to compute a new virtual DOM, and traverse the new and old DOM to compare differences. We are going to avoid this using partial evaluation of functions; the resulting compiled program will consist of functions which, when giving their last required input, already know what parts of the DOM to change. To do this, we need to create out own language, which users can use to define their web-application, and a compiler, to construct the partially evaluated program, and transpile it into plain javascript.
 
-Because we are going to write our own programming language, we need a compiler, which will be designed with the help of the book “Programming Language Concepts” by Peter Sestoft. The book gives an introduction to the design of functional programming languages and describes all the needed parts to develop one.
+We are going to write our own programming language, with a compiler, which will be designed with the help of the book “Programming Language Concepts” by Peter Sestoft.
 
 Having a compiler allows us to do optimizations like:
 
