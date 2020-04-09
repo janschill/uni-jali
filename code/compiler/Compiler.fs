@@ -1,4 +1,3 @@
-[<AutoOpen>]
 module Compiler
 
 open AbstractSyntax
@@ -170,7 +169,12 @@ let rec reduce (e: Expr) (store: Ds Env): Expr =
         match lookup v store with
         | Dynamic e -> e // Do we really want to return e? Or do we wanna return Variable v?
         | Static vv -> Constant(vv)
-    | Tuple(expr1, expr2) -> Tuple(reduce expr1 store, reduce expr2 store)
+    | Tuple(expr1, expr2) ->
+        let rexpr1 = reduce expr1 store
+        let rexpr2 = reduce expr2 store
+        match (rexpr1, rexpr2) with
+        | (Constant v1, Constant v2) -> Constant(TupleValue(v1, v2))
+        | _ -> Tuple(rexpr1, rexpr2)
     | Prim(operation, expression1, expression2) ->
         let rexpr1 = reduce expression1 store
         let rexpr2 = reduce expression2 store
@@ -195,49 +199,61 @@ let rec reduce (e: Expr) (store: Ds Env): Expr =
     | Function(name, parameters, expression, expression2) ->
         let storeWithParams = List.fold (fun s p -> (p, Dynamic(Variable p)) :: s) store parameters
         let rbody = reduce expression storeWithParams
-        match rbody with
-        | Constant c -> (name, Static(c)) :: store |> reduce expression2
-        | expr -> (name, Dynamic(Function(name, parameters, rbody, expression2))) :: store |> reduce expression2
+
+        let newStore = (name, Dynamic(Function(name, parameters, rbody, expression2))) :: store
+        reduce expression2 newStore
     | ADT(adtName, (constructors: (string * Type list) list), expression) ->
-        let eval (name, argTypes) =
-            if List.isEmpty (argTypes)
-            then (name, Static(ADTValue(name, adtName, [])))
-            else (name, Dynamic(Variable name))
+        let eval (name, argTypes) = (name, Static(ADTClosure((name, argTypes), adtName, [])))
 
         let storeWithConstructors = List.fold (fun s c -> eval c :: s) store constructors
 
-        ADT(adtName, constructors, reduce expression storeWithConstructors)
+        reduce expression storeWithConstructors // TODO IS THIS CORRECT OR SHOULD WE RETURN AN ADT???
     | Apply(fname, farguments) ->
-        let func = reduce (Variable(fname)) (store) // This seems like a hack?
+        let func = lookup fname store // This seems like a hack?
         match func with
-        | Constant c -> func
-        | Function(name, parameters, expression, expression2) ->
+        | Static(ADTClosure((name, argTypes), adtName, [])) ->
+            let reducedArgs = List.map (fun arg -> reduce arg store) farguments
+
+            let values =
+                List.map2 (fun argType reducedArg ->
+                    match reducedArg with
+                    | Constant(c) -> Static(c)
+                    | rexp -> Dynamic(rexp)) argTypes reducedArgs
+
+            let isStatic =
+                List.forall (fun a ->
+                    match a with
+                    | Constant c -> true
+                    | _ -> false) reducedArgs
+
+            if isStatic then
+                let values = List.map (fun (Constant(c)) -> c) reducedArgs
+                Constant(ADTValue(name, adtName, values))
+            else
+                Apply(fname, reducedArgs) // Can I eval here, even though i can't give eval an environment?
+
+        | Static((c)) -> Constant(c)
+        | Dynamic(Function(name, parameters, expression, expression2)) ->
             // this will never be variables, because they have been replaced by their expressions -> is this really correct?
-            let rargs = List.map (fun arg -> reduce arg store) farguments
+            let reducedArgs = List.map (fun arg -> reduce arg store) farguments
 
             let bodyStore =
                 List.fold2 (fun s name ra ->
                     match ra with
                     | Constant(c) -> (name, Static(c)) :: s
-                    | rexp -> (name, Dynamic(rexp)) :: s) store parameters rargs
+                    | rexp -> (name, Dynamic(rexp)) :: s) store parameters reducedArgs
 
-            let rfun = reduce expression bodyStore
+            reduce expression bodyStore
 
-            let nextStore =
-                match rfun with
-                | Constant(c) -> (name, Static(c)) :: store
-                | rexp -> (name, Dynamic(rexp)) :: store
-
-            reduce expression2 nextStore
         | _ -> failwith <| sprintf "Reduce failed on apply: %O is not a function" func
     | Pattern(matchExpression, (patternList)) ->
         let rec matchSingle (actual: Expr) (pattern: Expr) =
             match (actual, pattern) with
-            // | (Variable x, _) -> ??
-            | (Constant v, Variable bindName) -> Some [ (bindName, Static(v)) ]
-            | (expr, Variable bindName) -> Some [ (bindName, Dynamic(expr)) ]
             | (_, Constant(CharValue '_')) -> Some []
             | (Constant av, Constant pv) when av = pv -> Some []
+            | (Constant v, Variable bindName) -> Some [ (bindName, Static(v)) ]
+            | (e, Variable bindName) -> Some [ (bindName, Dynamic(e)) ]
+            | (Variable x, _) -> Some []
             | (Apply(aConstructorName, aValues), Apply(pConstructorName, pValues)) when aConstructorName =
                                                                                             pConstructorName ->
                 let evaluatedArguments = List.map2 matchSingle aValues pValues
@@ -250,17 +266,39 @@ let rec reduce (e: Expr) (store: Ds Env): Expr =
                 | _ -> None
             | _, _ -> None
 
-        let rec findMatch x patterns =
-            match patterns with
-            | (case, expr) :: tail ->
-                match matchSingle x case with
-                | None -> findMatch x tail
-                | Some(bindings) -> Some(expr, bindings)
-            | [] -> None
+        let reduceExpr (expr, bindings): Expr = List.foldBack (fun b s -> b :: s) bindings store |> reduce expr
+
+        let findSinglePattern x patterns: Expr =
+            let rec findPattern x patterns =
+                match patterns with
+                | (case, expr) :: tail ->
+                    match matchSingle x case with
+                    | None -> findPattern x tail
+                    | Some(bindings) -> reduceExpr (expr, bindings)
+                | [] -> failwith "Pattern match incomplete"
+            findPattern x patternList
+
+        let findManyPatterns x patterns =
+            let rec findPatterns x patterns =
+                match patterns with
+                | (case, expr) :: tail ->
+                    match matchSingle x case with
+                    | None -> findPatterns x tail
+                    | Some(bindings) -> (case, reduceExpr (expr, bindings)) :: findPatterns x tail
+                | [] -> []
+
+            let reducedPatterns = findPatterns x patternList
+            // if List.isEmpty reducedPatterns then failwith "Pattern match incomplete" else
+            Pattern(x, reducedPatterns)
+
 
         let rActual = reduce matchExpression store
+        match rActual with
+        | Constant c -> findSinglePattern rActual patternList // Can I just eval here, even though i can't give eval an environment?
+        | expr -> findManyPatterns rActual patternList
 
-        match findMatch rActual patternList with
-        | Some(expr, bindings) -> List.foldBack (fun b s -> b :: s) bindings store |> reduce expr
-        | None -> failwith "Pattern match incomplete"
+
     | _ -> failwith "No match found"
+(*
+reduce (fromString pattern) [];;
+*)

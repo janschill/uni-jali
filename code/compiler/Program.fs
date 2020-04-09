@@ -9,6 +9,7 @@ open Transpiler
 open Lexer
 open Parser
 open Interpreter
+open Compiler
 
 exception SyntaxError of int * int with
     override this.Message = sprintf "Syntax error at line %d, column %d." this.Data0 this.Data1
@@ -22,6 +23,7 @@ let fromString (str: string): Expr =
     | _ -> reraise()
 
 let evalString (str: string): Value = eval (fromString str) []
+let reduceString (str: string): Expr = reduce (fromString str) []
 
 let testEval = """
 3 + 4
