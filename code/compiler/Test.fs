@@ -1,79 +1,186 @@
+[<AutoOpen>]
 module Test
 
-open FSharp.Text.Lexing
-open Program
+let minus = """
+x = -4;
+x
+"""
 
-let minus = fromString "x = -4\n";;
+let string = """
+"HELLO";
+"""
 
-// let string = fromString "b = 'HELLO'\n";;
+let boolean = """
+c = true;
+c
+"""
 
-let boolean = fromString "c = true\n";;
-
-let touple = fromString "t = (2,3)\n";;
-
+let tuple = """
+x = (1,2);
+x
+"""
 // let record = fromString "x = { name: 'Jan', age: '25', type: monkey, favFruit: pineapple } \n";;
 
-let simplefunction = fromString """
-func f x = x + y
-""";;
+let simpleprim = """
+3 + 4
+"""
 
-let simplefunction2 = fromString """
+// REDUCE THIS ONE TO SEE !!
+let simplefunction = """
 func f x =
-    x = 2
+  x + y
+end
+
+f
+"""
+
+let simplefunctionApplication = """
+func f x =
+    x = 2;
     x
 end
-""";;
+f (3)
+"""
 
-let complexfunction = fromString """
+let complexfunction = """
+y = 0;
+
 func f x y z =
-  k = x + y * z
+  k = x + y * z;
   k
 end
-""";;
 
-let adta = fromString """type DisjointSum = Ctor1 Integer | Ctor2 String String"""
+f
+"""
 
-let adtb = fromString """type DisjointSum =
-  Ctor1 Integer | Ctor2 String String
-""";;
-
-let adtc = fromString """type DisjointSum =
-    Ctor1 Integer
-  | Ctor2 String String
-""";; // not working
-
-let adtd = fromString """type DisjointSum =
-   Ctor1 Integer |
-   Ctor2 String String
-""";;
-
-let adte = fromString """type DisjointSum =
-   | Ctor1 Integer
-   | Ctor2 String String
-""";; // not working
-
-let pattern = fromString """
-func f x y = match x b c with
-   | Ctor1 => 42
-   | Ctor2 => 43
-   | Ctor3 => 44
-   | _     => 45
+let complexfunctionApplication = """
+func f x y z =
+  k = x + y * z;
+  k
 end
-""";; // not working
+f 1 2 3
+""" // result shuold be 11
 
-let ifstmt = fromString """
-if 3>4
+// NOT WORKING!!:
+
+// let partialfunctionApplication = """
+// func f x y z =
+//   k = x + y * z;
+//   k
+// end
+
+// f 1 2
+// """
+
+let partialfunctionApplication2 = """
+func f x y z =
+  k = x + y * z;
+  k
+end
+
+func part y =
+  f 1 2 y
+end
+
+part
+"""
+
+let ifstmt = """
+if 3 > 4
 then 3
 else 4
-""";;
+"""
 
+let pattern = """
+func f x =
+match x with
+   | Ctor1 -> 42
+   | Ctor2 -> 45
+end
+f
+"""
 
+let patternApplication = """
+func f x y =
+match x with
+   | 1 -> 42
+   | 2 -> 43
+   | 3 -> 44
+   | _ -> 45
 
-// l = [1, 2]
-// 2 :: l
+end
+f (3) (4)
+"""
 
+let complexpatternApplication = """
+func f x y =
+match (x, y) with
+   | (1, (2, _)) -> 40
+   | (1, (2, 5)) -> 41
+   | (1, (3, 1)) -> 42
+   | (1, (3, _)) -> 43
+   | (1, (3, 7)) -> 44
+end
+f (1) ((3, 5))
+"""
 
-// let f = 
-//   match x with
-//     | Bicycle
-//     | 
+let booleanpatternApplication = """
+func f x y =
+match (x, y) with
+   | (true, (true, _)) -> 40
+   | (true, (true, true)) -> 41
+   | (true, (true, false)) -> 42
+   | (false, (false, _)) -> 43
+   | (false, (true, _)) -> 44
+end
+f false (true, 5)
+"""
+
+let apply = """
+func f x y z =
+  k = x + y * z;
+  k
+end
+
+f 3 2 1
+"""
+
+let adt = """type DisjointSum =
+    Ctor1 Integer
+  | Ctor2 String String;
+  Ctor2 "a" "b"
+"""
+
+let adtpattern = """
+type DisjointSum =
+    Ctor1 Integer
+  | Ctor2 String String;
+"""
+
+let adtvalue = """
+x = Ctor1 0 1;
+x
+"""
+
+let testcases =
+    [ minus
+      string
+      boolean
+      tuple
+      simpleprim
+      simplefunction
+      simplefunctionApplication
+      complexfunction
+      complexfunctionApplication
+      //  partialfunctionApplication;
+      partialfunctionApplication2
+      ifstmt
+      pattern
+      patternApplication
+      complexpatternApplication
+      booleanpatternApplication
+      apply
+      tuple
+      adt
+      adtpattern
+      adtvalue ]
