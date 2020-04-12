@@ -21,12 +21,12 @@ x
 """
 // let record = fromString "x = { name: 'Jan', age: '25', type: monkey, favFruit: pineapple } \n";;
 
-let simpleprim = """
+let simplePrim = """
 3 + 4
 """
 
 // REDUCE THIS ONE TO SEE !!
-let simplefunction = """
+let simpleFunction = """
 func f x =
   x + y
 end
@@ -34,7 +34,7 @@ end
 f
 """
 
-let simplefunctionApplication = """
+let simpleFunctionApplication = """
 func f x =
     x = 2;
     x
@@ -42,7 +42,7 @@ end
 f (3)
 """
 
-let complexfunction = """
+let complexFunction = """
 y = 0;
 
 func f x y z =
@@ -53,7 +53,7 @@ end
 f
 """
 
-let complexfunctionApplication = """
+let complexFunctionApplication = """
 func f x y z =
   k = x + y * z;
   k
@@ -72,7 +72,7 @@ f 1 2 3
 // f 1 2
 // """
 
-let partialfunctionApplication2 = """
+let partialFunctionApplication2 = """
 func f x y z =
   k = x + y * z;
   k
@@ -85,7 +85,7 @@ end
 part
 """
 
-let ifstmt = """
+let ifStatement = """
 if 3 > 4
 then 3
 else 4
@@ -112,7 +112,7 @@ end
 f (3) (4)
 """
 
-let complexpatternApplication = """
+let complexPatternApplication = """
 func f x y =
   match (x, y) with
    | (1, (2, _)) -> 40
@@ -124,7 +124,7 @@ end
 f (1) ((3, 5))
 """
 
-let partialComplexpatternApplication = """
+let partialComplexPatternApplication = """
 func f x y =
   match (x, y) with
    | (1, (2, _)) -> 40
@@ -141,7 +141,7 @@ end
 h
 """
 
-let booleanpatternApplication = """
+let booleanPatternApplication = """
 func f x y =
 match (x, y) with
    | (true, (true, _)) -> 40
@@ -168,37 +168,37 @@ let adt = """type DisjointSum =
   Ctor2 "a" "b"
 """
 
-let adtpattern = """
+let adtPattern = """
 type DisjointSum =
     Ctor1 Integer
   | Ctor2 String String;
 """
 
-let adtvalue = """
+let adtValue = """
 x = Ctor1 0 1;
 x
 """
 
-let testcases =
+let testCases =
     [ minus
       string
       boolean
       tuple
-      simpleprim
-      simplefunction
-      simplefunctionApplication
-      complexfunction
-      complexfunctionApplication
+      simplePrim
+      simpleFunction
+      simpleFunctionApplication
+      complexFunction
+      complexFunctionApplication
       //  partialfunctionApplication;
-      partialfunctionApplication2
-      ifstmt
+      partialFunctionApplication2
+      ifStatement
       pattern
       patternApplication
-      complexpatternApplication
-      partialComplexpatternApplication
-      booleanpatternApplication
+      complexPatternApplication
+      partialComplexPatternApplication
+      booleanPatternApplication
       apply
       tuple
       adt
-      adtpattern
-      adtvalue ]
+      adtPattern
+      adtValue ]
