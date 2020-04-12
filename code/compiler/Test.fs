@@ -7,7 +7,8 @@ x
 """
 
 let string = """
-"HELLO";
+s = "HELLO";
+s
 """
 
 let boolean = """
