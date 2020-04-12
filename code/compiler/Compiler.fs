@@ -173,7 +173,7 @@ let rec reduce (e: Expr) (store: Ds Env): Expr =
         let rexpr1 = reduce expr1 store
         let rexpr2 = reduce expr2 store
         match (rexpr1, rexpr2) with
-        | (Constant v1, Constant v2) -> Constant(TupleValue(v1, v2))
+        | (Constant v1, Constant v2) -> Constant(TupleValue(v1, v2)) // TODO spørg Søren, da det giver problemer i pattern matching
         | _ -> Tuple(rexpr1, rexpr2)
     | Prim(operation, expression1, expression2) ->
         let rexpr1 = reduce expression1 store
@@ -184,12 +184,8 @@ let rec reduce (e: Expr) (store: Ds Env): Expr =
         | _ -> rprim
     | Let(name, expression1, expression2) ->
         match reduce expression1 store with
-        | Constant c ->
-            let newStore = (name, Static(c)) :: store
-            reduce expression2 newStore
-        | rexpr ->
-            let newStore = (name, Dynamic(rexpr)) :: store
-            Let(name, rexpr, reduce expression2 newStore)
+        | Constant c -> (name, Static(c)) :: store |> reduce expression2
+        | rexpr -> (name, Dynamic(rexpr)) :: store |> reduce expression2
     | If(cond, thenExpr, elseExpr) ->
         let rcond = reduce (cond) store
         match rcond with
@@ -199,9 +195,9 @@ let rec reduce (e: Expr) (store: Ds Env): Expr =
     | Function(name, parameters, expression, expression2) ->
         let storeWithParams = List.fold (fun s p -> (p, Dynamic(Variable p)) :: s) store parameters
         let rbody = reduce expression storeWithParams
-
-        let newStore = (name, Dynamic(Function(name, parameters, rbody, expression2))) :: store
-        reduce expression2 newStore
+        match rbody with
+        | Constant c -> (name, Static(c)) :: store |> reduce expression2
+        | expr -> (name, Dynamic(Function(name, parameters, rbody, expression2))) :: store |> reduce expression2
     | ADT(adtName, (constructors: (string * Type list) list), expression) ->
         let eval (name, argTypes) = (name, Static(ADTClosure((name, argTypes), adtName, [])))
 
@@ -248,6 +244,7 @@ let rec reduce (e: Expr) (store: Ds Env): Expr =
         | _ -> failwith <| sprintf "Reduce failed on apply: %O is not a function" func
     | Pattern(matchExpression, (patternList)) ->
         let rec matchSingle (actual: Expr) (pattern: Expr) =
+            // printf "%O - %O\n\n" actual pattern
             match (actual, pattern) with
             | (_, Constant(CharValue '_')) -> Some []
             | (Constant av, Constant pv) when av = pv -> Some []
@@ -260,25 +257,31 @@ let rec reduce (e: Expr) (store: Ds Env): Expr =
                 if List.forall Option.isSome evaluatedArguments
                 then Some(List.collect Option.get evaluatedArguments)
                 else None
-            | (Tuple(v1, v2), Tuple(p1, p2)) ->
-                match (matchSingle v1 p1, matchSingle v2 p2) with
+            | (Tuple(e1, e2), Tuple(p1, p2)) ->
+                match (matchSingle e1 p1, matchSingle e2 p2) with
                 | (Some(v1), Some(v2)) -> Some(v1 @ v2)
                 | _ -> None
+            // | (Constant(TupleValue(v1, v2)), Tuple(p1, p2)) ->
+            //     let m1 = matchSingle (Constant(v1)) p1
+            //     let m2 = matchSingle (Constant(v2)) p2
+            //     match (m1, m2) with
+            //     | (Some(v1), Some(v2)) -> Some(v1 @ v2)
+            //     | _ -> None
             | _, _ -> None
 
         let reduceExpr (expr, bindings): Expr = List.foldBack (fun b s -> b :: s) bindings store |> reduce expr
 
-        let findSinglePattern x patterns: Expr =
-            let rec findPattern x patterns =
-                match patterns with
-                | (case, expr) :: tail ->
-                    match matchSingle x case with
-                    | None -> findPattern x tail
-                    | Some(bindings) -> reduceExpr (expr, bindings)
-                | [] -> failwith "Pattern match incomplete"
-            findPattern x patternList
+        // let findSinglePattern x patterns: Expr =
+        //     let rec findPattern x patterns =
+        //         match patterns with
+        //         | (case, expr) :: tail ->
+        //             match matchSingle x case with
+        //             | None -> findPattern x tail
+        //             | Some(bindings) -> reduceExpr (expr, bindings)
+        //         | [] -> failwith "Pattern match incomplete"
+        //     findPattern x patterns
 
-        let findManyPatterns x patterns =
+        let findManyPatterns (x: Expr) patterns =
             let rec findPatterns x patterns =
                 match patterns with
                 | (case, expr) :: tail ->
@@ -287,16 +290,28 @@ let rec reduce (e: Expr) (store: Ds Env): Expr =
                     | Some(bindings) -> (case, reduceExpr (expr, bindings)) :: findPatterns x tail
                 | [] -> []
 
-            let reducedPatterns = findPatterns x patternList
-            // if List.isEmpty reducedPatterns then failwith "Pattern match incomplete" else
-            Pattern(x, reducedPatterns)
+            findPatterns x patterns
 
+        let findSinglePattern (v: Value) patterns =
+            match Interpreter.findPattern v patternList with
+            | Some(expr, bindings) ->
+                let dsBindings = List.map (fun (name, value) -> (name, Static(value))) bindings
+                reduceExpr (expr, dsBindings)
+            | _ -> failwith "Pattern match incomplete"
 
         let rActual = reduce matchExpression store
         match rActual with
-        | Constant c -> findSinglePattern rActual patternList // Can I just eval here, even though i can't give eval an environment?
-        | expr -> findManyPatterns rActual patternList
-
+        | Constant c ->
+            let expr = findSinglePattern c patternList
+            // printf "FindSingle:\nmatchExpr: %O\nresult: %O\n" rActual expr
+            expr
+        | _ ->
+            let matchings = findManyPatterns rActual patternList
+            // printf "FindMany:\nmatchExpr: %O \nresult: %O\n" rActual matchings
+            match matchings with
+            | [] -> failwith "Pattern match incomplete"
+            | [ (case, expr) ] -> expr
+            | many -> Pattern(rActual, many)
 
     | _ -> failwith "No match found"
 (*

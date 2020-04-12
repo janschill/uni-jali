@@ -102,7 +102,7 @@ f
 
 let patternApplication = """
 func f x y =
-match x with
+  match x with
    | 1 -> 42
    | 2 -> 43
    | 3 -> 44
@@ -114,7 +114,7 @@ f (3) (4)
 
 let complexpatternApplication = """
 func f x y =
-match (x, y) with
+  match (x, y) with
    | (1, (2, _)) -> 40
    | (1, (2, 5)) -> 41
    | (1, (3, 1)) -> 42
@@ -122,6 +122,23 @@ match (x, y) with
    | (1, (3, 7)) -> 44
 end
 f (1) ((3, 5))
+"""
+
+let partialComplexpatternApplication = """
+func f x y =
+  match (x, y) with
+   | (1, (2, _)) -> 40
+   | (1, (2, 5)) -> 41
+   | (2, (3, 1)) -> 42
+   | (2, (3, _)) -> 43
+   | (2, (3, 7)) -> 44
+end
+
+func h y =
+  f (1) y
+end
+
+h
 """
 
 let booleanpatternApplication = """
@@ -178,6 +195,7 @@ let testcases =
       pattern
       patternApplication
       complexpatternApplication
+      partialComplexpatternApplication
       booleanpatternApplication
       apply
       tuple
