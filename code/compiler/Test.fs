@@ -26,6 +26,7 @@ let simplePrim = """
 """
 
 // REDUCE THIS ONE TO SEE !!
+// TODO: Reducing this one will fail because it doesn't know y - but it should not fail because of this, right?
 let simpleFunction = """
 func f x =
   x + y
@@ -61,15 +62,14 @@ end
 f 1 2 3
 """ // result shuold be 11
 
-// NOT WORKING!!:
+// TODO: The below partial application is currently not working in our language!!:
 
 // let partialfunctionApplication = """
-// func f x y z =
-//   k = x + y * z;
-//   k
+// func f x y =
+//   x + y
 // end
 
-// f 1 2
+// f 2
 // """
 
 let partialFunctionApplication2 = """
