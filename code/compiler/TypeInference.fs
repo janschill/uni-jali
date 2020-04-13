@@ -341,7 +341,14 @@ let rec typ (lvl: int) (env: tenv) (e: Expr): typ =
 
         let newEnv = List.fold (fun e c -> typeConstructor c :: e) env constructors
         typ lvl newEnv expression
-
+// | Pattern(matchExpression, ((case,expr)::patterns)) ->
+//     let xType = typ lvl env matchExpression
+//     let resType = typ (lvl+1) env matchExpression
+//     let loop ps =
+//         match ps with
+//         | [] -> ()
+//         | (case,expr)::tail ->
+//             unify xType case
 
 
 (* Type inference: tyinf e0 returns the type of e0, if any *)
