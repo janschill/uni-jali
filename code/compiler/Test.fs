@@ -26,7 +26,6 @@ let simplePrim = """
 3 + 4
 """
 
-// REDUCE THIS ONE TO SEE !!
 // TODO: Reducing this one will fail because it doesn't know y - but it should not fail because of this, right?
 let simpleFunction = """
 func f x =
