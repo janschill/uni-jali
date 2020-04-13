@@ -317,8 +317,31 @@ let rec typ (lvl: int) (env: tenv) (e: Expr): typ =
         let tr = TypV(newTypeVar lvl)
         unify tf (TypF(txs, tr))
         tr
-// | ADT(adtName, (constructors: (string * Type list) list), expression) ->
-//     let sTyp = TypV(newTypeVar lvl)
+    | ADT(adtName, (constructors: (string * Type list) list), expression) ->
+        let superTyp = TypV(ref (NoLink(adtName), lvl))
+
+        let rec translateType (t: Type) =
+            match t with
+            | Int -> TypI
+            | Float -> TypFl
+            | Boolean -> TypB
+            | String -> TypS
+            | Char -> TypC
+            | TupleType(type1, type2) ->
+                let t1 = translateType type1
+                let t2 = translateType type2
+                TypT(t1, t2)
+            | Typevar(name) -> specialize lvl (lookup env name)
+            | ListType(t) -> TypL(translateType t)
+
+        let typeConstructor (name, typeList) =
+            let xTypes = List.map (translateType) typeList
+            let fTyp = TypF(xTypes, superTyp)
+            (name, generalize lvl fTyp)
+
+        let newEnv = List.fold (fun e c -> typeConstructor c :: e) env constructors
+        typ lvl newEnv expression
+
 
 
 (* Type inference: tyinf e0 returns the type of e0, if any *)
