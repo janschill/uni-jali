@@ -4,6 +4,7 @@ module Interpreter
     This interpreter takes our code and executes it using F#
 *)
 
+open Helpers
 open AbstractSyntax
 
 let rec lookup env x =
@@ -17,30 +18,6 @@ let rec tryLookup env x =
     | [] -> None
     | (y, v) :: r ->
         if x = y then Some(v) else tryLookup r x
-
-let rec findPattern x patternList =
-    let rec matchSingle (actual: Value) (pattern: Expr) =
-        match (actual, pattern) with
-        | (_, Constant(CharValue '_')) -> Some []
-        | (a, Constant v) when a = v -> Some []
-        | (a, Variable x) -> Some [ (x, a) ]
-        | (ADTValue(constructorName, superName, values), Apply(callName, exprs)) when constructorName = callName ->
-            let evaluatedArguments = List.map2 matchSingle values exprs
-            if List.forall Option.isSome evaluatedArguments
-            then Some(List.collect Option.get evaluatedArguments)
-            else None
-        | (TupleValue(v1, v2), Tuple(p1, p2)) ->
-            match (matchSingle v1 p1, matchSingle v2 p2) with
-            | (Some(v1), Some(v2)) -> Some(v1 @ v2)
-            | _ -> None
-        | _, _ -> None
-
-    match patternList with
-    | (case, expr) :: ps ->
-        match matchSingle x case with
-        | None -> findPattern x ps
-        | Some(bindings) -> Some(expr, bindings)
-    | [] -> None
 
 let rec eval (e: Expr) (env: Value Env): Value =
     match e with
@@ -106,7 +83,7 @@ let rec eval (e: Expr) (env: Value Env): Value =
     | Pattern(matchExpression, (patternList)) ->
 
         let matchExpression = eval matchExpression env
-        let body = findPattern matchExpression patternList
+        let body = Helpers.findPattern matchExpression patternList
 
         match body with
         | Some(expr, bindings) -> env @ bindings |> eval expr
