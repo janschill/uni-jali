@@ -6,9 +6,10 @@ type Type =
     | Boolean
     | String
     | Char
-    | Tuple of Type
+    | TupleType of Type * Type
     | Typevar of string
-    | TypL of Type
+    | ListType of Type
+
 
 type ADTConstructor = string * Type list
 
