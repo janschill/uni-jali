@@ -235,7 +235,12 @@ let rec showType t: string =
             match !tyvar with
             | (NoLink name, _) -> name
             | _ -> failwith "showType impossible"
-        | TypF(t1, t2) -> "(" + (List.reduce (+) (List.map (pr >> sprintf "%s -> ") t1)) + pr t2 + ")"
+        | TypF(t1, t2) ->
+            let args =
+                if List.isEmpty t1
+                then "() -> "
+                else (List.fold (fun s a -> s + (pr a) + " -> ") "" t1)
+            sprintf "(%s%s)" args (pr t2)
     pr t
 
 (* A type environment maps a program variable name to a typescheme *)
