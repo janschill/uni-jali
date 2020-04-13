@@ -13,8 +13,8 @@
 #### Variable declaration
 
 ```
-my_integer = 1
-my_string = "String"
+myInteger = 1;
+myString = "String";
 ```
 
 #### Operations
@@ -24,29 +24,26 @@ my_string = "String"
 10 - 5
  5 * 5
 25 / 5
-25 % 5
 ```
 
 #### Types
 
 ```
-my_integer = 1
-my_float   = 1.0
-my_boolean = false // true
-my_char    = 'c'
-my_string  = "String"
-my_type    = "MyOwnType"
+myInteger = 1;
+myBoolean = false; // true
+myString  = "String";
+myTypeVar = "MyOwnType";
 ```
 
 #### Functions
 
 ```
-func my_function x y z =
-  k = x + y + z
+func myFunction x y z =
+  k = x + y + z;
   k
 end
 
-func my_function x = x
+func myFunction x = x;
 ```
 
 #### If statement
@@ -63,7 +60,7 @@ else expression3
 
 ```
 match x with
-  | Ctor1 -> expression
+    Ctor1 -> expression
   | Ctor2 -> expression
  
 ```
@@ -71,20 +68,20 @@ match x with
 #### Tuple
 
 ```
-my_tuple = (1, 2)
-my_tuple2 = ((1, 2), 3)
+myTuple = (1, 2);
+myTuple2 = ((1, 2), 3);
 ```
 
 #### Algebraic Data Type
 
 ```
-type DisjointSum = Ctor1 Integer | Ctor2 String String
+type DisjointSum = Ctor1 Integer | Ctor2 String String;
 
 type DisjointSum =
-  Ctor1 Integer | Ctor2 String String
+  Ctor1 Integer | Ctor2 String String;
 
 type DisjointSum =
-  Ctor1 Integer |
-  Ctor2 Float Float |
-  Ctor3 String String String
+    Ctor1 Integer
+  | Ctor2 Integer Integer
+  | Ctor3 String String String
 ```

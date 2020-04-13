@@ -1,0 +1,48 @@
+type Attributes = NilAtt | Att Tuple Attribute;
+type Node = Text StringLiteral | Tag String Attributes NodeList;
+type NodeList =  NilNode | ConsNode Node NodeList;
+
+type Message = Increment | Decrement;
+
+func tag name attributes nodes =
+  Tag (name) (attributes) (nodes)
+end
+
+func text value =
+  Text (value)
+end
+
+func button attributes textValue =
+  Tag ("button") (attributes) (text (textValue))
+end
+
+func div attributes nodes =
+  Tag ("div") (attributes) (nodes)
+end
+
+func cons head tail =
+  ConsNode (head) (tail)
+end
+
+buttonAttributes = Att("onClick", Decrement) Att("name", "myButton") Att("class", "button") NilAtt;
+buttonAttributes2 = Att("onClick", Increment) NilAtt;
+
+div (NilAtt) (
+  cons ( button (buttonAttributes) ("Decrement") ) 
+  cons ( div (NilAtt) ( 
+    cons (text "Counter is") 
+    NilNode ))
+  cons ( button (buttonAttributes2) ("Increment") )
+  NilNode
+)
+
+
+
+
+(*
+func cons head tail =
+  Tuple(head,tail)
+end
+
+buttonAttributes = cons("onClick", Decrement) cons("name", "myButton") ("class", "button")
+*)

@@ -11,6 +11,7 @@
     <Compile Include="./generated/Lexer.fs" />
     <Compile Include="TypeInference.fs" />
     <Compile Include="Interpreter.fs" />
+    <Compile Include="Compiler.fs" />
     <Compile Include="Program.fs" />
     <Compile Include="Test.fs" />
   </ItemGroup>
