@@ -9,6 +9,7 @@
     <Compile Include="./generated/Parser.fsi" />
     <Compile Include="./generated/Parser.fs" />
     <Compile Include="./generated/Lexer.fs" />
+    <Compile Include="Helpers.fs" />
     <Compile Include="Interpreter.fs" />
     <Compile Include="Compiler.fs" />
     <Compile Include="Program.fs" />
