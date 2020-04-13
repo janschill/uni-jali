@@ -4,8 +4,8 @@ module Interpreter
     This interpreter takes our code and executes it using F#
 *)
 
-open Helpers
 open AbstractSyntax
+open Helpers
 
 let rec lookup env x =
     match env with

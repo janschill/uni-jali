@@ -18,7 +18,7 @@ run:
 	@echo " -- STARTING INTERACTIVE --"
 	@echo ""
 	fsharpi -r ~/fsharp/FsLexYacc.Runtime.dll --consolecolors --lib:$(shell pwd)/generated/ \
-		AbstractSyntax.fs Transpiler.fs Parser.fs Lexer.fs Interpreter.fs Test.fs Compiler.fs Program.fs
+		AbstractSyntax.fs Transpiler.fs Parser.fs Lexer.fs Helpers.fs Interpreter.fs Test.fs Compiler.fs Program.fs
 
 setup:
 	# This setup is based on this guide: https://gist.github.com/AndreasHassing/16567f299b77b0090d94441115a5d031/ae1db7572fd877df733213120800084fbafe9858#5-link-the-runtime-dll-to-your-fsharp-folder
