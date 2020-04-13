@@ -48,6 +48,7 @@ let rec unique xs =
 
 type typ =
     | TypI (* integers                   *)
+    | TypFl (* floats                    *)
     | TypB (* booleans                   *)
     | TypC (* chars                   *)
     | TypS (* strings                   *)
@@ -123,7 +124,12 @@ let rec linkVarToType tyvar t =
 let rec typeToString t: string =
     match t with
     | TypI -> "int"
+    | TypFl -> "float"
     | TypB -> "bool"
+    | TypC -> "char"
+    | TypS -> "string"
+    | TypL(t) -> "list"
+    | TypT(t1, t2) -> "tuple"
     | TypV _ -> failwith "typeToString impossible"
     | TypF(t1, t2) -> "function"
 
@@ -194,8 +200,13 @@ let rec copyType subst t: typ =
                 | (LinkTo t1, _) -> copyType subst t1
         loop subst
     | TypF(t1, t2) -> TypF(List.map (copyType subst) t1, copyType subst t2)
+    | TypT(t1, t2) -> TypT(copyType subst t1, copyType subst t2)
+    | TypL(t) -> TypL(copyType subst t)
     | TypI -> TypI
+    | TypFl -> TypFl
     | TypB -> TypB
+    | TypC -> TypC
+    | TypS -> TypS
 
 (* Create a type from a type scheme (tvs, t) by instantiating all the
    type scheme's parameters tvs with fresh type variables *)
@@ -214,11 +225,12 @@ let rec showType t: string =
     let rec pr t =
         match normType t with
         | TypI -> "int"
+        | TypFl -> "float"
         | TypB -> "bool"
         | TypC -> "char"
         | TypS -> "string"
         | TypT(t1, t2) -> sprintf "%s * %s" (pr t1) (pr t2)
-        | TypL t -> "List of"
+        | TypL t -> sprintf "%s list" (pr t)
         | TypV tyvar ->
             match !tyvar with
             | (NoLink name, _) -> name
@@ -281,7 +293,7 @@ let rec typ (lvl: int) (env: tenv) (e: Expr): typ =
     | If(cond, thenExpr, elseExpr) ->
         let t2 = typ lvl env thenExpr
         let t3 = typ lvl env elseExpr
-        unify TypB (typ lvl env cond) //should we check this first, for effeciency?
+        unify TypB (typ lvl env cond) //shouldn't we check this first, for effeciency?
         unify t2 t3
         t2
     | Function(f, xs, fBody, letBody) ->
