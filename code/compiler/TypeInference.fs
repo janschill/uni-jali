@@ -47,25 +47,25 @@ let rec unique xs =
 (* A type is int, bool, function, or type variable: *)
 
 type typ =
-    | TypI (* integers                   *)
-    | TypFl (* floats                    *)
-    | TypB (* booleans                   *)
-    | TypC (* chars                   *)
-    | TypS (* strings                   *)
-    | TypT of typ * typ (* tuples                   *)
-    | TypL of typ (* lists                   *)
+    | TypI (* integers *)
+    | TypFl (* floats  *)
+    | TypB (* booleans *)
+    | TypC (* chars *)
+    | TypS (* strings *)
+    | TypT of typ * typ (* tuples *)
+    | TypL of typ (* lists *)
     | TypF of typ list * typ (* (argumenttype, resulttype) *)
-    | TypV of typevar (* type variable              *)
+    | TypV of typevar (* type variable *)
 
 and tyvarkind =
-    | NoLink of string (* uninstantiated type var.   *)
-    | LinkTo of typ (* instantiated to typ        *)
+    | NoLink of string (* uninstantiated type var. *)
+    | LinkTo of typ (* instantiated to typ *)
 
 and typevar = (tyvarkind * int) ref
 
 (* A type scheme is a list of generalized type variables, and a type: *)
 
-type typescheme = TypeScheme of typevar list * typ (* type variables and type    *)
+type typescheme = TypeScheme of typevar list * typ (* type variables and type *)
 
 (* *)
 
