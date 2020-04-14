@@ -46,13 +46,10 @@ let rec reduce (e: Expr) (store: Ds Env): Expr =
         | (Constant v1, Constant v2) -> Constant(TupleValue(v1, v2))
         | _ -> Tuple(rexpr1, rexpr2)
     | List(list) ->
-        match list with
-        | [ Empt ] -> Constant(ListValue([]))
-        | _ ->
-            let reducedItems = List.map (fun e -> reduce e store) list
-            if (List.forall isConstant reducedItems)
-            then Constant(ListValue(getValues reducedItems))
-            else List(reducedItems)
+        let reducedItems = List.map (fun e -> reduce e store) list
+        if (List.forall isConstant reducedItems)
+        then Constant(ListValue(getValues reducedItems))
+        else List(reducedItems)
     | Prim(operation, expression1, expression2) ->
         let rexpr1 = reduce expression1 store
         let rexpr2 = reduce expression2 store

@@ -16,10 +16,7 @@ let rec matchSingleExpr (actual: Expr) (pattern: Expr) =
         match (matchSingleExpr e1 p1, matchSingleExpr e2 p2) with
         | (Some(v1), Some(v2)) -> Some(v1 @ v2)
         | _ -> None
-    | (List(exprList1), List(exprList2)) ->
-        match (exprList1, exprList2) with
-        | ([ Empt ], [ Empt ]) -> Some []
-        | _ -> matchAllExprs exprList1 exprList2
+    | (List(exprList1), List(exprList2)) -> matchAllExprs exprList1 exprList2
     | _, _ -> None
 
 and matchAllExprs exprs1 exprs2 =
@@ -41,10 +38,7 @@ let rec matchSingleVal (actual: Value) (pattern: Expr) =
         match (matchSingleVal v1 p1, matchSingleVal v2 p2) with
         | (Some(v1), Some(v2)) -> Some(v1 @ v2)
         | _ -> None
-    | (ListValue(valList), List(exprList)) ->
-        match (valList, exprList) with
-        | ([], [ Empt ]) -> Some []
-        | _ -> matchAllVals valList exprList
+    | (ListValue(valList), List(exprList)) -> matchAllVals valList exprList
     | _, _ -> None
 
 and matchAllVals values exprs =

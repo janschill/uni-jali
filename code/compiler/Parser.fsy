@@ -138,7 +138,7 @@ Arg:
   | LPAR Expression RPAR { $2 }
 
 List:
-  | /* empty */  { [Empt] }
+  | /* empty */  { [] }
   | Expression { [$1] }
   | Expression COMMA List { $1::$3 }
 
