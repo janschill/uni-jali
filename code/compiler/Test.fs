@@ -179,6 +179,11 @@ x = Ctor1 0 1;
 x
 """
 
+let list = """
+x = [1, 2, 3];
+x
+"""
+
 let testCases =
     [ minus
       string
@@ -201,4 +206,5 @@ let testCases =
       tuple
       adt
       adtPattern
-      adtValue ]
+      adtValue
+      list

@@ -25,6 +25,7 @@ type Value =
 
 and Expr =
     | Empt
+    | List of Expr list
     | Constant of Value
     | StringLiteral of string
     | Variable of string
