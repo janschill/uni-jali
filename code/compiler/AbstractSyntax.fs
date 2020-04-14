@@ -19,6 +19,7 @@ type Value =
     | CharValue of char
     | StringValue of string
     | TupleValue of Value * Value
+    | ListValue of Value list
     | ADTValue of string * string * Value list
     | Closure of string * string list * Expr * Value Env (* (f, x, fBody, fDeclEnv) *)
     | ADTClosure of ADTConstructor * string * Value Env (* (f, x, fBody, fDeclEnv) *)

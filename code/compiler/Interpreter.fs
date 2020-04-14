@@ -24,6 +24,10 @@ let rec eval (e: Expr) (env: Value Env): Value =
     | Constant c -> c
     | Variable v -> lookup env v
     | Tuple(expr1, expr2) -> TupleValue(eval expr1 env, eval expr2 env)
+    | List(list) ->
+        match list with
+        | [ Empt ] -> ListValue([])
+        | _ -> ListValue(List.map (fun e -> eval e env) list)
     | Prim(operation, expression1, expression2) ->
         let value1 = eval expression1 env
         let value2 = eval expression2 env
