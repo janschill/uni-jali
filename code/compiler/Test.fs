@@ -91,7 +91,14 @@ then 3
 else 4
 """
 
-let pattern = """
+let simplePattern = """
+x = 1;
+match x with
+| 1 -> true
+| _ -> false
+"""
+
+let patternInFunction = """
 func f x =
 match x with
    | Ctor1 -> 42
@@ -184,6 +191,20 @@ x = [1, 2, 3];
 x
 """
 
+let listPattern = """
+x = [1, 2, 3];
+match x with
+| [1,2,3] -> true
+| _ -> false
+"""
+
+let emptyListPattern = """
+x = [];
+match x with
+| [] -> true
+| _ -> false
+"""
+
 let testCases =
     [ minus
       string
@@ -197,14 +218,15 @@ let testCases =
       //  partialfunctionApplication;
       partialFunctionApplication2
       ifStatement
-      pattern
+      simplePattern
+      patternInFunction
       patternApplication
       complexPatternApplication
       partialComplexPatternApplication
       booleanPatternApplication
       apply
-      tuple
       adt
       adtPattern
       adtValue
       list
+      listPattern ]
