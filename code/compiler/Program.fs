@@ -25,6 +25,7 @@ let fromString (str: string): Expr =
 
 let evalString (str: string): Value = eval (fromString str) []
 let reduceString (str: string): Expr = reduce (fromString str) []
+let inferString (str: string): string = inferType (fromString str)
 
 let program = System.IO.File.ReadAllText "./examples/program.javi"
 let html = System.IO.File.ReadAllText "./examples/html.javi"
