@@ -6,7 +6,7 @@ type Type =
     | Boolean
     | String
     | Char
-    // | List
+    | ListType of Type
     | Typevar of string
 
 type ADTConstructor = string * Type list

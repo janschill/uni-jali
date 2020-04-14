@@ -196,3 +196,4 @@ TypeSpec:
   | STRING { String }
   | CHAR { Char }
   | NAME { Typevar $1 }
+  | RSQUARE TypeSpec LSQUARE { ListType($2) }

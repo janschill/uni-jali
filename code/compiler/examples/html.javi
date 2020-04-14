@@ -1,7 +1,5 @@
 type Attribute = Att Tuple;
-type AttributeList = NilAtt | ConsAtt Attribute AttributeList;
-type Node = Text String | Tag String AttributeList NodeList;
-type NodeList =  NilNode | ConsNode Node NodeList;
+type Node = Text String | Tag String [Attribute] [Node];
 
 type Message = Increment | Decrement;
 
@@ -21,14 +19,6 @@ func div attributes nodes =
   Tag ("div") (attributes) (nodes)
 end
 
-func singleAtt attribute =
-  ConsAtt (attribute) (NilAtt)
-end
-
-func singleNode node =
-  ConsNode (node) (NilNode)
-end
-
 func update msg model =
   match msg with
     | Increment -> model + 1
@@ -36,13 +26,13 @@ func update msg model =
 end
 
 func view model =
-  div (NilAtt) (ConsNode(
-    button (singleAtt("onClick", Decrement)) ("Decrement")) (ConsNode(
-    div (NilAtt) (singleNode(
-      text (model)))) (ConsNode(
-    button (singleAtt("onClick", Increment)) ("Increment"))(NilNode)
-    ))
-  )
+  div ([]) ([
+    button ([Att("onClick", Decrement)]) ("Decrement"),
+    div ([]) ([
+      text (model) 
+    ]),
+    button ([Att("onClick", Increment)]) ("Increment")
+  ])
 end
 
 init = 0;
