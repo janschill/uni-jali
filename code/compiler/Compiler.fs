@@ -79,7 +79,7 @@ let rec reduce (e: Expr) (store: Ds Env): Expr =
             else
                 Apply(fname, reducedArgs) // TODO: Can I eval here, even though i can't give eval an environment?
 
-        | Static((c)) -> Constant(c)
+        | Static(c) -> Constant(c)
         | Dynamic(Function(name, parameters, expression, expression2)) ->
             // this will never be variables, because they have been replaced by their expressions -> is this really correct?
             let reducedArgs = List.map (fun arg -> reduce arg store) farguments
