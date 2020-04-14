@@ -5,6 +5,7 @@ module Interpreter
 *)
 
 open AbstractSyntax
+open Helpers
 
 let rec lookup env x =
     match env with
@@ -17,30 +18,6 @@ let rec tryLookup env x =
     | [] -> None
     | (y, v) :: r ->
         if x = y then Some(v) else tryLookup r x
-
-let rec findPattern x patternList =
-    let rec matchSingle (actual: Value) (pattern: Expr) =
-        match (actual, pattern) with
-        | (_, Constant(CharValue '_')) -> Some []
-        | (a, Constant v) when a = v -> Some []
-        | (a, Variable x) -> Some [ (x, a) ]
-        | (ADTValue(constructorName, superName, values), Apply(callName, exprs)) when constructorName = callName ->
-            let evaluatedArguments = List.map2 matchSingle values exprs
-            if List.forall Option.isSome evaluatedArguments
-            then Some(List.collect Option.get evaluatedArguments)
-            else None
-        | (TupleValue(v1, v2), Tuple(p1, p2)) ->
-            match (matchSingle v1 p1, matchSingle v2 p2) with
-            | (Some(v1), Some(v2)) -> Some(v1 @ v2)
-            | _ -> None
-        | _, _ -> None
-
-    match patternList with
-    | (case, expr) :: ps ->
-        match matchSingle x case with
-        | None -> findPattern x ps
-        | Some(bindings) -> Some(expr, bindings)
-    | [] -> None
 
 let rec eval (e: Expr) (env: Value Env): Value =
     match e with
@@ -80,15 +57,11 @@ let rec eval (e: Expr) (env: Value Env): Value =
         let newEnv = (name, closure) :: env
         eval expression2 newEnv
     | ADT(adtName, (constructors: (string * Type list) list), expression) ->
-        let newAdt constructorDeclaration =
-            if List.isEmpty (snd constructorDeclaration)
-            then ADTValue(fst constructorDeclaration, adtName, [])
-            else ADTClosure(constructorDeclaration, adtName, env)
-
         let finalEnv =
-            List.fold (fun newEnv constructorDeclaration ->
-                let name = fst constructorDeclaration
-                (name, newAdt constructorDeclaration) :: newEnv) env constructors
+            List.fold (fun env' constructorDecl ->
+                match constructorDecl with
+                | (name, []) -> (name, ADTValue(name, adtName, [])) :: env'
+                | (name, _) -> (name, ADTClosure(constructorDecl, adtName, env)) :: env') env constructors
 
         eval expression finalEnv
     | Apply(fname, farguments) ->
@@ -106,7 +79,7 @@ let rec eval (e: Expr) (env: Value Env): Value =
     | Pattern(matchExpression, (patternList)) ->
 
         let matchExpression = eval matchExpression env
-        let body = findPattern matchExpression patternList
+        let body = Helpers.findPattern matchExpression patternList
 
         match body with
         | Some(expr, bindings) -> env @ bindings |> eval expr
