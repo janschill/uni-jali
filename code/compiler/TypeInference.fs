@@ -268,20 +268,20 @@ let rec typ (lvl: int) (env: tenv) (e: Expr): typ =
         let t1 = typ lvl env e1
         let t2 = typ lvl env e2
 
-        let unify2 (typ1, t1) (typ2, t2) rtyp =
-            (unify typ1 t1
-             unify typ2 t2
+        let unify2 (typ, t1, t2) rtyp =
+            (unify typ t1
+             unify typ t2
              rtyp)
         match ope with
-        | "+" -> unify2 (TypI, t1) (TypI, t2) TypI
-        | "-" -> unify2 (TypI, t1) (TypI, t2) TypI
-        | "*" -> unify2 (TypI, t1) (TypI, t2) TypI
-        | ("/") -> unify2 (TypI, t1) (TypI, t2) TypI
-        | ("%") -> unify2 (TypI, t1) (TypI, t2) TypI
-        | (">") -> unify2 (TypI, t1) (TypI, t2) TypB
-        | (">=") -> unify2 (TypI, t1) (TypI, t2) TypB
-        | "<" -> unify2 (TypI, t1) (TypI, t2) TypB
-        | "<=" -> unify2 (TypI, t1) (TypI, t2) TypB
+        | "+" -> unify2 (TypI, t1, t2) TypI
+        | "-" -> unify2 (TypI, t1, t2) TypI
+        | "*" -> unify2 (TypI, t1, t2) TypI
+        | ("/") -> unify2 (TypI, t1, t2) TypI
+        | ("%") -> unify2 (TypI, t1, t2) TypI
+        | (">") -> unify2 (TypI, t1, t2) TypB
+        | (">=") -> unify2 (TypI, t1, t2) TypB
+        | "<" -> unify2 (TypI, t1, t2) TypB
+        | "<=" -> unify2 (TypI, t1, t2) TypB
         | "==" ->
             unify t1 t2
             TypB
@@ -341,14 +341,15 @@ let rec typ (lvl: int) (env: tenv) (e: Expr): typ =
 
         let newEnv = List.fold (fun e c -> typeConstructor c :: e) env constructors
         typ lvl newEnv expression
-// | Pattern(matchExpression, ((case,expr)::patterns)) ->
-//     let xType = typ lvl env matchExpression
-//     let resType = typ (lvl+1) env matchExpression
-//     let loop ps =
-//         match ps with
-//         | [] -> ()
-//         | (case,expr)::tail ->
-//             unify xType case
+    | Pattern(matchExpression, ((case, expr) :: patterns)) ->
+        let lvl1 = lvl + 1
+        let xType = typ lvl1 env matchExpression
+        let resType = typ lvl1 env expr
+        List.iter (fun (case, expr) ->
+            unify xType (typ lvl env case)
+            unify resType (typ lvl1 env expr)) patterns
+        resType
+
 
 
 (* Type inference: tyinf e0 returns the type of e0, if any *)

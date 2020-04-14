@@ -91,10 +91,23 @@ then 3
 else 4
 """
 
+let easyPattern = """
+func f x =
+  match x with
+   | 1 -> 42
+   | 2 -> 45
+end
+f
+"""
+
 let pattern = """
+type myType =
+    Ctor1 String
+  | Ctor2;
+
 func f x =
 match x with
-   | Ctor1 -> 42
+   | Ctor1 _ -> 42
    | Ctor2 -> 45
 end
 f
@@ -122,6 +135,19 @@ func f x y =
    | (1, (3, 7)) -> 44
 end
 f (1) ((3, 5))
+"""
+
+let complexPatternApplication2 = """
+type myType =
+    Ctor1 String
+  | Ctor2;
+
+func f x =
+match x with
+   | Ctor1(_) -> 42
+   | Ctor2 -> 45
+end
+f C
 """
 
 let partialComplexPatternApplication = """
