@@ -27,6 +27,15 @@ let evalString (str: string): Value = eval (fromString str) []
 let reduceString (str: string): Expr = reduce (fromString str) []
 let inferString (str: string): string = inferType (fromString str)
 
+let test = """
+type myType = Ctor1 | Ctor2 String Integer;
+x = Ctor1;
+match x with
+| Ctor1 -> 1
+| Ctor2 s i -> 2
+| Ctor2 _ _ -> 3
+"""
+
 let program = System.IO.File.ReadAllText "./examples/program.javi"
 let html = System.IO.File.ReadAllText "./examples/html.javi"
 
