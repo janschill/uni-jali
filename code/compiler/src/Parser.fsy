@@ -1,5 +1,4 @@
 %{
-
   open AbstractSyntax;
 %}
 
@@ -125,8 +124,8 @@ ParenthesizedExpression:
 AppExpression:
   | FunctionCall { $1 }
 
-FunctionCall: 
-  | NAME Args { Apply($1, $2) } 
+FunctionCall:
+  | NAME Args { Apply($1, $2) }
   | NAME LPAR RPAR { Apply($1, []) } // THIS IS NEW, NOT TESTED PROBERLY. Was made to handle empty function calls
 
 Args:
