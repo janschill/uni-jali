@@ -11,12 +11,11 @@ let parseString (s: string): AbstractSyntax.Expr =
 let interpret (fileName: string): Unit =
     let program = System.IO.File.ReadAllText fileName
     let result = Interpreter.eval (parseString program) []
-    printfn "\n\nResult for %s is: %s" fileName (AbstractSyntax.printValue result)
+    printfn "\nResult: %s\n" (AbstractSyntax.printValue result)
 
 
 [<EntryPoint>]
 let main argv =
-    printfn "Running jali …"
     match argv with
     | [| "-i"; file |] -> interpret argv.[1]
     | _ -> printfn "Invalid command"

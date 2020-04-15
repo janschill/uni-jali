@@ -56,7 +56,8 @@ setup:
 	@echo "Now you can reference the Runtime like: 'fsharpi -r ~/fsharp/FsLexYacc.Runtime.dll Absyn.fs...'"
 	@echo "... happy coding, bye"
 
-powerpack=lib/FSharp.PowerPack.dll
+test:
+	bin/test.sh
 
 LexerGen=bin/Lexer.fs
 ParserGen=bin/Parser.fs
