@@ -14,5 +14,6 @@
     <Compile Include="Compiler.fs" />
     <Compile Include="Program.fs" />
     <Compile Include="Test.fs" />
+    <Compile Include="Janitor.fs" />
   </ItemGroup>
 </Project>

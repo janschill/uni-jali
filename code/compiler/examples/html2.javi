@@ -32,19 +32,18 @@ func view model =
   ])
 end
 
-func view2 model = 
+func view2 model =
     view (update (Increment) model)
 end
 
-
 type Diff = Change Node | Path Integer Diff
 
-func fold ns1 ns2 = 
+func fold ns1 ns2 =
   match (ns1, ns2) with
   | (h1::t1, h2::t2) -> // what index is the change at?
 end
 
-func diff view1 view2 = 
+func diff view1 view2 =
   match (view1, view2) with
   | (Tag(t1, atts1, ns1), Tag(t2, atts2, ns2)) -> if t1 == t2 then diff ()
 end
