@@ -1,0 +1,8 @@
+type DisjointSum = Ctor1 | Ctor2;
+
+func f x =
+match x with
+   | Ctor1 -> 42
+   | Ctor2 -> 45
+end
+f (Ctor1)

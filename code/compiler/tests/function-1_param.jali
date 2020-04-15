@@ -1,4 +1,4 @@
-fun f x =
+func f x =
   x
 end
 
