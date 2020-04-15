@@ -27,11 +27,8 @@ end
 
 func view model =
   Tag ("div") ([]) ([
-    Tag ("button") ([Att("onClick", Decrement)]) ("Decrement"),
-    Tag ("div") ([]) ([
-      Text (model) 
-    ]),
-    Tag ("button") ([Att("onClick", Increment)]) ("Increment")
+    Text (model),
+    Text ("Hello World")
   ])
 end
 
