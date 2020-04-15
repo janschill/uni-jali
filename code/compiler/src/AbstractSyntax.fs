@@ -41,3 +41,13 @@ and Expr =
 // and Pattern =
 //     | ConstPattern of Value
 //     | Binding of string
+
+let rec printValue d =
+    match d with
+    | IntegerValue i -> sprintf "%i" i
+    | BooleanValue b -> sprintf "%b" b
+    | CharValue c -> "'" + (string c) + "'"
+    | StringValue s -> "\"" + s + "\""
+    | TupleValue(v1, v2) -> "(" + (printValue v1) + "," + (printValue v2) + ")"
+    | ADTValue(name, supertype, vs) -> name + (List.fold (fun acc e -> (printValue e) + " " + acc) "" vs)
+    | _ -> "Couldn't find proper value"
