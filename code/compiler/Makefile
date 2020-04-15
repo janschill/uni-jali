@@ -76,7 +76,7 @@ clean:
 all: bin/jali
 
 bin/jali: $(JaLiExe)
-	$(mkbundle) bin/JaLi.exe ~/.fsharp/FsLexYacc.Runtime.dll bin/FSharp.Core.dll bin/AbstractSyntax.dll bin/Parser.dll bin/Lexer.dll bin/Helpers.dll bin/Interpreter.dll bin/Compiler.dll lib/FSharp.PowerPack.dll -o bin/jali
+	$(mkbundle) -L bin/ -L lib/ -L ~/.fsharp/ bin/JaLi.exe ~/.fsharp/FsLexYacc.Runtime.dll bin/FSharp.Core.dll bin/AbstractSyntax.dll bin/Parser.dll bin/Lexer.dll bin/Helpers.dll bin/Interpreter.dll bin/Compiler.dll -o bin/jali
 
 $(LexerGen): src/Lexer.fsl
 	fslex src/Lexer.fsl -o $(LexerGen)
@@ -88,10 +88,10 @@ $(AbstractSyntaxLib): src/AbstractSyntax.fs
 	$(fsharpc) -a src/AbstractSyntax.fs -o $(AbstractSyntaxLib)
 
 $(ParserLib): $(ParserGen) $(AbstractSyntaxLib)
-	$(fsharpc) -a $(ParserGen) -r $(AbstractSyntaxLib) -r $(powerpack) -o $(ParserLib)
+	$(fsharpc) -a $(ParserGen) -r $(AbstractSyntaxLib) -o $(ParserLib)
 
 $(LexerLib): $(LexerGen) $(AbstractSyntaxLib) $(ParserLib)
-	$(fsharpc) -a $(LexerGen) -r $(AbstractSyntaxLib) -r $(ParserLib) -r $(powerpack) -o $(LexerLib)
+	$(fsharpc) -a $(LexerGen) -r $(AbstractSyntaxLib) -r $(ParserLib) -o $(LexerLib)
 
 $(HelpersLib): src/Helpers.fs $(AbstractSyntaxLib)
 	$(fsharpc) -a src/Helpers.fs -r $(AbstractSyntaxLib) -o $(HelpersLib)
@@ -103,4 +103,4 @@ $(CompilerLib): src/Compiler.fs $(AbstractSyntaxLib) $(HelpersLib) $(Interpreter
 	$(fsharpc) -a src/Compiler.fs -r $(AbstractSyntaxLib) -r $(HelpersLib) -r $(InterpreterLib) -o $(CompilerLib)
 
 $(JaLiExe): src/JaLi.fsx $(AbstractSyntaxLib) $(ParserLib) $(LexerLib) $(CompilerLib) $(InterpreterLib) $(HelpersLib)
-	$(fsharpc) src/JaLi.fsx -o $(JaLiExe) -r $(AbstractSyntaxLib) -r $(ParserLib) -r $(LexerLib) -r $(CompilerLib) -r $(InterpreterLib) -r $(HelpersLib) -r $(powerpack) -o $(JaLiExe)
+	$(fsharpc) src/JaLi.fsx -o $(JaLiExe) -r $(AbstractSyntaxLib) -r $(ParserLib) -r $(LexerLib) -r $(CompilerLib) -r $(InterpreterLib) -r $(HelpersLib) -o $(JaLiExe)
