@@ -26,24 +26,17 @@ func update msg model =
 end
 
 func view model =
-  div ([]) ([
-    button ([Att("onClick", Decrement)]) ("Decrement"),
-    div ([]) ([
-      text (model) 
+  Tag ("div") ([]) ([
+    Tag ("button") ([Att("onClick", Decrement)]) ("Decrement"),
+    Tag ("div") ([]) ([
+      Text (model) 
     ]),
-    button ([Att("onClick", Increment)]) ("Increment")
+    Tag ("button") ([Att("onClick", Increment)]) ("Increment")
   ])
 end
 
-init = 0;
-
-func main =
-  init = update (Increment) (init);
-  init = update (Increment) (init);
-  init = update (Decrement) (init);
-  init = update (Increment) (init);
-  init = update (Increment) (init);
-  view (init)
+func view2 model = 
+    view (update (Increment) model)
 end
 
-main()
+view2
