@@ -27,6 +27,7 @@ let reduceString (str: string): Expr = reduce (fromString str) []
 
 let program = System.IO.File.ReadAllText "./examples/program.javi"
 let html = System.IO.File.ReadAllText "./examples/html.javi"
+let button = System.IO.File.ReadAllText "./examples/button.javi"
 
 // let abpro = fromString program
 // let trpro = transpile abpro

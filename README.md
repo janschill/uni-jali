@@ -10,71 +10,34 @@
 
 ### Syntax
 
-#### Variable declaration
-
 ```
 myInteger = 1;
 myString = "String";
-```
 
-#### Operations
 
-```
  5 + 5
 10 - 5
  5 * 5
 25 / 5
-```
 
-#### Types
-
-```
-myInteger = 1;
-myBoolean = false; // true
-myString  = "String";
-myTypeVar = "MyOwnType";
-```
-
-#### Functions
-
-```
 func myFunction x y z =
   k = x + y + z;
   k
 end
 
-func myFunction x = x;
-```
-
-#### If statement
-
-```
 if a == 1
 then expression1
 else if a == 2
 then expression2
 else expression3
-```
 
-#### Pattern matching
-
-```
 match x with
     Ctor1 -> expression
   | Ctor2 -> expression
- 
-```
 
-#### Tuple
-
-```
 myTuple = (1, 2);
 myTuple2 = ((1, 2), 3);
-```
 
-#### Algebraic Data Type
-
-```
 type DisjointSum = Ctor1 Integer | Ctor2 String String;
 
 type DisjointSum =
