@@ -31,6 +31,8 @@ and Expr =
     | Variable of string
     | Tuple of Expr * Expr
     | Prim of string * Expr * Expr
+    | And of Expr * Expr
+    | Or of Expr * Expr
     | Let of string * Expr * Expr
     | If of Expr * Expr * Expr
     | Function of string * string list * Expr * Expr (* (f, x, fBody, letBody) *)

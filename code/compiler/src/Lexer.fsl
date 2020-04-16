@@ -63,6 +63,8 @@ rule Token = parse
   | ','              { COMMA }
   | '|'              { PIPE }
   | ';'              { SEMICOLON }
+  | "&&"             { AND }
+  | "||"             { OR }
   | "<-"             { LARROW }
   | "->"             { RARROW }
   | '_'              { USCORE }

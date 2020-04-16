@@ -25,6 +25,16 @@ let rec eval (e: Expr) (env: Value Env): Value =
     | Variable v -> lookup env v
     | Tuple(expr1, expr2) -> TupleValue(eval expr1 env, eval expr2 env)
     | List(list) -> ListValue(List.map (fun e -> eval e env) list)
+    | And(expression1, expression2) ->
+        match eval expression1 env with
+        | BooleanValue false -> BooleanValue false
+        | BooleanValue true -> eval expression2 env
+        | _ -> failwith "Can only use boolean values on logical AND"
+    | Or(expression1, expression2) ->
+        match eval expression1 env with
+        | BooleanValue true -> BooleanValue true
+        | BooleanValue false -> eval expression2 env
+        | _ -> failwith "Can only use boolean values on logical OR"
     | Prim(operation, expression1, expression2) ->
         let value1 = eval expression1 env
         let value2 = eval expression2 env
