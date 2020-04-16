@@ -1,10 +1,8 @@
-(* 
-Hello 
+(*
+Hello
 This is a comment
 *)
 
 type Attributes = ANil;
 
 x = ANil;
-
-x

@@ -1,15 +1,15 @@
 {
 module Lexer
 
+open System.Text
 open FSharp.Text.Lexing
-open Parser;
-open System.Text;;
+open Parser
 
 let lexemeAsString lexbuf =
   LexBuffer<char>.LexemeString lexbuf
 
 (* Start of outermost comment currently being scanned *)
-let commentStart = ref Position.Empty;  
+let commentStart = ref Position.Empty;
 let commentDepth = ref 0;  (* Current comment nesting *)
 
 let keyword s =
@@ -34,15 +34,14 @@ let keyword s =
 }
 
 (*
-  string literal not working yet
-  rethink the regex
+  rethink the regex for string literal
 *)
 rule Token = parse
   | [' ' '\r' '\t']+ { Token lexbuf }
   | ['\n' '\012']    { lexbuf.EndPos <- lexbuf.EndPos.NextLine; Token lexbuf }
-  | ['0'-'9']+       { CONSTINT (System.Int32.Parse (lexemeAsString lexbuf)) }
-  | ['a'-'z''A'-'Z']['a'-'z''A'-'Z''0'-'9']*  { keyword (lexemeAsString lexbuf) }
-  | ['"']['a'-'z''A'-'Z''0'-'9'' ']*['"']  { STRINGLITERAL (lexemeAsString lexbuf) }
+  | ['0'-'9']+       { CONSTINT <| System.Int32.Parse (Encoding.UTF8.GetString lexbuf.Lexeme) }
+  | ['a'-'z''A'-'Z']['a'-'z''A'-'Z''0'-'9']*  { keyword <| Encoding.UTF8.GetString (lexbuf.Lexeme) }
+  | ['"']['a'-'z''A'-'Z''0'-'9'' ']*['"']  { STRINGLITERAL <| Encoding.UTF8.GetString (lexbuf.Lexeme) }
   | '+'              { PLUS }
   | '-'              { MINUS }
   | '*'              { TIMES }
@@ -68,15 +67,15 @@ rule Token = parse
   | "->"             { RARROW }
   | '_'              { USCORE }
   | "(*"            { commentStart := lexbuf.StartPos;
-                    commentDepth := 1; 
+                    commentDepth := 1;
                     SkipComment lexbuf; Token lexbuf }
 
 and SkipComment = parse
-    "*)"            { commentDepth := !commentDepth - 1;  
+    "*)"            { commentDepth := !commentDepth - 1;
                       if !commentDepth = 0 then ()
-                      else SkipComment lexbuf 
-                    } 
-   | "(*"           { commentDepth := !commentDepth + 1; 
+                      else SkipComment lexbuf
+                    }
+   | "(*"           { commentDepth := !commentDepth + 1;
                       SkipComment lexbuf }
    | eof            { failwith "Lexer error: unterminated comment" }
    | _              { SkipComment lexbuf }
