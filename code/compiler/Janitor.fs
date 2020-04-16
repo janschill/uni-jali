@@ -9,7 +9,7 @@ type Node =
 
 type Differ =
     | Null
-    | Change of Node
+    | Change of Node * Differ
     | Path of int * Differ
 
 // type Option =
@@ -25,18 +25,20 @@ let rec diff (view1: Node) (view2: Node): Differ =
     let rec loop v1 v2 index =
         match (v1, v2) with
         | (Tag(t1, atts1, []), Tag(t2, atts2, [])) ->
-            if t1 = t2 && atts1 = atts2 then Null else Path(index, Change(Tag(t2, atts2, [])))
+            if t1 = t2 && atts1 = atts2
+            then Null
+            else Path(index, Change(Tag(t2, atts2, []), Null))
         | (Tag(t1, atts1, ns1), Tag(t2, atts2, ns2)) ->
             if t1 = t2 && atts1 = atts2
             then Path(index, fold (ns1) (ns2) (index + 1))
-            else Path(index, Change(Tag(t2, atts2, [])))
+            else Path(index, Change(Tag(t2, atts2, []), fold (ns1) (ns2) (index + 1)))
 
         // let changes = fold ns1 ns2
         // match List.map Option.get changes with
         // | [] -> None
         // | cs -> Some(cs)
         | (Text(s1), Text(s2)) ->
-            if (s1 = s2) then Null else Change(view2)
+            if (s1 = s2) then Null else Change(view2, Null)
     loop view1 view2 0
 
 and fold (nodes1: list<Node>) (nodes2: list<Node>) (index): Differ =
@@ -44,7 +46,7 @@ and fold (nodes1: list<Node>) (nodes2: list<Node>) (index): Differ =
     | (n1 :: ns1, n2 :: ns2) ->
         if n1 = n2
         then Path(index, fold (ns1) (ns2) (index + 1))
-        else Path(index, Change(n2))
+        else Path(index, Change(n2, fold (ns1) (ns2) (index + 1)))
     | _ -> Null // this might be too naive/need more patterns
 
 // let (i, indices) =
@@ -64,14 +66,20 @@ and fold (nodes1: list<Node>) (nodes2: list<Node>) (index): Differ =
 let rec dissectNode (node: Node): Node =
     match node with
     | Tag(_, _, n :: ns) -> n
+    | _ -> node
 
 let rec patch (view: Node) (changes: Differ): Node =
     match changes with
     | Null -> view
-    | Change n -> n
+    | Change(n, m) -> n
     | Path(i, d) -> patch (dissectNode view) (d)
 
-let view model = Tag("div", [], [ Text("Hello World") ])
+let view model model2 =
+    Tag
+        ("div", [],
+         [ Text(model)
+           Text(model2)
+           Text("Hello World") ])
 
 (*
 v1 = Tag ("div")
@@ -96,11 +104,11 @@ change = Some(Path(0, Change( Tag ("div" [ Tag ("button") ]) )))
 
 
 *)
+let v1 = view ("1") ("a")
+let v2 = view ("2") ("b")
+let changes = diff v1 v2
 
 [<EntryPoint>]
 let main argv =
-    let v1 = view ("1")
-    let v2 = view ("2")
-    let changes = diff v1 v2
     let patchedView = patch v1 changes
     0
