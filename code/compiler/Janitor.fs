@@ -9,106 +9,65 @@ type Node =
 
 type Differ =
     | Null
-    | Change of Node * Differ
+    | Change of Node
     | Path of int * Differ
-
-// type Option =
-//     | None
-//     | Some of Differ
-
-let rec equal n1 n2: bool = (n1 = n2)
-// match (n1,n2) with
-// | (Tag(t1, atts1, ns1), Tag(t2, atts2, ns2)) ->
-//     (t1=t2 && List.fold2 (fun s a1 a2 -> a1 = a2) false atts1 atts2 )
+// | Path of list<(int * Differ)>
 
 let rec diff (view1: Node) (view2: Node): Differ =
-    let rec loop v1 v2 index =
+    let rec loop (v1: Node) (v2: Node) =
         match (v1, v2) with
-        | (Tag(t1, atts1, []), Tag(t2, atts2, [])) ->
-            if t1 = t2 && atts1 = atts2
-            then Null
-            else Path(index, Change(Tag(t2, atts2, []), Null))
         | (Tag(t1, atts1, ns1), Tag(t2, atts2, ns2)) ->
-            if t1 = t2 && atts1 = atts2
-            then Path(index, fold (ns1) (ns2) (index + 1))
-            else Path(index, Change(Tag(t2, atts2, []), fold (ns1) (ns2) (index + 1)))
+            if t1 = t2 && atts1 = atts2 then
+                match fold ns1 ns2 0 with
+                | Null -> Null
+                | change -> change
+            else
+                Change(Tag(t2, atts2, ns2))
 
-        // let changes = fold ns1 ns2
-        // match List.map Option.get changes with
-        // | [] -> None
-        // | cs -> Some(cs)
         | (Text(s1), Text(s2)) ->
-            if (s1 = s2) then Null else Change(view2, Null)
-    loop view1 view2 0
+            if (s1 = s2) then Null else Change(Text(s2))
 
-and fold (nodes1: list<Node>) (nodes2: list<Node>) (index): Differ =
-    match (nodes1, nodes2) with
-    | (n1 :: ns1, n2 :: ns2) ->
-        if n1 = n2
-        then Path(index, fold (ns1) (ns2) (index + 1))
-        else Path(index, Change(n2, fold (ns1) (ns2) (index + 1)))
-    | _ -> Null // this might be too naive/need more patterns
+    and fold (nodes1: list<Node>) (nodes2: list<Node>) (index): Differ =
+        match (nodes1, nodes2) with
+        | (n1 :: ns1, n2 :: ns2) ->
+            match loop n1 n2 with
+            | Null -> fold ns1 ns2 <| index + 1
+            | change -> Path(index, change)
+        | _ -> Null // extend cases: list, []; [], list; both empty
 
-// let (i, indices) =
-//     List.fold2 (fun (i, is) n1 n2 ->
-//         let diff = diff n1 n2
-//         // if (diff) then Path(i,Change(node)) else ??????
-//         if (diff n1 n2) then (i + 1, i :: is) else (i + 1, is)) (0, []) ns1 ns2
-// match indices with
-// | [] -> None
-// | _ -> Some(indices)
+    loop view1 view2
 
 (*
   traverse view and replace nodes with nodes
   from changes by looking at index in changes
 *)
-// this should respect the whole list, not just the head
-let rec dissectNode (node: Node): Node =
-    match node with
-    | Tag(_, _, n :: ns) -> n
-    | _ -> node
 
 let rec patch (view: Node) (changes: Differ): Node =
     match changes with
     | Null -> view
-    | Change(n, m) -> n
-    | Path(i, d) -> patch (dissectNode view) (d)
+    | Change(n) -> n
+    | Path(index, d) ->
+        match view with
+        | Tag(name, atts, nodes) ->
+            let items =
+                List.mapi (fun i item ->
+                    if i = index then patch item d else item) nodes
+            Tag(name, atts, items)
+        | _ -> failwith "TODO: real error"
 
-let view model model2 =
+let view model =
     Tag
         ("div", [],
-         [ Text(model)
-           Text(model2)
-           Text("Hello World") ])
+         [ Text("12313")
+           Tag
+               ("div", [],
+                [ Text(model)
+                  Text("Hello World") ]) ])
 
-(*
-v1 = Tag ("div")
-v2 = Tag ("div")
-change = None
-
-v1 = Tag ("div") ([ Text ("Hello"); Text ("World") ])
-v2 = Tag ("div") ([ Text ("What's"); Text ("Up") ])
-change = Path(0, Path(1,Change( Text ("What's")) )
-
-v1 = Tag ("div")
-v2 = Tag ("button")
-change = Some(Path(0, Change (Tag ("button")))
-
-v1 = Tag ("div" [ Tag ("button") ])
-v2 = Tag ("div" [ Text ("Hello world")])
-change = Some(Path(0, Path(1, Change(Text("Hello world")))))
-
-v1 = Tag ("div2" [ Tag ("button") ])
-v2 = Tag ("div" [ Tag ("button") ])
-change = Some(Path(0, Change( Tag ("div" [ Tag ("button") ]) )))
-
-
-*)
-let v1 = view ("1") ("a")
-let v2 = view ("2") ("b")
+let v1 = view ("1")
+let v2 = view ("2")
 let changes = diff v1 v2
+let patched = patch v1 changes
 
 [<EntryPoint>]
-let main argv =
-    let patchedView = patch v1 changes
-    0
+let main argv = 0
