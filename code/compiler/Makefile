@@ -7,7 +7,7 @@ buildInteractive:
 	@echo ""
 	@echo " -- PARSER: --"
 	@echo ""
-	fsyacc --module Parser src/Parser.fsy -o $(shell pwd)/src/generated/Parser.fs
+	fsyacc --module Parser src/Parser.fsy -o $(shell pwd)/generated/Parser.fs
 	@echo ""
 	@echo " -- LEXER: --"
 	@echo ""
