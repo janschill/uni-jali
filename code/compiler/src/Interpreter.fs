@@ -90,43 +90,33 @@ let rec eval (e: Expr) (env: Value Env): Value =
             ADTValue(fst constructor, adtName, values) // we chould check whether the arguments have the same length and types as the type list ??
         | _ -> failwith <| sprintf "Evaluator failed on apply: %s is not a function" fname
     | Pattern(matchExpression, (patternList)) ->
-        let rec matchSingleVal (actual: Value) (pattern: Expr) =
+        let rec matchSingle (actual: Value) (pattern: Expr) =
             match (actual, pattern) with
             | (_, Constant(CharValue '_')) -> Some []
             | (a, Constant v) when a = v -> Some []
             | (a, Variable x) ->
-                let value = tryLookup env x
-                if value.IsNone
-                then Some [ (x, a) ]
-                else matchSingleVal actual (Constant(Option.get (value)))
-            | (ADTValue(constructorName, superName, values), Apply(callName, exprs)) when constructorName = callName ->
-                matchAllVals values exprs
+                match tryLookup env x with
+                | None -> Some [ (x, a) ]
+                | Some(v) -> matchSingle actual (Constant(v))
+            | (ADTValue(name, _, values), Apply(callName, exprs)) when name = callName -> matchAllVals values exprs
             | (TupleValue(v1, v2), Tuple(p1, p2)) ->
-                match (matchSingleVal v1 p1, matchSingleVal v2 p2) with
+                match (matchSingle v1 p1, matchSingle v2 p2) with
                 | (Some(v1), Some(v2)) -> Some(v1 @ v2)
                 | _ -> None
             | (ListValue(valList), List(exprList)) -> matchAllVals valList exprList
             | _, _ -> None
 
         and matchAllVals values exprs =
-            let matchings = List.map2 matchSingleVal values exprs
+            let matchings = List.map2 matchSingle values exprs
             if List.forall Option.isSome matchings
             then Some(List.collect Option.get matchings)
             else None
 
-        let rec findPattern (x: Value) patternList =
-            match patternList with
-            | (case, expr) :: ps ->
-                match matchSingleVal x case with
-                | None -> findPattern x ps
-                | Some(bindings) -> Some(expr, bindings)
-            | [] -> None
+        let matchPattern x (case, expr) = matchSingle x case |> Option.map (fun bs -> (case, expr, bs))
 
-        let body =
-            let x = eval matchExpression env
-            findPattern x patternList
 
-        match body with
-        | Some(expr, bindings) -> env @ bindings |> eval expr
+        let x = eval matchExpression env
+        match List.tryPick (matchPattern x) patternList with
+        | Some(case, expr, bindings) -> env @ bindings |> eval expr
         | None -> failwith "Pattern match incomplete"
     | _ -> failwith "No match found"
