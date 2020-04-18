@@ -7,18 +7,41 @@ module Interpreter
 open AbstractSyntax
 
 
-let rec lookup env x =
+let rec lookup (env: 'v Env) x =
     match env with
     | [] -> failwith (x + " not found")
     | (y, v) :: r ->
         if x = y then v else lookup r x
 
-let rec tryLookup env x =
+let rec tryLookup (env: 'v Env) x =
     match env with
     | [] -> None
     | (y, v) :: r ->
         if x = y then Some(v) else tryLookup r x
 
+let rec matchSingle (env: 'v Env) (tryLookup: 'v Env -> string -> Option<Value>) (actual: Value) (pattern: Expr) =
+    let matchSingle = matchSingle env tryLookup
+    match (actual, pattern) with
+    | (_, Constant(CharValue '_')) -> Some []
+    | (a, Constant v) when a = v -> Some []
+    | (a, Variable x) ->
+        match tryLookup env x with
+        | None -> Some [ (x, a) ]
+        | Some(v) -> matchSingle actual (Constant(v))
+    | (ADTValue(name, _, values), Apply(callName, exprs)) when name = callName ->
+        matchAllVals env tryLookup values exprs
+    | (TupleValue(v1, v2), Tuple(p1, p2)) ->
+        match (matchSingle v1 p1, matchSingle v2 p2) with
+        | (Some(v1), Some(v2)) -> Some(v1 @ v2)
+        | _ -> None
+    | (ListValue(valList), List(exprList)) -> matchAllVals env tryLookup valList exprList
+    | _, _ -> None
+
+and matchAllVals (env: 'v Env) (tryLookup: 'v Env -> string -> Option<Value>) values exprs =
+    let matchings = List.map2 (matchSingle env tryLookup) values exprs
+    if List.forall Option.isSome matchings
+    then Some(List.collect Option.get matchings)
+    else None
 
 let rec eval (e: Expr) (env: Value Env): Value =
     match e with
@@ -90,31 +113,8 @@ let rec eval (e: Expr) (env: Value Env): Value =
             ADTValue(fst constructor, adtName, values) // we chould check whether the arguments have the same length and types as the type list ??
         | _ -> failwith <| sprintf "Evaluator failed on apply: %s is not a function" fname
     | Pattern(matchExpression, (patternList)) ->
-        let rec matchSingle (actual: Value) (pattern: Expr) =
-            match (actual, pattern) with
-            | (_, Constant(CharValue '_')) -> Some []
-            | (a, Constant v) when a = v -> Some []
-            | (a, Variable x) ->
-                match tryLookup env x with
-                | None -> Some [ (x, a) ]
-                | Some(v) -> matchSingle actual (Constant(v))
-            | (ADTValue(name, _, values), Apply(callName, exprs)) when name = callName -> matchAllVals values exprs
-            | (TupleValue(v1, v2), Tuple(p1, p2)) ->
-                match (matchSingle v1 p1, matchSingle v2 p2) with
-                | (Some(v1), Some(v2)) -> Some(v1 @ v2)
-                | _ -> None
-            | (ListValue(valList), List(exprList)) -> matchAllVals valList exprList
-            | _, _ -> None
-
-        and matchAllVals values exprs =
-            let matchings = List.map2 matchSingle values exprs
-            if List.forall Option.isSome matchings
-            then Some(List.collect Option.get matchings)
-            else None
-
-        let matchPattern x (case, expr) = matchSingle x case |> Option.map (fun bs -> (case, expr, bs))
-
-
+        let matchPattern x (case, expr) =
+            matchSingle env tryLookup x case |> Option.map (fun bs -> (case, expr, bs))
         let x = eval matchExpression env
         match List.tryPick (matchPattern x) patternList with
         | Some(case, expr, bindings) -> env @ bindings |> eval expr
