@@ -8,6 +8,17 @@
 
 ## JaLi
 
+### Tests
+
+To run the tests simply execute
+
+```bash
+$ make test
+# or $ bin/test.sh
+```
+
+This will run the interpreter on all the `.jali` files in the `tests/` directory and compare it to the `.out` file.
+
 ### Syntax
 
 ```

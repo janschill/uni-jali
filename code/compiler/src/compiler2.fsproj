@@ -15,5 +15,6 @@
     <Compile Include="Program.fs" />
     <Compile Include="Test.fs" />
     <Compile Include="Janitor.fs" />
+    <Compile Include="JaLi.fsx" />
   </ItemGroup>
 </Project>

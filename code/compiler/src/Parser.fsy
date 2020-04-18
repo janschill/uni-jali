@@ -1,5 +1,4 @@
 %{
-
   open AbstractSyntax;
 %}
 
@@ -7,6 +6,7 @@
 %token <int> CONSTINT
 %token <string> NAME
 %token <string> STRINGLITERAL
+%token AND
 %token ASSIGN
 %token BOOLEAN
 %token CHAR
@@ -33,6 +33,7 @@
 %token MOD
 %token NOT
 %token NOTEQL
+%token OR
 %token PIPE
 %token PLUS
 %token RARROW
@@ -47,6 +48,7 @@
 %token WITH
 
 /* lowest precedence  */
+%left AND
 %left ELSE
 %left PLUS MINUS
 %left TIMES DIV MOD
@@ -125,8 +127,8 @@ ParenthesizedExpression:
 AppExpression:
   | FunctionCall { $1 }
 
-FunctionCall: 
-  | NAME Args { Apply($1, $2) } 
+FunctionCall:
+  | NAME Args { Apply($1, $2) }
   | NAME LPAR RPAR { Apply($1, []) } // THIS IS NEW, NOT TESTED PROBERLY. Was made to handle empty function calls
 
 Args:
@@ -170,6 +172,8 @@ ComparisonExpression:
   | Expression LT Expression { Prim("<",  $1, $3) }
   | Expression GE Expression { Prim(">=", $1, $3) }
   | Expression LE Expression { Prim("<=", $1, $3) }
+  | Expression AND Expression { And($1, $3) }
+  | Expression OR Expression { Or($1, $3) }
 
 // ADTValue:
 //   | NAME Args { Apply($1, $2, $3) }

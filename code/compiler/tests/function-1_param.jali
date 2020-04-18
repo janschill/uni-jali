@@ -1,0 +1,5 @@
+func f x =
+  x
+end
+
+f (1)
