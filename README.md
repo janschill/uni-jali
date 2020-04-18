@@ -1,5 +1,13 @@
 # uni-project
 
+## Getting started
+
+Before executing any commands from the Makefile, make sure that you have a FSharp installation and it is set in your enviroment variables.
+
+```
+export FSHARP_DIR=.fsharp
+```
+
 ## Svelte example projects
 
 * [Simple React vs. Svelte to-do app](https://medium.com/javascript-in-plain-english/i-created-the-exact-same-app-in-react-and-svelte-here-are-the-differences-c0bd2cc9b3f8)
