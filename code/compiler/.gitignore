@@ -2,3 +2,4 @@
 .ionide
 bin/*
 !bin/test.sh
+*.jali-testresult

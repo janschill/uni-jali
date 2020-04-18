@@ -17,7 +17,7 @@ run:
 	@echo ""
 	@echo " -- STARTING INTERACTIVE --"
 	@echo ""
-	fsharpi -r ~/.fsharp/FsLexYacc.Runtime.dll --consolecolors --lib:$(shell pwd)/src/generated/ \
+	fsharpi -r ~/fsharp/FsLexYacc.Runtime.dll --consolecolors --lib:$(shell pwd)/src/generated/ \
 		src/AbstractSyntax.fs src/Transpiler.fs Parser.fs Lexer.fs src/Helpers.fs src/Interpreter.fs src/Test.fs src/Compiler.fs src/Program.fs
 
 compile:
@@ -67,7 +67,7 @@ LexerLib=bin/Lexer.dll
 HelpersLib=bin/Helpers.dll
 InterpreterLib=bin/Interpreter.dll
 CompilerLib=bin/Compiler.dll
-fsharpc=fsharpc -r ~/.fsharp/FsLexYacc.Runtime.dll
+fsharpc=fsharpc -r ~/fsharp/FsLexYacc.Runtime.dll
 mkbundle=mkbundle --sdk /Library/Frameworks/Mono.framework/Versions/Current
 JaLiExe=bin/JaLi.exe
 
@@ -77,7 +77,7 @@ clean:
 all: bin/jali
 
 bin/jali: $(JaLiExe)
-	$(mkbundle) -L bin/ -L lib/ -L ~/.fsharp/ bin/JaLi.exe ~/.fsharp/FsLexYacc.Runtime.dll bin/FSharp.Core.dll bin/AbstractSyntax.dll bin/Parser.dll bin/Lexer.dll bin/Helpers.dll bin/Interpreter.dll bin/Compiler.dll -o bin/jali
+	$(mkbundle) -L bin/ -L lib/ -L ~/fsharp/ bin/JaLi.exe ~/fsharp/FsLexYacc.Runtime.dll bin/FSharp.Core.dll bin/AbstractSyntax.dll bin/Parser.dll bin/Lexer.dll bin/Helpers.dll bin/Interpreter.dll bin/Compiler.dll -o bin/jali
 
 $(LexerGen): src/Lexer.fsl
 	fslex src/Lexer.fsl -o $(LexerGen)
