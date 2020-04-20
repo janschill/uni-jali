@@ -3,7 +3,7 @@
 fsharp_dir="${FSHARP_DIR}"
 
 buildInteractive:
-	mkdir -p /src/generated
+	mkdir -p src/generated
 	@echo ""
 	@echo " -- PARSER: --"
 	@echo ""
