@@ -35,6 +35,14 @@ end
 f
 """
 
+let simpleFunction2 = """
+func f x =
+    x = 2;
+    x
+end
+f
+"""
+
 let simpleFunctionApplication = """
 func f x =
     x = 2;
@@ -64,13 +72,14 @@ f 1 2 3
 
 // TODO: The below partial application is currently not working in our language!!:
 
-// let partialfunctionApplication = """
-// func f x y =
-//   x + y
+// let partialFunctionApplication = """
+// func f x y z =
+//   k = x + y * z;
+//   k
 // end
 
-// f 2
-// """
+// f 1 2 y
+// """ // WHAT NAME DO WE EXPECT THE CLOSURE TO HAVE WHEN RETURNED?
 
 let partialFunctionApplication2 = """
 func f x y z =
@@ -129,7 +138,7 @@ func f x y =
    | (1, (3, 7)) -> 44
 end
 f (1) ((3, 5))
-"""
+""" // should evaluate to 43
 
 let partialComplexPatternApplication = """
 func f x y =
@@ -148,17 +157,29 @@ end
 h
 """
 
-let booleanPatternApplication = """
+let booleanPatternFailingOnReduce = """
 func f x y =
 match (x, y) with
    | (true, (true, _)) -> 40
    | (true, (true, true)) -> 41
-   | (true, (true, false)) -> 42
+   | (true, (_, false)) -> 42
    | (false, (false, _)) -> 43
-   | (false, (true, _)) -> 44
+   | (false, (true, 5)) -> 44
 end
 f false (true, 5)
-"""
+""" // should evaluate / reduce to 44
+
+let variablePatternFailingOnReduce = """
+func f x y =
+match (x, y) with
+   | (true, (true, _)) -> 40
+   | (true, (true, true)) -> 41
+   | (true, (_, false)) -> 42
+   | (false, (false, _)) -> 43
+   | (false, (true, a)) -> a
+end
+f false (true, 5)
+""" // should evaluate / reduce to 5
 
 let apply = """
 func f x y z =
@@ -205,6 +226,15 @@ match x with
 | _ -> false
 """
 
+let listHeadTailPattern = """
+x = [1;2];
+match x with
+| h::t -> h
+| [] -> 0
+| _ -> -1
+"""
+
+
 let testCases =
     [ minus
       string
@@ -223,7 +253,8 @@ let testCases =
       patternApplication
       complexPatternApplication
       partialComplexPatternApplication
-      booleanPatternApplication
+      booleanPatternFailingOnReduce
+      variablePatternFailingOnReduce
       apply
       adt
       adtPattern

@@ -1,0 +1,10 @@
+func f x y z =
+  k = x + y * z;
+  k
+end
+
+func part y =
+  f 1 2 y
+end
+
+part
