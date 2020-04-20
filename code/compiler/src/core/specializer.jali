@@ -7,29 +7,28 @@ type Differ =
   | Path Integer Differ;
 
 func diff view1 view2 =
-  func fold f nodes1 nodes2 index =
+
+  func fold nodes1 nodes2 index =
     match (nodes1, nodes2) with
-      | (n1::ns1, n2::ns2) ->
-          match f (n1) (n2) with
-          | Null -> fold (f) (ns1) (ns2) (index + 1)
-          | change -> Path(index, change)
+      | (n1::r1, n2::r2) ->
+          (x =
+            match (n1, n2) with
+              | (Tag (t1) (atts1) (ns1), Tag (t2) (atts2) (ns2)) ->
+                if t1 == t2 then
+                    match (fold (ns1) (ns2) (0)) with
+                    | Null -> Null
+                    | change -> change
+                else
+                    Change (Tag (t2) (atts2) (ns2))
+              | (Text (s1), Text (s2)) ->
+                  if (s1 == s2) then Null else Change(Text(s2));
+          match x with
+          | Null -> fold (r1) (r2) (index + 1)
+          | change -> Path(index, change))
       | _ -> Null
   end
 
-  func loop v1 v2 =
-    match (v1, v2) with
-      | (Tag (t1) (atts1) (ns1), Tag (t2) (atts2) (ns2)) ->
-        if t1 == t2 then
-            match (fold (loop) (ns1) (ns2) (0)) with
-            | Null -> Null
-            | change -> change
-        else
-            Change (Tag (t2) (atts2) (ns2))
-        | (Text (s1), Text (s2)) ->
-            if (s1 == s2) then Null else Change(Text(s2))
-  end
-
-  loop (view1) (view2)
+  fold (view1) (view2) 0
 end
 
 (* HTML *)
@@ -44,8 +43,8 @@ func view model =
   ])
 end
 
-view1 = view (1);
-view2 = view (2);
+view1 = [(view (1))];
+view2 = [(view (2))];
 
 changes = diff (view1) (view2);
 changes
