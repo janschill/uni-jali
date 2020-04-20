@@ -2,17 +2,32 @@ module Transpiler
 
 open AbstractSyntax
 
+let rec foldWithCommas (values) = List.fold (fun acc el -> (acc + el + ", ")) "" values
+
 let rec transpile (e: Expr): string =
     match e with
     | Constant c ->
         let rec transpileConstant ct =
             match ct with
-            // | Tuple(value1, value2) -> sprintf "(%s, %s)" (transpileConstant value1) (transpileConstant value2)
             | IntegerValue i -> string i
             | BooleanValue b -> string b
-        // | ADTValue(name, value) -> sprintf "new %s(%s);" name (transpileConstant value)
+            | CharValue cv -> string cv
+            | StringValue sv -> sv
+            | TupleValue(value1, value2) ->
+                sprintf "(%s, %s)" (transpileConstant value1) (transpileConstant value2)
+            | ListValue(values) ->
+                sprintf "[%s]" (List.fold (fun acc el -> (acc + (transpileConstant el) + ", ")) "" values)
+            | ADTValue(name, superType, values) ->
+                sprintf "new %s(%s);" name
+                    ((List.fold (fun acc el -> (acc + (transpileConstant el) + ", ")) "" values))
+            | Closure(name, parameters, body, env) -> failwith "Closure not yet implemented"
+            | ADTClosure((cname, ctypes), superType, env) -> failwith "ADTClosure not yet implemented"
         transpileConstant c
     | Variable v -> string v
+    | Tuple(e1, e2) -> sprintf "(%s, %s)" (transpile e1) (transpile e2)
+    | List(list) -> sprintf "[%s]" (List.fold (fun acc el -> (acc + (transpile el) + ", ")) "" list)
+    | And(e1, e2) -> sprintf "%s && %s" (transpile e1) (transpile e2)
+    | Or(e1, e2) -> sprintf "%s || %s" (transpile e1) (transpile e2)
     | Prim(operation, expression1, expression2) ->
         let value1 = transpile expression1
         let value2 = transpile expression2
@@ -36,24 +51,18 @@ let rec transpile (e: Expr): string =
 
         let row5 = "}\n"
         sprintf "%s%s%s%s%s" row1 row2 row3 row4 row5
-    | Pattern(expressions, tuples) -> failwith "pattern matching not implemented"
-    // | Function(name, (parameters: string list), expressions, expressions2) ->
-    //     let parametersTranspiled = List.fold (fun acc el -> (acc + el + ", ")) "" parameters
-    //     let parametersTranspiledCut = (sprintf "%s" (parametersTranspiled.Remove(parametersTranspiled.Length - 2)))
+    | Function(name, (parameters: string list), expression, expressionAfter) ->
+        let parametersTranspiled = foldWithCommas parameters
+        let parametersTranspiledCut = (sprintf "%s" (parametersTranspiled.Remove(parametersTranspiled.Length - 2)))
 
-    //     let rec evalExpressions es =
-    //         match es with
-    //         | [] -> []
-    //         | [ e ] -> [ sprintf "return %s" (transpile e) ]
-    //         | e :: exs -> transpile e :: evalExpressions exs
+        // let rec evalExpressions es =
+        //     match es with
+        //     | [] -> []
+        //     | [ e ] -> [ sprintf "return %s" (transpile e) ]
+        //     | e :: exs -> transpile e :: evalExpressions exs
 
-    //     let exps = evalExpressions expressions
-
-    //     let funcbody =
-    //         List.fold (fun s e ->
-    //             s + sprintf "%s\n" e) "" exps
-
-    //     sprintf "function %s(%s) {\n%s}\n" name parametersTranspiledCut funcbody
+        sprintf "function %s(%s) {\n%s}\n\n%s" name parametersTranspiledCut (transpile expression)
+            (transpile expressionAfter)
     | ADT(adtName, (constructors: ADTConstructor list), a) ->
         let setterGenerator count = "this.p" + string (count) + " = p" + string (count) + ";\n"
         let parameterGenerator count = "p" + string (count) + ", "
@@ -90,3 +99,6 @@ let rec transpile (e: Expr): string =
                 s + sprintf "%s\n" e) adtClass (evalConstructors constructors)
 
         adt
+    | Apply(fname, farguments) -> failwith "Apply matching not implemented"
+    | Pattern(expressions, tuples) -> failwith "Pattern matching not implemented"
+    | _ -> failwith "unknown transpile pattern"
