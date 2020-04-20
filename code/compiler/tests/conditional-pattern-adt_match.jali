@@ -1,0 +1,8 @@
+type Node = Text String String | Tag Integer;
+nodeText = Text "NodeText" "NodeText2;
+tagInt = Tag 1;
+
+x = match nodeText with
+  | Text t1 t2 -> t1
+  | _ -> "default";
+x
