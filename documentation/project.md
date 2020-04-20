@@ -7,6 +7,7 @@ Most reactive frontends use a virtual document object model (VDOM) to achieve co
 ## Outline problem
 
 The problem can be split into two areas:
+
 1. Implement a partial evaluator for a small functional language
 2. Use that implementation to investigate the use of partial evaluations to optimize VDOM based web page rendering.
 
