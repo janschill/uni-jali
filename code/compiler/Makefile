@@ -20,7 +20,7 @@ run:
 	@echo " -- STARTING INTERACTIVE --"
 	@echo ""
 	fsharpi -r ~/$(fsharp_dir)/FsLexYacc.Runtime.dll --consolecolors --lib:$(shell pwd)/src/generated/ \
-		src/AbstractSyntax.fs src/Transpiler.fs Parser.fs LexerInteractive.fs src/Helpers.fs src/Interpreter.fs src/Test.fs src/Compiler.fs src/Program.fs
+		src/AbstractSyntax.fs src/Transpiler.fs Parser.fs LexerInteractive.fs src/Interpreter.fs src/Test.fs src/Compiler.fs src/Program.fs
 
 setup:
 	# This setup is based on this guide: https://gist.github.com/AndreasHassing/16567f299b77b0090d94441115a5d031/ae1db7572fd877df733213120800084fbafe9858#5-link-the-runtime-dll-to-your-fsharp-folder
@@ -69,7 +69,7 @@ clean:
 all: bin/jali
 
 bin/jali: $(JaLiExe)
-	$(mkbundle) -L bin/ -L lib/ -L ~/$(fsharp_dir) bin/JaLi.exe ~/$(fsharp_dir)/FsLexYacc.Runtime.dll bin/FSharp.Core.dll bin/AbstractSyntax.dll bin/Parser.dll bin/Lexer.dll bin/Helpers.dll bin/Interpreter.dll bin/Compiler.dll -o bin/jali
+	$(mkbundle) -L bin/ -L lib/ -L ~/$(fsharp_dir) bin/JaLi.exe ~/$(fsharp_dir)/FsLexYacc.Runtime.dll bin/FSharp.Core.dll bin/AbstractSyntax.dll bin/Parser.dll bin/Lexer.dll bin/Interpreter.dll bin/Compiler.dll -o bin/jali
 
 $(LexerGen): src/Lexer.fsl
 	fslex src/Lexer.fsl -o $(LexerGen)
