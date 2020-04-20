@@ -52,4 +52,5 @@ let rec printValue d =
     | StringValue s -> "\"" + s + "\""
     | TupleValue(v1, v2) -> "(" + (printValue v1) + "," + (printValue v2) + ")"
     | ADTValue(name, supertype, vs) -> name + (List.fold (fun acc e -> (printValue e) + " " + acc) "" vs)
-    | _ -> "Couldn't find proper value"
+    | _ -> sprintf "%O" d
+// | _ -> "Couldn't find proper value"

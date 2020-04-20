@@ -35,6 +35,14 @@ end
 f
 """
 
+let simpleFunction2 = """
+func f x =
+    x = 2;
+    x
+end
+f
+"""
+
 let simpleFunctionApplication = """
 func f x =
     x = 2;
@@ -64,13 +72,14 @@ f 1 2 3
 
 // TODO: The below partial application is currently not working in our language!!:
 
-// let partialfunctionApplication = """
-// func f x y =
-//   x + y
+// let partialFunctionApplication = """
+// func f x y z =
+//   k = x + y * z;
+//   k
 // end
 
-// f 2
-// """
+// f 1 2 y
+// """ // WHAT NAME DO WE EXPECT THE CLOSURE TO HAVE WHEN RETURNED?
 
 let partialFunctionApplication2 = """
 func f x y z =
