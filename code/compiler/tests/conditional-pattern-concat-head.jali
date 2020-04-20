@@ -1,0 +1,5 @@
+func f x =
+  match x with
+   | (h::t) -> h
+end
+f ([1, 2])

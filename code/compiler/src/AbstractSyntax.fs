@@ -25,6 +25,8 @@ type Value =
     | ADTClosure of ADTConstructor * string * Value Env (* (f, x, fBody, fDeclEnv) *)
 
 and Expr =
+    | ConcatC of Expr * Expr
+    | ConcatMatch of Expr * Expr * (string * string * Expr)
     | List of Expr list
     | Constant of Value
     | StringLiteral of string
