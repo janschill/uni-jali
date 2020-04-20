@@ -77,6 +77,12 @@ let rec eval (e: Expr) (env: Value Env): Value =
             | ("==") -> BooleanValue(v1 = v2)
             | ("!=") -> BooleanValue(v1 <> v2)
             | _ -> failwithf "%s is not a valid operation on integers" operation
+        | ((StringValue(v1)), StringValue(v2)) ->
+            match (operation) with
+            | ("+") -> StringValue(v1 + v2)
+            | ("==") -> BooleanValue(v1 = v2)
+            | ("!=") -> BooleanValue(v1 <> v2)
+            | _ -> failwithf "%s is not a valid operation on integers" operation
         | _ -> failwith "Sorry, can only operate on integers"
     | Let(name, expression1, expression2) ->
         let value = eval expression1 env
