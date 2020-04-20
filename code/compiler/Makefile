@@ -2,7 +2,7 @@
 # Before executing set env to your installation of fsharp
 fsharp_dir="${FSHARP_DIR}"
 
-build:
+buildInteractive:
 	mkdir -p generated
 	@echo ""
 	@echo " -- PARSER: --"
@@ -11,26 +11,16 @@ build:
 	@echo ""
 	@echo " -- LEXER: --"
 	@echo ""
-	fslex --unicode src/Lexer.fsl -o $(shell pwd)/src/generated/Lexer.fs
+	fslex --unicode src/LexerInteractive.fsl -o $(shell pwd)/src/generated/LexerInteractive.fs
 	@echo ""
 
 run:
-	make build
+	make buildInteractive
 	@echo ""
 	@echo " -- STARTING INTERACTIVE --"
 	@echo ""
 	fsharpi -r ~/$(fsharp_dir)/FsLexYacc.Runtime.dll --consolecolors --lib:$(shell pwd)/src/generated/ \
-		src/AbstractSyntax.fs src/Transpiler.fs Parser.fs Lexer.fs src/Helpers.fs src/Interpreter.fs src/Test.fs src/Compiler.fs src/Program.fs
-
-compile:
-	make build
-	@echo ""
-	@echo " -- COMPILING --"
-	@echo ""
-	fsharpc -r ~/$(fsharp_dir)/FsLexYacc.Runtime.dll AbstractSyntax.fs Transpiler.fs $(shell pwd)/generated/Parser.fs \
-		$(shell pwd)/generated/Lexer.fs Helpers.fs Interpreter.fs Test.fs Compiler.fs Program.fs \
-		-o jali.exe
-
+		src/AbstractSyntax.fs src/Transpiler.fs Parser.fs LexerInteractive.fs src/Helpers.fs src/Interpreter.fs src/Test.fs src/Compiler.fs src/Program.fs
 
 setup:
 	# This setup is based on this guide: https://gist.github.com/AndreasHassing/16567f299b77b0090d94441115a5d031/ae1db7572fd877df733213120800084fbafe9858#5-link-the-runtime-dll-to-your-fsharp-folder
