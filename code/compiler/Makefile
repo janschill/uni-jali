@@ -3,11 +3,11 @@
 fsharp_dir="${FSHARP_DIR}"
 
 buildInteractive:
-	mkdir -p generated
+	mkdir -p /src/generated
 	@echo ""
 	@echo " -- PARSER: --"
 	@echo ""
-	fsyacc --module Parser src/Parser.fsy -o $(shell pwd)/generated/Parser.fs
+	fsyacc --module Parser src/Parser.fsy -o $(shell pwd)/src/generated/Parser.fs
 	@echo ""
 	@echo " -- LEXER: --"
 	@echo ""
