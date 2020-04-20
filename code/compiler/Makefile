@@ -69,11 +69,7 @@ clean:
 all: bin/jali
 
 bin/jali: $(JaLiExe)
-<<<<<<< HEAD
 	$(mkbundle) -L bin/ -L lib/ -L ~/$(fsharp_dir) bin/JaLi.exe ~/$(fsharp_dir)/FsLexYacc.Runtime.dll bin/FSharp.Core.dll bin/AbstractSyntax.dll bin/Parser.dll bin/Lexer.dll bin/Helpers.dll bin/Interpreter.dll bin/Compiler.dll -o bin/jali
-=======
-	$(mkbundle) -L bin/ -L lib/ -L ~/fsharp/ bin/JaLi.exe ~/fsharp/FsLexYacc.Runtime.dll bin/FSharp.Core.dll bin/AbstractSyntax.dll bin/Parser.dll bin/Lexer.dll bin/Interpreter.dll bin/Compiler.dll -o bin/jali
->>>>>>> WIP fixing patterns and makefile
 
 $(LexerGen): src/Lexer.fsl
 	fslex src/Lexer.fsl -o $(LexerGen)
