@@ -1,86 +1,51 @@
 type Attribute = Att Tuple;
 type Node = Text String | Tag String [Attribute] [Node];
-
 type Message = Increment | Decrement;
-
 type Differ =
     Null
   | Change Node
-  | Path Integer Differ
+  | Path Integer Differ;
 
 func diff view1 view2 =
+  func fold f nodes1 nodes2 index =
+    match (nodes1, nodes2) with
+      | (n1::ns1, n2::ns2) ->
+          match f (n1) (n2) with
+          | Null -> fold (f) (ns1) (ns2) (index + 1)
+          | change -> Path(index, change)
+      | _ -> Null
+  end
+
   func loop v1 v2 =
     match (v1, v2) with
-      | (Tag(t1, atts1, ns1), Tag(t2, atts2, ns2)) ->
-        if t1 == t2 && atts1 = atts2 then
-            match fold ns1 ns2 0 with
+      | (Tag (t1) (atts1) (ns1), Tag (t2) (atts2) (ns2)) ->
+        if t1 == t2 then
+            match (fold (loop) (ns1) (ns2) (0)) with
             | Null -> Null
             | change -> change
         else
-            Change(Tag(t2, atts2, ns2))
-        | (Text(s1), Text(s2)) ->
+            Change (Tag (t2) (atts2) (ns2))
+        | (Text (s1), Text (s2)) ->
             if (s1 == s2) then Null else Change(Text(s2))
+  end
 
-  func fold nodes1 nodes2 index =
-    match (nodes1, nodes2) with
-      | (ns1, ns2) ->
-          match loop n1 n2 with
-          | Null -> fold ns1 ns2 (index + 1)
-          | change -> Path(index, change)
-      | _ -> Null
-
-func head list =
-  match list with
-  | [] -> []
-  | [element] -> element
-  | _ ->
-
-
-
-
-
-
-func tag name attributes nodes =
-  Tag (name) (attributes) (nodes)
+  loop (view1) (view2)
 end
 
-func text value =
-  Text (value)
-end
-
-func button attributes textValue =
-  Tag ("button") (attributes) (text (textValue))
-end
-
-func div attributes nodes =
-  Tag ("div") (attributes) (nodes)
-end
-
-func update msg model =
-  match msg with
-    | Increment -> model + 1
-    | Decrement -> model - 1
-end
+(* HTML *)
 
 func view model =
-  div ([]) ([
-    button ([Att("onClick", Decrement)]) ("Decrement"),
-    div ([]) ([
-      text (model)
-    ]),
-    button ([Att("onClick", Increment)]) ("Increment")
+  Tag ("div") ([]) ([
+    Text ("12313"),
+    Tag ("div") ([]) ([
+      Text (model),
+      Text ("Hello World")
+    ])
   ])
 end
 
-init = 0;
+view1 = view (1);
+view2 = view (2);
 
-func main =
-  init = update (Increment) (init);
-  init = update (Increment) (init);
-  init = update (Decrement) (init);
-  init = update (Increment) (init);
-  init = update (Increment) (init);
-  view (init)
-end
-
-main()
+changes = diff (view1) (view2);
+changes
