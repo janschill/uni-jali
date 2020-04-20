@@ -39,9 +39,9 @@ let keyword s =
 rule Token = parse
   | [' ' '\r' '\t']+ { Token lexbuf }
   | ['\n' '\012']    { lexbuf.EndPos <- lexbuf.EndPos.NextLine; Token lexbuf }
-  | ['0'-'9']+       { CONSTINT <| System.Int32.Parse (Encoding.UTF8.GetString lexbuf.Lexeme) }
-  | ['a'-'z''A'-'Z']['a'-'z''A'-'Z''0'-'9']*  { keyword <| Encoding.UTF8.GetString (lexbuf.Lexeme) }
-  | ['"']['a'-'z''A'-'Z''0'-'9'' ']*['"']  { STRINGLITERAL <| Encoding.UTF8.GetString (lexbuf.Lexeme) }
+  | ['0'-'9']+       { CONSTINT <| System.Int32.Parse (System.String lexbuf.Lexeme) }
+  | ['a'-'z''A'-'Z']['a'-'z''A'-'Z''0'-'9']*  { keyword <| System.String (lexbuf.Lexeme) }
+  | ['"']['a'-'z''A'-'Z''0'-'9'' ']*['"']  { STRINGLITERAL <| System.String (lexbuf.Lexeme) }
   | '+'              { PLUS }
   | '-'              { MINUS }
   | '*'              { TIMES }
@@ -63,7 +63,7 @@ rule Token = parse
   | ','              { COMMA }
   | '|'              { PIPE }
   | ';'              { SEMICOLON }
-  | "::"              { DCOLON }
+  | "::"             { DCOLON }
   | "&&"             { AND }
   | "||"             { OR }
   | "<-"             { LARROW }
