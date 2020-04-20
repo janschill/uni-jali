@@ -31,7 +31,21 @@ func diff view1 view2 =
   fold (view1) (view2) 0
 end
 
-(* HTML *)
+(*
+Diff (view model1) (view model2)
+Maximal change: static_change = reduce (diff (view model1) (view model2))
+static_view = patch static_change (view model0)
+
+Diff (view (model0)) ((view current_model))
+Differ2js (diff)  = “…”
+Differ2js (diff (model0) (current_model))
+Reduce (Differ2js (diff (model0) (current_model)))
+
+make reduce work
+generate HTML from view
+diff generate javascript
+diff against model0
+*)
 
 func view model =
   Tag ("div") ([]) ([
