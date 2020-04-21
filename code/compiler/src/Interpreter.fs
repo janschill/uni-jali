@@ -35,6 +35,10 @@ let rec matchSingle (env: 'v Env) (tryLookup: 'v Env -> string -> Option<Value>)
         | (Some(v1), Some(v2)) -> Some(v1 @ v2)
         | _ -> None
     | (ListValue(valList), List(exprList)) -> matchAllVals env tryLookup valList exprList
+    | (ListValue(valList), ConcatC(Variable h, Variable t)) ->
+        Some
+            [ (h, List.head valList)
+              (t, ListValue(List.tail valList)) ]
     | _, _ -> None
 
 and matchAllVals (env: 'v Env) (tryLookup: 'v Env -> string -> Option<Value>) values exprs =
@@ -74,6 +78,12 @@ let rec eval (e: Expr) (env: Value Env): Value =
             | (">=") -> BooleanValue(v1 >= v2)
             | ("<") -> BooleanValue(v1 < v2)
             | ("<=") -> BooleanValue(v1 <= v2)
+            | ("==") -> BooleanValue(v1 = v2)
+            | ("!=") -> BooleanValue(v1 <> v2)
+            | _ -> failwithf "%s is not a valid operation on integers" operation
+        | ((StringValue(v1)), StringValue(v2)) ->
+            match (operation) with
+            | ("+") -> StringValue(v1 + v2)
             | ("==") -> BooleanValue(v1 = v2)
             | ("!=") -> BooleanValue(v1 <> v2)
             | _ -> failwithf "%s is not a valid operation on integers" operation

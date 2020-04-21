@@ -1,0 +1,6 @@
+type Node = Text Integer Integer | Tag Node | Null;
+nodeText = Tag (Tag 2);
+
+match nodeText with
+  | Tag (Tag t) -> t
+  | _ -> 3

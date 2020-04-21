@@ -1,5 +1,6 @@
 func f x =
   match x with
-   | (h::t) -> h
+   | h::t -> h
+   | _ -> 100
 end
-f ([1, 2])
+f ([1, 2, 3])

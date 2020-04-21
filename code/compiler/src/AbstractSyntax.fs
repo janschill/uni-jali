@@ -26,7 +26,6 @@ type Value =
 
 and Expr =
     | ConcatC of Expr * Expr
-    | ConcatMatch of Expr * Expr * (string * string * Expr)
     | List of Expr list
     | Constant of Value
     | StringLiteral of string
@@ -51,7 +50,7 @@ let rec printValue d =
     | IntegerValue i -> sprintf "%i" i
     | BooleanValue b -> sprintf "%b" b
     | CharValue c -> "'" + (string c) + "'"
-    | StringValue s -> "\"" + s + "\""
+    | StringValue s -> s
     | TupleValue(v1, v2) -> "(" + (printValue v1) + "," + (printValue v2) + ")"
     | ADTValue(name, supertype, vs) -> name + (List.fold (fun acc e -> (printValue e) + " " + acc) "" vs)
     | _ -> sprintf "%O" d

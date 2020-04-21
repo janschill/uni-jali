@@ -1,0 +1,6 @@
+type Node = Tag String String | Null;
+nodeText = Tag "1" "2";
+
+match nodeText with
+  | Tag "1" "2"  -> "12"
+  | _ -> 2
