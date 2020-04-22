@@ -1,0 +1,32 @@
+type Attribute = Att Tuple;
+type Node = Text String | Tag String [Attribute] [Node];
+
+func view model =
+  Tag ("div") ([("class", "div"), ("id", "myid")]) ([
+    Text ("12313"),
+    Tag ("div") ([("class", "div__inner")]) ([
+      Text (model),
+    ])
+  ])
+end
+
+func printAttributes attributes =
+  match attributes with
+  | [] -> ""
+  | x::xs ->
+    match x with
+    | (k, v) -> " " + k + "=" + v + (printAttributes xs)
+end
+
+func html t =
+  match t with
+  | [] -> ""
+  | x::xs ->
+    match x with
+    | Text (text) -> text + (html xs)
+    | Tag (elementName) (attributes) (children) -> "<" + elementName + printAttributes (attributes) + ">" + (html children) + "</" + elementName + ">" + (html xs)
+    | _ -> ""
+  | _ -> ""
+end
+
+html ([view("I am a fucking model from view()")])
