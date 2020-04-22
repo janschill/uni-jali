@@ -18,15 +18,29 @@ func printAttributes attributes =
     | (k, v) -> " " + k + "=" + v + (printAttributes xs)
 end
 
-func html t =
+func tag t =
   match t with
   | [] -> ""
   | x::xs ->
     match x with
-    | Text (text) -> text + (html xs)
-    | Tag (elementName) (attributes) (children) -> "<" + elementName + printAttributes (attributes) + ">" + (html children) + "</" + elementName + ">" + (html xs)
+    | Text (text) -> text + (tag xs)
+    | Tag (elementName) (attributes) (children) -> "<" + elementName + printAttributes (attributes) + ">" + (tag children) + "</" + elementName + ">" + (tag xs)
     | _ -> ""
   | _ -> ""
 end
 
-html ([view("I am a fucking model from view()")])
+func html tag =
+  "<!DOCTYPE html>" +
+  "<html lang=\"en\">" +
+  "<head>" +
+  "    <meta charset=\"UTF-8\">" +
+  "    <meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\">" +
+  "    <title>Hello World</title>" +
+  "  </head>" +
+  "<body>" +
+     tag +
+  "</body>" +
+  "</html>"
+end
+
+html (tag ([view("I am a fucking model from view()")]))
