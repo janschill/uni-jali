@@ -1,0 +1,6 @@
+func f x =
+  match x with
+   | [] -> 0
+   | h::t -> 1
+end
+f ([])
