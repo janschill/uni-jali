@@ -34,8 +34,10 @@ let rec matchSingle (env: 'v Env) (tryLookup: 'v Env -> string -> Option<Value>)
         match (matchSingle v1 p1, matchSingle v2 p2) with
         | (Some(v1), Some(v2)) -> Some(v1 @ v2)
         | _ -> None
-    | (ListValue(valList), List(exprList)) -> matchAllVals env tryLookup valList exprList
-    | (ListValue(valList), ConcatC(Variable h, Variable t)) ->
+    | (ListValue(valList), List([])) when valList.Length = 0 -> Some []
+    | (ListValue(valList), List(exprList)) when valList.Length = exprList.Length ->
+        matchAllVals env tryLookup valList exprList
+    | (ListValue(valList), ConcatC(Variable h, Variable t)) when valList.Length > 0 ->
         Some
             [ (h, List.head valList)
               (t, ListValue(List.tail valList)) ]
@@ -87,7 +89,7 @@ let rec eval (e: Expr) (env: Value Env): Value =
             | ("==") -> BooleanValue(v1 = v2)
             | ("!=") -> BooleanValue(v1 <> v2)
             | _ -> failwithf "%s is not a valid operation on integers" operation
-        | _ -> failwith "Sorry, can only operate on integers"
+        | _ -> failwithf "Can only operate on integers or strings"
     | Let(name, expression1, expression2) ->
         let value = eval expression1 env
         let newEnv = (name, value) :: env
