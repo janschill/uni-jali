@@ -1,30 +1,46 @@
 type Attribute = Att Tuple;
 type Node = Text String | Tag String [Attribute] [Node];
+type Message = Increment | Decrement
+type Action = OnClick
+
+init = 0
+
+func update msg model =
+  match msg with
+  | Increment -> model + 1
+  | Decrement -> model - 1
+end
+
+func onClick msg =
+  update msg init
+end
 
 func view model =
   Tag ("div") ([("class", "div"), ("id", "myid")]) ([
-    Text ("12313"),
+    Text ("Hello World"),
     Tag ("div") ([("class", "div__inner")]) ([
-      Text (model),
+      Tag ("button") ([("class", "increment"), ("onClick", (onClick Increment))]) ([Text ("Increment")]),
+      Tag ("p") ([("class", "model")]) ([Text (model)]),
+      Tag ("button") ([("class", "decrement"), ("onClick", (onClick Decrement))]) ([Text ("Decrement")]),
     ])
   ])
 end
 
-func printAttributes attributes =
+func attributesToString attributes =
   match attributes with
   | [] -> ""
   | x::xs ->
     match x with
-    | (k, v) -> " " + k + "=" + v + (printAttributes xs)
+    | (k, v) -> " " + k + "=" + v + (attributesToString xs)
 end
 
-func tag t =
+func tagToString t =
   match t with
   | [] -> ""
   | x::xs ->
     match x with
-    | Text (text) -> text + (tag xs)
-    | Tag (elementName) (attributes) (children) -> "<" + elementName + printAttributes (attributes) + ">" + (tag children) + "</" + elementName + ">" + (tag xs)
+    | Text (text) -> text + (tagToString xs)
+    | Tag (elementName) (attributes) (children) -> "<" + elementName + attributesToString (attributes) + ">" + (tagToString children) + "</" + elementName + ">" + (tagToString xs)
     | _ -> ""
   | _ -> ""
 end
@@ -43,4 +59,10 @@ func html tag =
   "</html>"
 end
 
-html (tag ([view("I am a fucking model from view()")]))
+tagToString ([view("0")])
+
+func main init view update =
+
+end
+
+main (0) (view) (update)
