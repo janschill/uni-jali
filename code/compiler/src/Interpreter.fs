@@ -117,10 +117,11 @@ let rec eval (e: Expr) (env: Value Env): Value =
         match fclosure with
         | Closure(cname, cparameters, cexpression, declarationEnv) ->
             if (farguments.Length < cparameters.Length) then
-                let (given, left) = List.splitAt farguments.Length cparameters
-                let args = List.map2 (fun name arg -> (name, eval arg env)) given farguments
-                let newDeclEnv = List.append (List.append args env) declarationEnv
-                Closure("part_" + cname, left, cexpression, newDeclEnv)
+                let leftoverParams = List.skip farguments.Length cparameters
+                let args = List.map (fun a -> Constant(eval a env)) farguments
+                let variables = List.map (Variable) leftoverParams
+                let body = Apply(cname, (List.append args variables))
+                Closure("part_" + fname, leftoverParams, body, env)
             else
                 let newEnv =
                     List.fold2 (fun dEnv parameterName argument -> (parameterName, eval argument env) :: dEnv)
