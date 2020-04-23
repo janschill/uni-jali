@@ -167,7 +167,7 @@ end
 f false (true, 5)
 """ // should evaluate / reduce to 44
 
-let variablePatternFailingOnReduce = """
+let variablePattern = """
 func f x y =
 match (x, y) with
    | (true, (true, _)) -> 40
@@ -259,7 +259,7 @@ let testCases =
       complexPatternApplication
       partialComplexPatternApplication
       booleanPattern
-      variablePatternFailingOnReduce
+      variablePattern
       apply
       adt
       adtPattern

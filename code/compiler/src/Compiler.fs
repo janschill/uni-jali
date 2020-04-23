@@ -144,7 +144,6 @@ let rec reduce (e: Expr) (store: Ds Env): Expr =
         and matchAllExpr a b = List.map2 matchSingleExpr a b |> collect
 
         and matchSingleExpr (actual: Expr) (case: Expr) =
-            // printfn "%O <-->\n %O\n" actual case
             match (actual, case) with
             | (_, Constant(CharValue '_')) -> Some []
             | (Constant av, Constant pv) when av = pv -> Some []
@@ -156,7 +155,6 @@ let rec reduce (e: Expr) (store: Ds Env): Expr =
                 match tryLookup x store with
                 | Some(v) -> matchSingleExpr e <| DsToExpr v // TODO test if this is correct
                 | None -> Some [ (x, e) ]
-            | (Variable x, _) -> Some []
             | (Apply(name, values), Apply(pname, patternValues)) when name = pname ->
                 matchAllExpr values patternValues
             | (Tuple(e1, e2), Tuple(p1, p2)) ->
@@ -188,12 +186,6 @@ let rec reduce (e: Expr) (store: Ds Env): Expr =
             match rPattern with
             | Some(case, expr) -> expr
             | _ -> failwith "Pattern match incomplete"
-        | _ ->
-            let bs = List.choose (checkPattern rActual) patternList
-            let rPatterns = List.map (reducePattern) bs
-            match rPatterns with
-            | [] -> failwith "Pattern match incomplete"
-            | [ (case, expr) ] -> expr
-            | many -> Pattern(rActual, many)
+        | _ -> Pattern(rActual, patternList)
 
     | _ -> failwith "No match found"
