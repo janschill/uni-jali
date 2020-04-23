@@ -92,10 +92,9 @@ let rec reduce (e: Expr) (store: Ds Env): Expr =
         match func with
         | Static(ADTClosure((name, argTypes), adtName, [])) ->
             let reducedArgs = List.map2 (fun argType arg -> reduce arg store) argTypes farguments
-            // if List.forall isConstant reducedArgs
-            // then
-            Constant(ADTValue(name, adtName, getValues reducedArgs)) // TODO test if this is correct, without the if-else
-        // else Apply(fname, reducedArgs) // TODO: Can I eval here, even though i can't give eval an environment?
+            if List.forall isConstant reducedArgs
+            then Constant(ADTValue(name, adtName, getValues reducedArgs))
+            else Apply(fname, reducedArgs) // TODO: Can I eval here, even though i can't give eval an environment?
 
         | Static(Closure(name, parameters, rbody, [])) ->
             if (parameters.Length = farguments.Length) then
