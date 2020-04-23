@@ -1,11 +1,9 @@
-Closure
-    ("noname",["y"],
-     Apply
-       ("f",
-        [Constant (IntegerValue 1); Constant (IntegerValue 2); Variable "y"]),
-     [("f",
-       Closure
-         ("f",["x"; "y"; "z"],
-          Let
-            ("k",Prim ("+",Variable "x",Prim ("*",Variable "y",Variable "z")),
-             Variable "k"),[]))])
+Closure("part_f",["z"],
+  Let("k",Prim("+",Variable"x",Prim("*",Variable"y",Variable"z")),
+  Variable"k"),
+    [("x",IntegerValue1);
+    ("y",IntegerValue2);
+    ("f",Closure("f",["x";"y";"z"],
+      Let("k",Prim("+",Variable"x",Prim("*",Variable"y",Variable"z")),
+      Variable"k"),[]))
+    ])

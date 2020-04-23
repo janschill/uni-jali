@@ -1,0 +1,10 @@
+func f x y z =
+  k = x + y * z;
+  k
+end
+
+x = f 1 2;
+
+x 3
+
+(* This should return 7 *)

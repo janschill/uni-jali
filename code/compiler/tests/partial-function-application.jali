@@ -1,8 +1,6 @@
-let partialFunctionApplication = """
 func f x y z =
   k = x + y * z;
   k
 end
 
-f 1 2 y
-"""
+f 1 2

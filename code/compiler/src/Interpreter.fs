@@ -116,10 +116,16 @@ let rec eval (e: Expr) (env: Value Env): Value =
         let fclosure = lookup env fname
         match fclosure with
         | Closure(cname, cparameters, cexpression, declarationEnv) ->
-            let newEnv =
-                List.fold2 (fun dEnv parameterName argument -> (parameterName, eval argument env) :: dEnv)
-                    ((cname, fclosure) :: declarationEnv) cparameters farguments // should evaluated args also be added to env, since later args are evaluated with this env? Also, should we test for duplicate names?
-            eval cexpression newEnv
+            if (farguments.Length < cparameters.Length) then
+                let (given, left) = List.splitAt farguments.Length cparameters
+                let args = List.map2 (fun name arg -> (name, eval arg env)) given farguments
+                let newDeclEnv = List.append (List.append args env) declarationEnv
+                Closure("part_" + cname, left, cexpression, newDeclEnv)
+            else
+                let newEnv =
+                    List.fold2 (fun dEnv parameterName argument -> (parameterName, eval argument env) :: dEnv)
+                        ((cname, fclosure) :: declarationEnv) cparameters farguments // should we test for duplicate names?
+                eval cexpression newEnv
         | ADTClosure((constructor: string * Type list), adtName, declarationEnv) ->
             let values = List.map (fun arg -> eval arg env) farguments
             ADTValue(fst constructor, adtName, values) // we chould check whether the arguments have the same length and types as the type list ??

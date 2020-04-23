@@ -68,18 +68,16 @@ func f x y z =
   k
 end
 f 1 2 3
-""" // result shuold be 11
+""" // result shuold be 7
 
-// TODO: The below partial application is currently not working in our language!!:
+let partialFunctionApplication = """
+func f x y z =
+  k = x + y * z;
+  k
+end
 
-// let partialFunctionApplication = """
-// func f x y z =
-//   k = x + y * z;
-//   k
-// end
-
-// f 1 2 y
-// """ // WHAT NAME DO WE EXPECT THE CLOSURE TO HAVE WHEN RETURNED?
+f 1 2
+""" // WHAT NAME DO WE EXPECT THE CLOSURE TO HAVE WHEN RETURNED?
 
 let partialFunctionApplication2 = """
 func f x y z =
