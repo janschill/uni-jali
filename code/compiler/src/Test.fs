@@ -155,14 +155,14 @@ end
 h
 """
 
-let booleanPatternFailingOnReduce = """
+let booleanPattern = """
 func f x y =
 match (x, y) with
-   | (true, (true, _)) -> 40
-   | (true, (true, true)) -> 41
-   | (true, (_, false)) -> 42
-   | (false, (false, _)) -> 43
-   | (false, (true, 5)) -> 44
+   | (true, (true, true)) -> 40
+   | (true, (true, _)) -> 41
+   | (true, (_, 5)) -> 42
+   | (false, (false, 4)) -> 43
+   | (false, (_, 5)) -> 44
 end
 f false (true, 5)
 """ // should evaluate / reduce to 44
@@ -251,7 +251,7 @@ let testCases =
       patternApplication
       complexPatternApplication
       partialComplexPatternApplication
-      booleanPatternFailingOnReduce
+      booleanPattern
       variablePatternFailingOnReduce
       apply
       adt
