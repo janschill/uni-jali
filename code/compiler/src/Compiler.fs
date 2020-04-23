@@ -131,7 +131,13 @@ let rec reduce (e: Expr) (store: Ds Env): Expr =
                 match (matchSingleVal v1 p1, matchSingleVal v2 p2) with
                 | (Some(v1), Some(v2)) -> Some(v1 @ v2)
                 | _ -> None
-            | (ListValue(valList), List(exprList)) -> matchAllVals valList exprList
+            | (ListValue([]), List([])) -> Some []
+            | (ListValue(valList), List(exprList)) when valList.Length = exprList.Length ->
+                matchAllVals valList exprList
+            | (ListValue(valList), ConcatC(Variable h, Variable t)) when valList.Length > 0 ->
+                Some
+                    [ (h, List.head valList)
+                      (t, ListValue(List.tail valList)) ]
             | _, _ -> None
 
         and matchAllVals a b = List.map2 matchSingleVal a b |> collect
@@ -157,7 +163,14 @@ let rec reduce (e: Expr) (store: Ds Env): Expr =
                 match (matchSingleExpr e1 p1, matchSingleExpr e2 p2) with
                 | (Some(v1), Some(v2)) -> Some(v1 @ v2)
                 | _ -> None
-            | (List(exprList1), List(exprList2)) -> matchAllExpr exprList1 exprList2
+            | (List([]), List([])) -> Some []
+            | (List(exprList1), List(exprList2)) when exprList1.Length = exprList2.Length ->
+                matchAllExpr exprList1 exprList2
+            | (List(h :: t), ConcatC(Variable h', Variable t')) ->
+                Some
+                    [ (h', h)
+                      (t', List(t)) ]
+
             | _, _ -> None
 
         let checkPattern actual (case, expr) = matchSingleExpr actual case |> Option.map (fun bs -> (case, expr, bs))

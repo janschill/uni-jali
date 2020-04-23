@@ -225,13 +225,20 @@ match x with
 """
 
 let listHeadTailPattern = """
-x = [1;2];
+x = [1,2,3];
 match x with
 | h::t -> h
 | [] -> 0
 | _ -> -1
-"""
+""" // return 1
 
+let listHeadTailPattern2 = """
+x = [1,2,3];
+match x with
+| h::t -> t
+| [] -> 0
+| _ -> -1
+""" // return [2,3]
 
 let testCases =
     [ minus
