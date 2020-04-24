@@ -1,9 +1,9 @@
 type Attribute = Att Tuple;
 type Node = Text String | Tag String [Attribute] [Node];
-type Message = Increment | Decrement
-type Action = OnClick
+type Message = Increment | Decrement;
+type Action = OnClick;
 
-init = 0
+init = 0;
 
 func update msg model =
   match msg with
@@ -12,7 +12,7 @@ func update msg model =
 end
 
 func onClick msg =
-  update msg init
+  update (msg) (init)
 end
 
 func view model =
@@ -45,7 +45,7 @@ func tagToString t =
   | _ -> ""
 end
 
-func html tag =
+func html tags =
   "<!DOCTYPE html>" +
   "<html lang=\"en\">" +
   "<head>" +
@@ -54,15 +54,16 @@ func html tag =
   "    <title>Hello World</title>" +
   "  </head>" +
   "<body>" +
-     tag +
+     tags +
   "</body>" +
   "</html>"
 end
 
-tagToString ([view("0")])
-
+html (tagToString ([view(0)]))
+(*
 func main init view update =
 
 end
 
 main (0) (view) (update)
+*)
