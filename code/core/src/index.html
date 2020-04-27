@@ -8,9 +8,11 @@
 </head>
 
 <body>
-  <div class=div id=myid>Hello World<div class=divInner><button class=increment
+  <div class=div id=myid>Hello World<div class=divInner>
+      <button class=increment
         onclick="(() => {   const el = document.querySelector(&quot;#model&quot;);  let result = parseInt(el.innerHTML) +1;  el.innerHTML = result;})()">Increment</button>
-      <p id=model>0</p><button class=decrement
+      <p id=model>0</p>
+      <button class=decrement
         onclick="(() => {   const el = document.querySelector(&quot;#model&quot;);  let result = parseInt(el.innerHTML) +-1;  el.innerHTML = result;})()">Decrement</button>
     </div>
   </div>
