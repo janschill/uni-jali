@@ -42,14 +42,27 @@ let rec matchSingleVal env (actual: Value) (pattern: Expr) =
         Some
             [ (h, List.head valList)
               (t, ListValue(List.tail valList)) ]
+    | (ListValue(valList), ConcatC(Variable h, List([]))) when valList.Length > 0 -> Some [ (h, List.head valList) ]
+    | (ListValue(valList), ConcatC(ConcatC(Variable h, Variable t), List([]))) when valList.Length > 0 ->
+        Some
+            [ (h, List.head valList)
+              (t, ListValue(List.tail valList)) ]
+    | (ListValue(valList), ConcatC(List([]), Variable t)) when valList.Length > 0 ->
+        Some [ (t, ListValue(List.tail valList)) ]
     | _, _ -> None
-
-
 
 let rec eval (e: Expr) (env: Value Env): Value =
     match e with
     | Constant c -> c
     | Variable v -> lookup env v
+    | ConcatC(el, ls) ->
+        let evalEl = eval el env
+        match ls with
+        | List(list) -> ListValue(evalEl :: List.map (fun e -> eval e env) list)
+        | _ ->
+            ListValue
+                ([ evalEl
+                   (eval ls env) ])
     | Tuple(expr1, expr2) -> TupleValue(eval expr1 env, eval expr2 env)
     | List(list) -> ListValue(List.map (fun e -> eval e env) list)
     | And(expression1, expression2) ->

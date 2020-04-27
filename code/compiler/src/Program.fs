@@ -29,7 +29,7 @@ let transpileString (str: string): String = transpile (fromString str)
 let program = System.IO.File.ReadAllText "./examples/program.javi"
 let html = System.IO.File.ReadAllText "./examples/html.javi"
 let button = System.IO.File.ReadAllText "./examples/button.javi"
-let specializer = System.IO.File.ReadAllText "./src/core/specializer.jali"
+// let specializer = System.IO.File.ReadAllText "./src/core/specializer.jali"
 
 // let abpro = fromString program
 // let trpro = transpile abpro
