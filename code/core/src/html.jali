@@ -1,46 +1,82 @@
 type Attribute = Att Tuple;
 type Node = Text String | Tag String [Attribute] [Node];
+type Message = Increment | Decrement;
+type Action = Click;
+
+init = 0;
+
+func update msg model =
+  match msg with
+  | Increment -> model + 1
+  | Decrement -> model - 1
+end
+
+func onClick msg =
+  update (msg) (init)
+end
 
 func view model =
-  Tag ("div") ([("class", "div"), ("id", "myid")]) ([
-    Text ("12313"),
-    Tag ("div") ([("class", "div__inner")]) ([
-      Text (model),
+  Tag ('div') ([('class', 'div'), ('id', 'myid')]) ([
+    Text ('Hello World'),
+    Tag ('div') ([('class', 'divInner')]) ([
+      Tag ('button') ([('class', 'increment'), (Click, (onClick (Increment)))]) ([Text ('Increment')]),
+      Tag ('p') ([('id', 'model')]) ([Text (model)]),
+      Tag ('button') ([('class', 'decrement'), (Click, (onClick (Decrement)))]) ([Text ('Decrement')]),
     ])
   ])
 end
 
-func printAttributes attributes =
+func attributesToString attributes =
   match attributes with
-  | [] -> ""
+  | [] -> ''
   | x::xs ->
     match x with
-    | (k, v) -> " " + k + "=" + v + (printAttributes xs)
+    | (k, v) ->
+      match k with
+      | Click ->
+        'onclick="(() => { ' +
+        '  const el = document.querySelector(&quot;#model&quot;);' +
+        '  let result = parseInt(el.innerHTML) +' + v + ';'+
+        '  el.innerHTML = result;' +
+        '})()"'
+      | _ -> ' ' + k + '=' + v + ' ' + (attributesToString xs)
 end
 
-func tag t =
+func tagToString t =
   match t with
-  | [] -> ""
+  | [] -> ''
   | x::xs ->
     match x with
-    | Text (text) -> text + (tag xs)
-    | Tag (elementName) (attributes) (children) -> "<" + elementName + printAttributes (attributes) + ">" + (tag children) + "</" + elementName + ">" + (tag xs)
-    | _ -> ""
-  | _ -> ""
+    | Text (text) -> text + (tagToString xs)
+    | Tag (elementName) (attributes) (children) ->
+      '<' + elementName + attributesToString (attributes) + '>' +
+          (tagToString children) +
+      '</' + elementName + '>' +
+      (tagToString xs)
+    | _ -> ''
+  | _ -> ''
 end
 
-func html tag =
-  "<!DOCTYPE html>" +
-  "<html lang=\"en\">" +
-  "<head>" +
-  "    <meta charset=\"UTF-8\">" +
-  "    <meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\">" +
-  "    <title>Hello World</title>" +
-  "  </head>" +
-  "<body>" +
-     tag +
-  "</body>" +
-  "</html>"
+func html tags =
+  '<!DOCTYPE html>' +
+  '<html lang="en">' +
+  '<head>' +
+  '    <meta charset="UTF-8">' +
+  '    <meta name="viewport" content="width=device-width, initial-scale=1.0">' +
+  '    <title>Hello World</title>' +
+  '  </head>' +
+  '<body>' +
+     tags +
+  '</body>' +
+  '</html>'
 end
 
-html (tag ([view("I am a fucking model from view()")]))
+html (tagToString ([view (init)]))
+
+(*
+func main init view update =
+
+end
+
+main (0) (view) (update)
+*)

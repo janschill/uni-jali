@@ -1,11 +1,6 @@
 module Interpreter
 
-(*
-    This interpreter takes our code and executes it using F#
-*)
-
 open AbstractSyntax
-
 
 let rec lookup (env: 'v Env) x =
     match env with
@@ -91,7 +86,15 @@ let rec eval (e: Expr) (env: Value Env): Value =
             | ("==") -> BooleanValue(v1 = v2)
             | ("!=") -> BooleanValue(v1 <> v2)
             | _ -> failwithf "%s is not a valid operation on integers" operation
-        | _ -> failwithf "Can only operate on integers or strings"
+        | ((IntegerValue(v1)), StringValue(v2)) ->
+            match (operation) with
+            | ("+") -> StringValue(string v1 + v2)
+            | _ -> failwithf "%s integer with string" operation
+        | ((StringValue(v1), IntegerValue(v2))) ->
+            match (operation) with
+            | ("+") -> StringValue(v1 + string v2)
+            | _ -> failwithf "%s integer with string" operation
+        | ((a, b)) -> failwithf "Can only operate on integers or strings 1:%O 2:%O" a b
     | Let(name, expression1, expression2) ->
         let value = eval expression1 env
         let newEnv = (name, value) :: env

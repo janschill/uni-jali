@@ -41,7 +41,7 @@ rule Token = parse
   | ['\n' '\012']    { lexbuf.EndPos <- lexbuf.EndPos.NextLine; Token lexbuf }
   | ['0'-'9']+       { CONSTINT <| System.Int32.Parse (Encoding.UTF8.GetString lexbuf.Lexeme) }
   | ['a'-'z''A'-'Z']['a'-'z''A'-'Z''0'-'9']*  { keyword <| Encoding.UTF8.GetString (lexbuf.Lexeme) }
-  | '"' ( ("\\" [' '-'~']) | [' ' '!' '#'-'&' '('-'[' ']'-'~' '\n'] )* '"'  {
+  | '"' ( ("\\" [' '-'~']) | [' ' '!' ''' '#'-'&' '('-'[' ']'-'~' '\n'] )* '"'  {
     let stringLiteral = Encoding.UTF8.GetString (lexbuf.Lexeme)
     let stringTrimmed = stringLiteral.Substring(1, (String.length stringLiteral) - 2)
     STRINGLITERAL <| stringTrimmed

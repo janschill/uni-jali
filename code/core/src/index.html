@@ -1,0 +1,19 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Hello World</title>
+</head>
+
+<body>
+  <div class=div id=myid>Hello World<div class=divInner><button class=increment
+        onclick="(() => {   const el = document.querySelector(&quot;#model&quot;);  let result = parseInt(el.innerHTML) +1;  el.innerHTML = result;})()">Increment</button>
+      <p id=model>0</p><button class=decrement
+        onclick="(() => {   const el = document.querySelector(&quot;#model&quot;);  let result = parseInt(el.innerHTML) +-1;  el.innerHTML = result;})()">Decrement</button>
+    </div>
+  </div>
+</body>
+
+</html>
