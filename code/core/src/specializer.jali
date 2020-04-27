@@ -48,11 +48,11 @@ diff against model0
 *)
 
 func view model =
-  Tag ("div") ([]) ([
-    Text ("12313"),
-    Tag ("div") ([]) ([
+  Tag ('div') ([]) ([
+    Text ('12313'),
+    Tag ('div') ([]) ([
       Text (model),
-      Text ("Hello World")
+      Text ('Hello World')
     ])
   ])
 end
