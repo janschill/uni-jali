@@ -36,7 +36,8 @@ func attributesToString attributes =
       | Click ->
         'onclick="(() => { ' +
         '  const el = document.querySelector(&quot;#model&quot;);' +
-        '  el.innerHTML = ' + v + ';' +
+        '  let result = parseInt(el.innerHTML) +' + v + ';'+
+        '  el.innerHTML = result;' +
         '})()"'
       | _ -> ' ' + k + '=' + v + ' ' + (attributesToString xs)
 end
@@ -70,7 +71,7 @@ func html tags =
   '</html>'
 end
 
-tagToString ([view (init)])
+html (tagToString ([view (init)]))
 
 (*
 func main init view update =
