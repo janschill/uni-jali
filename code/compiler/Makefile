@@ -49,6 +49,10 @@ setup:
 	@echo "Now you can reference the Runtime like: 'fsharpi -r ~/$(fsharp_dir)/FsLexYacc.Runtime.dll Absyn.fs...'"
 	@echo "... happy coding, bye"
 
+test:
+	make test/eval
+	make test/reduce
+
 test/eval:
 	bin/test.sh -i
 
