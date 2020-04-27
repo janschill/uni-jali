@@ -58,7 +58,7 @@ let rec printValue d =
     | ADTClosure((name, types), supername, env) -> supername + " : " + name
 // | _ -> "Couldn't find proper value"
 
-let rec printExpr d: string =
+let rec printExpr (d: Expr): string =
     match d with
     | ConcatC(h, t) -> printExpr h + "::" + printExpr t
     | List(es) -> "[" + (List.map printExpr es |> List.reduce (fun a b -> a + ", " + b)) + "]"
