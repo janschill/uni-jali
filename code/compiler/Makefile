@@ -50,7 +50,14 @@ setup:
 	@echo "... happy coding, bye"
 
 test:
-	bin/test.sh
+	make test/eval
+	make test/reduce
+
+test/eval:
+	bin/test.sh -i
+
+test/reduce:
+	bin/test.sh -r
 
 LexerGen=bin/Lexer.fs
 ParserGen=bin/Parser.fs
