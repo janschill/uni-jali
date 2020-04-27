@@ -53,7 +53,7 @@ for JALI in $DIR/*jali; do
     PROG=$(echo $JALI)
     FILENAME=$(echo $PROG | sed 's/.jali$//')
     TESTOUT=$DIR/$PROG-testresult
-    PROGOUT=$DIR/$FILENAME.out
+    PROGOUT=$DIR/out/$FILENAME.out
 
     $jali $flagarg $DIR/$PROG | sed 's/Result://' > $TESTOUT 2>&1
 

@@ -54,8 +54,9 @@ let rec printValue d =
     | TupleValue(v1, v2) -> "(" + (printValue v1) + "," + (printValue v2) + ")"
     | ListValue(vs) -> sprintf "%O" (List.map printValue vs)
     | ADTValue(name, supertype, vs) -> name + (List.fold (fun acc e -> acc + " " + printValue e) "" vs)
-    | Closure(name, pars, body, env) -> name + " : (" + List.reduce (fun a b -> a + ", " + b) pars + ") -> "
-    | ADTClosure((name, types), supername, env) -> supername + " : " + name
+    | _ -> sprintf "%O" d
+// | Closure(name, pars, body, env) -> name + " : (" + List.reduce (fun a b -> a + ", " + b) pars + ") -> "
+// | ADTClosure((name, types), supername, env) -> supername + " : " + name
 // | _ -> "Couldn't find proper value"
 
 let rec printExpr (d: Expr): string =
