@@ -116,6 +116,7 @@ let rec eval (e: Expr) (env: Value Env): Value =
         let fclosure = lookup env fname
         match fclosure with
         | Closure(cname, cparameters, cexpression, declarationEnv) ->
+            if (farguments.Length > cparameters.Length) then failwith "too many args"
             if (farguments.Length < cparameters.Length) then
                 let leftoverParams = List.skip farguments.Length cparameters
                 let args = List.map (fun a -> Constant(eval a env)) farguments
@@ -127,9 +128,9 @@ let rec eval (e: Expr) (env: Value Env): Value =
                     List.fold2 (fun dEnv parameterName argument -> (parameterName, eval argument env) :: dEnv)
                         ((cname, fclosure) :: declarationEnv) cparameters farguments // should we test for duplicate names?
                 eval cexpression newEnv
-        | ADTClosure((constructor: string * Type list), adtName, declarationEnv) ->
-            let values = List.map (fun arg -> eval arg env) farguments
-            ADTValue(fst constructor, adtName, values) // we chould check whether the arguments have the same length and types as the type list ??
+        | ADTClosure((name, argTypes), adtName, declarationEnv) ->
+            let values = List.map2 (fun argType arg -> eval arg env) argTypes farguments
+            ADTValue(name, adtName, values) // we chould check whether the arguments have the same length and types as the type list ??
         | _ -> failwith <| sprintf "Evaluator failed on apply: %s is not a function" fname
     | Pattern(matchExpression, (patternList)) ->
         let matchPattern x (case, expr) =
