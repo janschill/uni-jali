@@ -54,7 +54,7 @@ f (3)
 let complexFunction = """
 y = 0;
 
-func f x y z =
+func f x z =
   k = x + y * z;
   k
 end
@@ -68,18 +68,16 @@ func f x y z =
   k
 end
 f 1 2 3
-""" // result shuold be 11
+""" // result shuold be 7
 
-// TODO: The below partial application is currently not working in our language!!:
+let partialFunctionApplication = """
+func f x y z =
+  k = x + y * z;
+  k
+end
 
-// let partialFunctionApplication = """
-// func f x y z =
-//   k = x + y * z;
-//   k
-// end
-
-// f 1 2 y
-// """ // WHAT NAME DO WE EXPECT THE CLOSURE TO HAVE WHEN RETURNED?
+f 1 2
+""" // WHAT NAME DO WE EXPECT THE CLOSURE TO HAVE WHEN RETURNED?
 
 let partialFunctionApplication2 = """
 func f x y z =
@@ -157,19 +155,19 @@ end
 h
 """
 
-let booleanPatternFailingOnReduce = """
+let booleanPattern = """
 func f x y =
 match (x, y) with
-   | (true, (true, _)) -> 40
-   | (true, (true, true)) -> 41
-   | (true, (_, false)) -> 42
-   | (false, (false, _)) -> 43
-   | (false, (true, 5)) -> 44
+   | (true, (true, true)) -> 40
+   | (true, (true, _)) -> 41
+   | (true, (_, 5)) -> 42
+   | (false, (false, 4)) -> 43
+   | (false, (_, 5)) -> 44
 end
 f false (true, 5)
 """ // should evaluate / reduce to 44
 
-let variablePatternFailingOnReduce = """
+let variablePattern = """
 func f x y =
 match (x, y) with
    | (true, (true, _)) -> 40
@@ -227,13 +225,74 @@ match x with
 """
 
 let listHeadTailPattern = """
-x = [1;2];
+x = [1,2,3];
 match x with
 | h::t -> h
 | [] -> 0
 | _ -> -1
+""" // return 1
+
+let listHeadTailPattern2 = """
+x = [1,2,3];
+match x with
+| h::t -> t
+| [] -> 0
+| _ -> -1
+""" // return [2,3]
+
+let recursiveFunctions = """
+func fold i ls =
+  if (i == 0)
+  then ls
+  else fold (i-1) ([i, ls])
+end
+
+
+fold 3 []
 """
 
+let adtPatternMatch = """
+type Node = Text | Tag String [Node];
+
+func compare view1 view2 =
+  match (view1, view2) with
+  | (Tag (a) (b), Tag (c) (d)) -> (b,d)
+  | _ -> "fail"
+end
+
+view1 = Tag ("div") ([(Text "1")]);
+view2 = Tag ("div") ([(Text "2")]);
+
+compare (view1) (view2)
+"""
+
+let sp = """
+type Node = Text String | Tag String [Node] ;
+
+func fold nodes1 nodes2 index =
+  match (nodes1, nodes2) with
+  | (n1::r1, n2::r2) ->
+    match (n1, n2) with
+    | (Tag (name1) (children1), Tag (name2) (children2)) ->
+        (fold (children1) (children2) (0))
+    | (Text (s1), Text (s2)) ->
+        if (s1 == s2) then Null else Change(Text(s2))
+  | _ -> Null
+end
+
+view1 = Tag ("div") ([Text "HELLO"]);
+view2 = Tag ("div") ([Text "World"]);
+
+fold ([view1]) ([view2]) (0)
+"""
+
+let testReduceIf = """
+func myFun a =
+  if a then 5 else 6
+end
+
+myFun true
+"""
 
 let testCases =
     [ minus
@@ -253,8 +312,8 @@ let testCases =
       patternApplication
       complexPatternApplication
       partialComplexPatternApplication
-      booleanPatternFailingOnReduce
-      variablePatternFailingOnReduce
+      booleanPattern
+      variablePattern
       apply
       adt
       adtPattern

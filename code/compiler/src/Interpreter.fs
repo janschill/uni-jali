@@ -19,35 +19,37 @@ let rec tryLookup (env: 'v Env) x =
     | (y, v) :: r ->
         if x = y then Some(v) else tryLookup r x
 
-let rec matchSingle (env: 'v Env) (tryLookup: 'v Env -> string -> Option<Value>) (actual: Value) (pattern: Expr) =
-    let matchSingle = matchSingle env tryLookup
+let rec matchSingleVal env (actual: Value) (pattern: Expr) =
+    let matchSingle = matchSingleVal env
+
+    let matchAllVals values exprs =
+        let matchings = List.map2 (matchSingle) values exprs
+        if List.forall Option.isSome matchings
+        then Some(List.collect Option.get matchings)
+        else None
+
     match (actual, pattern) with
+    // printfn "actual: %O\npattern: %O" (printValue actual) (printExpr pattern)
     | (_, Constant(CharValue '_')) -> Some []
     | (a, Constant v) when a = v -> Some []
     | (a, Variable x) ->
         match tryLookup env x with
-        | None -> Some [ (x, a) ]
-        | Some(v) -> matchSingle actual (Constant(v))
-    | (ADTValue(name, _, values), Apply(callName, exprs)) when name = callName ->
-        matchAllVals env tryLookup values exprs
+        | Some(ADTValue(a, b, c)) -> matchSingle actual (Constant(ADTValue(a, b, c)))
+        | _ -> Some [ (x, a) ]
+    | (ADTValue(name, _, values), Apply(callName, exprs)) when name = callName -> matchAllVals values exprs
     | (TupleValue(v1, v2), Tuple(p1, p2)) ->
         match (matchSingle v1 p1, matchSingle v2 p2) with
         | (Some(v1), Some(v2)) -> Some(v1 @ v2)
         | _ -> None
-    | (ListValue(valList), List([])) when valList.Length = 0 -> Some []
-    | (ListValue(valList), List(exprList)) when valList.Length = exprList.Length ->
-        matchAllVals env tryLookup valList exprList
+    | (ListValue([]), List([])) -> Some []
+    | (ListValue(valList), List(exprList)) when valList.Length = exprList.Length -> matchAllVals valList exprList
     | (ListValue(valList), ConcatC(Variable h, Variable t)) when valList.Length > 0 ->
         Some
             [ (h, List.head valList)
               (t, ListValue(List.tail valList)) ]
     | _, _ -> None
 
-and matchAllVals (env: 'v Env) (tryLookup: 'v Env -> string -> Option<Value>) values exprs =
-    let matchings = List.map2 (matchSingle env tryLookup) values exprs
-    if List.forall Option.isSome matchings
-    then Some(List.collect Option.get matchings)
-    else None
+
 
 let rec eval (e: Expr) (env: Value Env): Value =
     match e with
@@ -116,17 +118,24 @@ let rec eval (e: Expr) (env: Value Env): Value =
         let fclosure = lookup env fname
         match fclosure with
         | Closure(cname, cparameters, cexpression, declarationEnv) ->
-            let newEnv =
-                List.fold2 (fun dEnv parameterName argument -> (parameterName, eval argument env) :: dEnv)
-                    ((cname, fclosure) :: declarationEnv) cparameters farguments // should evaluated args also be added to env, since later args are evaluated with this env? Also, should we test for duplicate names?
-            eval cexpression newEnv
-        | ADTClosure((constructor: string * Type list), adtName, declarationEnv) ->
-            let values = List.map (fun arg -> eval arg env) farguments
-            ADTValue(fst constructor, adtName, values) // we chould check whether the arguments have the same length and types as the type list ??
+            if (farguments.Length > cparameters.Length) then failwith "too many args"
+            if (farguments.Length < cparameters.Length) then
+                let leftoverParams = List.skip farguments.Length cparameters
+                let args = List.map (fun a -> Constant(eval a env)) farguments
+                let variables = List.map (Variable) leftoverParams
+                let body = Apply(cname, (List.append args variables))
+                Closure("part_" + fname, leftoverParams, body, env)
+            else
+                let newEnv =
+                    List.fold2 (fun dEnv parameterName argument -> (parameterName, eval argument env) :: dEnv)
+                        ((cname, fclosure) :: declarationEnv) cparameters farguments // should we test for duplicate names?
+                eval cexpression newEnv
+        | ADTClosure((name, argTypes), adtName, declarationEnv) ->
+            let values = List.map2 (fun argType arg -> eval arg env) argTypes farguments
+            ADTValue(name, adtName, values) // we chould check whether the arguments have the same length and types as the type list ??
         | _ -> failwith <| sprintf "Evaluator failed on apply: %s is not a function" fname
     | Pattern(matchExpression, (patternList)) ->
-        let matchPattern x (case, expr) =
-            matchSingle env tryLookup x case |> Option.map (fun bs -> (case, expr, bs))
+        let matchPattern x (case, expr) = matchSingleVal env x case |> Option.map (fun bs -> (case, expr, bs))
         let x = eval matchExpression env
         match List.tryPick (matchPattern x) patternList with
         | Some(case, expr, bindings) -> env @ bindings |> eval expr
