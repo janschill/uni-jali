@@ -67,7 +67,7 @@ rule Token = parse
   | ','              { COMMA }
   | '|'              { PIPE }
   | ';'              { SEMICOLON }
-  | "::"              { DCOLON }
+  | "::"             { DCOLON }
   | "&&"             { AND }
   | "||"             { OR }
   | "<-"             { LARROW }
