@@ -36,19 +36,11 @@ let rec matchSingleVal env (actual: Value) (pattern: Expr) =
         match (matchSingle v1 p1, matchSingle v2 p2) with
         | (Some(v1), Some(v2)) -> Some(v1 @ v2)
         | _ -> None
-    // | (ListValue([]), List([])) -> Some []
     | (ListValue(valList), List(exprList)) when valList.Length = exprList.Length -> matchAllVals valList exprList
     | (ListValue(valList), ConcatC(Variable h, Variable t)) when valList.Length > 0 ->
         Some
             [ (h, List.head valList)
               (t, ListValue(List.tail valList)) ]
-    // | (ListValue(valList), ConcatC(Variable h, List([]))) when valList.Length > 0 -> Some [ (h, List.head valList) ]
-    // | (ListValue(valList), ConcatC(ConcatC(Variable h, Variable t), List([]))) when valList.Length > 0 ->
-    //     Some
-    //         [ (h, List.head valList)
-    //           (t, ListValue(List.tail valList)) ]
-    // | (ListValue(valList), ConcatC(List([]), Variable t)) when valList.Length > 0 ->
-    //     Some [ (t, ListValue(List.tail valList)) ]
     | _, _ -> None
 
 let rec eval (e: Expr) (env: Value Env): Value =
