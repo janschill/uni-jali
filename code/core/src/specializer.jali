@@ -5,7 +5,7 @@ type Differ =
     Null
   | Change Node
   | Path Integer Differ;
-type Option = None
+type Option = None;
 
 func diff view1 view2 =
   func fold nodes1 nodes2 index =
@@ -34,28 +34,14 @@ end
 
 func head list =
   match list with
-  | x::xs -> x
   | [] -> None
+  | x::xs -> x
 end
 
 func tail list =
   match list with
-  | x::xs -> xs
   | [] -> None
-end
-
-func append list1 list2 =
-  match (list1, list2) with
-  | ([], list2) -> list2
-  | (x::[xs], list2) -> x::append (xs) (list2)
-end
-append ([1,2]) ([3,4])
-
-func flatten list =
-  match list with
-  | [] -> []
-  | []::vs -> flatten vs
-  | (x::xs)::vs -> x::flatten (xs::vs)
+  | x::xs -> xs
 end
 
 func f x =
@@ -68,26 +54,14 @@ func map f list =
   | x::xs -> f (x)::map (f) (xs)
 end
 
-l = flatten ([1, [2, 3]]);
-l
-
-func f i item =
-  if i == 0
-  then item + 1
-  else item
-end
-
 func mapi f list =
   func loop index ls =
-    match list with
+    match ls with
     | [] -> []
-    | x::xs -> (f (index) (x)) :: (loop (index + 1) (xs))
+    | x::xs -> f (index) (x)::loop (index + 1) (xs)
   end
   loop 0 list
 end
-
-mapi (f) ([1,2,3])
-
 
 func patch view changes =
   match changes with
@@ -101,9 +75,27 @@ func patch view changes =
         then patch (item) (d)
         else item
       end
-      items = mapi (f) (nodes)
+      items = mapi (f) (nodes);
       Tag (name) (atts) (items)
+    | _ -> 'Exception'
 end
+
+func view model =
+  Tag ('div') ([]) ([
+    Text ('12313'),
+    Tag ('div') ([]) ([
+      Text (model),
+      Text ('Hello World')
+    ])
+  ])
+end
+
+view1 = view (1);
+view2 = view (2);
+
+changes = diff (view1) (view2);
+patched = patch (view1) (changes);
+changes
 
 (*
 Diff (view model1) (view model2)
@@ -120,19 +112,3 @@ generate HTML from view
 diff generate javascript
 diff against model0
 *)
-
-func view model =
-  Tag ('div') ([]) ([
-    Text ('12313'),
-    Tag ('div') ([]) ([
-      Text (model),
-      Text ('Hello World')
-    ])
-  ])
-end
-
-view1 = view (1);
-view2 = view (2);
-
-changes = diff (view1) (view2);
-changes
