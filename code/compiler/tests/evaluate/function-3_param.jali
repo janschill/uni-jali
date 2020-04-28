@@ -1,5 +1,5 @@
 func f x y z =
-  x + y - z
+  x + y + (-z)
 end
 
-f (1) (2) (3)
+f 1 2 3
