@@ -5,6 +5,7 @@ type Differ =
     Null
   | Change Node
   | Path Integer Differ;
+type Option = None
 
 func diff view1 view2 =
   func fold nodes1 nodes2 index =
@@ -31,6 +32,79 @@ func diff view1 view2 =
   fold ([view1]) ([view2]) (0)
 end
 
+func head list =
+  match list with
+  | x::xs -> x
+  | [] -> None
+end
+
+func tail list =
+  match list with
+  | x::xs -> xs
+  | [] -> None
+end
+
+func append list1 list2 =
+  match (list1, list2) with
+  | ([], list2) -> list2
+  | (x::[xs], list2) -> x::append (xs) (list2)
+end
+append ([1,2]) ([3,4])
+
+func flatten list =
+  match list with
+  | [] -> []
+  | []::vs -> flatten vs
+  | (x::xs)::vs -> x::flatten (xs::vs)
+end
+
+func f x =
+  x
+end
+
+func map f list =
+  match list with
+  | [] -> []
+  | x::xs -> f (x)::map (f) (xs)
+end
+
+l = flatten ([1, [2, 3]]);
+l
+
+func f i item =
+  if i == 0
+  then item + 1
+  else item
+end
+
+func mapi f list =
+  func loop index ls =
+    match list with
+    | [] -> []
+    | x::xs -> (f (index) (x)) :: (loop (index + 1) (xs))
+  end
+  loop 0 list
+end
+
+mapi (f) ([1,2,3])
+
+
+func patch view changes =
+  match changes with
+  | Null -> view
+  | Change (n) -> n
+  | Path (index) (d) ->
+    match view with
+    | Tag (name) (atts) (nodes) ->
+      func f i item =
+        if i == index
+        then patch (item) (d)
+        else item
+      end
+      items = mapi (f) (nodes)
+      Tag (name) (atts) (items)
+end
+
 (*
 Diff (view model1) (view model2)
 Maximal change: static_change = reduce (diff (view model1) (view model2))
@@ -48,11 +122,11 @@ diff against model0
 *)
 
 func view model =
-  Tag ("div") ([]) ([
-    Text ("12313"),
-    Tag ("div") ([]) ([
+  Tag ('div') ([]) ([
+    Text ('12313'),
+    Tag ('div') ([]) ([
       Text (model),
-      Text ("Hello World")
+      Text ('Hello World')
     ])
   ])
 end
