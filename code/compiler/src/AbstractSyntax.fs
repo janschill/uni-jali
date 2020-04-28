@@ -38,7 +38,7 @@ and Expr =
     | If of Expr * Expr * Expr
     | Function of string * string list * Expr * Expr (* (f, x, fBody, letBody) *)
     | ADT of string * ADTConstructor list * Expr
-    | Apply of string * Expr list
+    | Apply of Expr * Expr list
     | Pattern of Expr * (Expr * Expr) list
 
 // and Pattern =
@@ -73,7 +73,7 @@ let rec printExpr (d: Expr): string =
     | Function(name, pars, body, next) -> printValue (Closure(name, pars, body, []))
     | ADT(name, cs, next) -> "ADT: " + name
     | Apply(name, args) ->
-        "Apply(" + name + "(" + (List.map printExpr args |> List.reduce (fun a b -> a + ", " + b)) + ")"
+        "Apply(" + printExpr name + "(" + (List.map printExpr args |> List.reduce (fun a b -> a + ", " + b)) + ")"
     | Pattern(x, patterns) ->
         "match " + printExpr x + " with\n"
         + (List.reduce (+) <| List.map (fun (c, e) -> "| " + printExpr c + " -> " + printExpr e + "\n") patterns)

@@ -67,8 +67,8 @@ let rec reduce2 (e: Expr) (context: bool) (store: Expr Env): Expr =
         let storeWithConstructors = List.fold (fun s c -> eval c :: s) store constructors
 
         reduce2 expression context storeWithConstructors
-    | Apply(fname, farguments) ->
-        let func = lookup store fname
+    | Apply(f, farguments) ->
+        let func = reduce2 f context store
         match func with
         | Constant(Closure(name, parameters, rbody, [])) ->
             if (parameters.Length = farguments.Length) then
@@ -79,14 +79,14 @@ let rec reduce2 (e: Expr) (context: bool) (store: Expr Env): Expr =
                     let bodyStore = List.append storeArguments store
                     reduce2 rbody context bodyStore
                 else
-                    Apply(fname, farguments)
+                    Apply(f, farguments)
             else
                 failwith "Partial application not implemented"
         | Constant(ADTClosure((name, argTypes), adtName, [])) ->
             let reducedArgs = List.map2 (fun argType arg -> reduce2 arg context store) argTypes farguments
             if allStatic reducedArgs
             then Constant(ADTValue(name, adtName, getValues reducedArgs))
-            else Apply(fname, reducedArgs) // TODO: Can I eval here, even though i can't give eval an environment?
+            else Apply(f, reducedArgs) // TODO: Can I eval here, even though i can't give eval an environment?
         | Constant(c) -> Constant(c)
         | _ -> failwith <| sprintf "Reduce failed on apply: %O is not a function" func
     | Pattern(matchExpression, (patternList)) ->
@@ -99,7 +99,8 @@ let rec reduce2 (e: Expr) (context: bool) (store: Expr Env): Expr =
                 match tryLookup store x with
                 | Some(Constant(ADTValue(a, b, c))) -> matchSingleVal actual (Constant(ADTValue(a, b, c)))
                 | _ -> Some [ (x, a) ]
-            | (ADTValue(name, _, values), Apply(callName, exprs)) when name = callName -> matchAllVals values exprs
+            | (ADTValue(name, _, values), Apply(Variable(callName), exprs)) when name = callName ->
+                matchAllVals values exprs
             | (TupleValue(v1, v2), Tuple(p1, p2)) ->
                 match (matchSingleVal v1 p1, matchSingleVal v2 p2) with
                 | (Some(v1), Some(v2)) -> Some(v1 @ v2)
