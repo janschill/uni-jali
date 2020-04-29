@@ -76,6 +76,7 @@ rule Token = parse
   | "(*"            { commentStart := lexbuf.StartPos;
                     commentDepth := 1;
                     SkipComment lexbuf; Token lexbuf }
+  | "//"            { SkipSingleComment lexbuf }
 
 and SkipComment = parse
     "*)"            { commentDepth := !commentDepth - 1;
@@ -84,5 +85,9 @@ and SkipComment = parse
                     }
    | "(*"           { commentDepth := !commentDepth + 1;
                       SkipComment lexbuf }
+   | ['\n' '\012']  { lexbuf.EndPos <- lexbuf.EndPos.NextLine; SkipComment lexbuf }
    | eof            { failwith "Lexer error: unterminated comment" }
    | _              { SkipComment lexbuf }
+and SkipSingleComment = parse
+  | ['\n' '\012']   { lexbuf.EndPos <- lexbuf.EndPos.NextLine; Token lexbuf }
+  | _               { SkipSingleComment lexbuf }
