@@ -52,46 +52,55 @@ func view model =
 end
 
 
-view1 = view (1);
-view2 = view (2);
+// view1 = view (1);
+// view2 = view (2);
 
-changes = diff (view1) (view2);
-changes
+// changes = diff (view1) (view2);
+// changes
 
-
-
-(*
-(*  THE FOLLOWING IS THE ELM-LIKE WEB APPLICATION IN JALI *)
-init = 0;
-
-type Message = Increment | Decrement;
-
-func update msg m = (* return a view *)
-  match msg with
-  | Increment -> m+1
-  | Decrement -> m+(-1)
-end
-
-func view model =
-  Tag ('div') ([]) ([
-    Tag ('button') ([('onClick', update (Decrement) (model))]) ([
-      Text ('Decrement')
-    ]),
-    Text (model)
-  ])
-end
-
-
-(*  NOW REDUCING WITH A DYNAMIC MODEL!
-  diff (view) (view (update increment dynamic))
-  patch (diff (view) (view (update increment dynamic)))
-*)
-
-view0 = view (init);
+init = 1;
+view1 = view (init);
 
 func dynamicDiff model =
-  diff (view0) (view (update Increment model))
+  diff (view1) (view (update Increment model))
 end
 
 dynamicDiff
-*)
+
+
+
+
+
+(*  THE FOLLOWING IS AN ATTEMPT TO REDUCE THE DYNAMIC ELM-LIKE WEB APPLICATION IN JALI *)
+// init = 0;
+
+// type Message = Increment | Decrement;
+
+// func update msg m = (* return a view *)
+//   match msg with
+//   | Increment -> m+1
+//   | Decrement -> m+(-1)
+// end
+
+// func view model =
+//   Tag ('div') ([]) ([
+//     Tag ('button') ([('onClick', update (Decrement) (model))]) ([
+//       Text ('Decrement')
+//     ]),
+//     Text (model)
+//   ])
+// end
+
+
+// (*  NOW REDUCING WITH A DYNAMIC MODEL!
+//   diff (view) (view (update increment dynamic))
+//   patch (diff (view) (view (update increment dynamic)))
+// *)
+
+// view0 = view (init);
+
+// func dynamicDiff model =
+//   diff (view0) (view (update Increment model))
+// end
+
+// dynamicDiff
