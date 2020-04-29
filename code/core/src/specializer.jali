@@ -8,24 +8,27 @@ type Differ =
 
 func diff view1 view2 =
   func fold nodes1 nodes2 index =
+
+    func compare n1 n2 =
+      match (n1, n2) with
+      | (Tag (t1) (atts1) (children1), Tag (t2) (atts2) (children2)) ->
+          if t1 == t2 then
+            f = (fold (children1) (children2) (0));
+            match f with
+            | Null -> Null
+            | change -> change
+          else
+            Change (Tag (t2) (atts2) (ns2))
+      | (Text (s1), Text (s2)) ->
+          if (s1 == s2) then Null else Change(Text(s2))
+    end
+
     match (nodes1, nodes2) with
     | (n1::r1, n2::r2) ->
-        (x =
-          match (n1, n2) with
-          | (Tag (t1) (atts1) (children1), Tag (t2) (atts2) (children2)) ->
-              if t1 == t2 then
-                f = (fold (children1) (children2) (0));
-                match f with
-                | Null -> Null
-                | change -> change
-              else
-                Change (Tag (t2) (atts2) (ns2))
-          | (Text (s1), Text (s2)) ->
-              if (s1 == s2) then Null else Change(Text(s2))
-          ;
+        x = compare n1 n2;
         match x with
         | Null -> fold (r1) (r2) (index + 1)
-        | change -> Path (index) (change))
+        | change -> Path (index) (change)
     | _ -> Null
   end
   fold ([view1]) ([view2]) (0)
