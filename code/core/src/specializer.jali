@@ -7,6 +7,7 @@ type Differ =
   | Path Integer Differ;
 type Option = None;
 
+(* DIFF *)
 func diff view1 view2 =
   func fold nodes1 nodes2 index =
     match (nodes1, nodes2) with
@@ -26,33 +27,15 @@ func diff view1 view2 =
       if (s1 == s2) then Null else Change(Text s2)
 end
 
-func head list =
-  match list with
-  | [] -> None
-  | x::xs -> x
-end
-
-func tail list =
-  match list with
-  | [] -> None
-  | x::xs -> xs
-end
-
-func f x =
-  x
-end
-
-func map f list =
-  match list with
-  | [] -> []
-  | x::xs -> f (x)::map (f) (xs)
-end
-
+(* PATCH *)
 func mapi f list =
   func loop index ls =
     match ls with
+    | x::xs ->
+      head = f (index) (x);
+      tail = loop (index + 1) (xs);
+      head::tail
     | [] -> []
-    | x::xs -> f (index) (x)::loop (index + 1) (xs)
   end
   loop 0 list
 end
@@ -71,9 +54,10 @@ func patch view changes =
       end
       items = mapi (f) (nodes);
       Tag (name) (atts) (items)
-    | _ -> 'Exception'
+    | _ -> 'Patch exception'
 end
 
+(* VIEW *)
 func view model =
   Tag ('div') ([]) ([
     Text ('12313'),
@@ -89,7 +73,7 @@ view2 = view (2);
 
 changes = diff (view1) (view2);
 patched = patch (view1) (changes);
-changes
+patched
 
 (*
 Diff (view model1) (view model2)
