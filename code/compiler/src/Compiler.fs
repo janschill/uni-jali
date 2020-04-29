@@ -1,7 +1,13 @@
 module Compiler
 
+
+
 open AbstractSyntax
 open Interpreter
+
+exception ReduceError of Expr * string with
+    override this.Message =
+        sprintf "Reduce error at expression %O \n%s" this.Data0 this.Data1
 
 let isConstant e =
     match e with
@@ -81,14 +87,14 @@ let rec reduce2 (e: Expr) (context: bool) (store: Expr Env): Expr =
                 else
                     Apply(f, farguments)
             else
-                failwith "Partial application not implemented"
+                raise <| ReduceError(e, "Partial application not implemented")
         | Constant(ADTClosure((name, argTypes), adtName, [])) ->
             let reducedArgs = List.map2 (fun argType arg -> reduce2 arg context store) argTypes farguments
             if allStatic reducedArgs
             then Constant(ADTValue(name, adtName, getValues reducedArgs))
             else Apply(f, reducedArgs) // TODO: Can I eval here, even though i can't give eval an environment?
         | Constant(c) -> Constant(c)
-        | _ -> failwith <| sprintf "Reduce failed on apply: %O is not a function" func
+        | _ -> raise <| ReduceError(e, sprintf "Reduce failed on apply: %O is not a function" func)
     | Pattern(matchExpression, (patternList)) ->
         let rec matchSingleVal (actual: Value) (pattern: Expr) =
             // printfn "actual: %O\npattern: %O" (printValue actual) (printExpr pattern)
@@ -127,7 +133,7 @@ let rec reduce2 (e: Expr) (context: bool) (store: Expr Env): Expr =
         | Constant v ->
             match List.tryPick (matchPattern v) patternList with
             | Some(case, expr, bindings) -> (makeStatic bindings) @ store |> reduce2 expr context
-            | None -> failwith "No pattern matching"
+            | None -> raise <| ReduceError(e, "No pattern matching")
         | _ -> Pattern(matchExpression, patternList)
     // and matchSingleExpr (actual: Expr) (case: Expr) =
     //     match (actual, case) with
@@ -158,7 +164,7 @@ let rec reduce2 (e: Expr) (context: bool) (store: Expr Env): Expr =
     //     | _, _ -> None
 
 
-    | _ -> failwith "No match found"
+    | _ -> raise <| ReduceError(e, "No match found")
 
 
 let reduce (e: Expr) (store: Expr Env): Expr = reduce2 e true store
