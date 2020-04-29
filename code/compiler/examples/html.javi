@@ -12,26 +12,26 @@ func text value =
 end
 
 func button attributes textValue =
-  Tag ("button") (attributes) (text (textValue))
+  Tag ('button') (attributes) (text (textValue))
 end
 
 func div attributes nodes =
-  Tag ("div") (attributes) (nodes)
+  Tag ('div') (attributes) (nodes)
 end
 
-func update msg model =
+func update msg m =
   match msg with
-    | Increment -> model + 1
-    | Decrement -> model - 1
+    | Increment -> m + 1
+    | Decrement -> m + (-2)
 end
 
 func view model =
   div ([]) ([
-    button ([Att("onClick", Decrement)]) ("Decrement"),
+    button ([Att('onClick', Decrement)]) ('Decrement'),
     div ([]) ([
-      text (model) 
+      text (model)
     ]),
-    button ([Att("onClick", Increment)]) ("Increment")
+    button ([Att('onClick', Increment)]) ('Increment')
   ])
 end
 

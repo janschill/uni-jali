@@ -130,8 +130,8 @@ AppExpression:
   | FunctionCall { $1 }
 
 FunctionCall:
-  | NAME Args { Apply($1, $2) }
-  | NAME LPAR RPAR { Apply($1, []) } // THIS IS NEW, NOT TESTED PROBERLY. Was made to handle empty function calls
+  | NAME Args { Apply(Variable($1), $2) }
+  | NAME LPAR RPAR { Apply(Variable $1, []) } // THIS IS NEW, NOT TESTED PROBERLY. Was made to handle empty function calls
 
 Args:
   | /* empty */ { [] }

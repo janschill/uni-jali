@@ -38,7 +38,7 @@ and Expr =
     | If of Expr * Expr * Expr
     | Function of string * string list * Expr * Expr (* (f, x, fBody, letBody) *)
     | ADT of string * ADTConstructor list * Expr
-    | Apply of string * Expr list
+    | Apply of Expr * Expr list
     | Pattern of Expr * (Expr * Expr) list
 
 // and Pattern =
@@ -54,8 +54,9 @@ let rec printValue d =
     | TupleValue(v1, v2) -> "(" + (printValue v1) + "," + (printValue v2) + ")"
     | ListValue(vs) -> sprintf "%O" (List.map printValue vs)
     | ADTValue(name, supertype, vs) -> name + (List.fold (fun acc e -> acc + " " + printValue e) "" vs)
-    | Closure(name, pars, body, env) -> name + " : (" + List.reduce (fun a b -> a + ", " + b) pars + ") -> "
-    | ADTClosure((name, types), supername, env) -> supername + " : " + name
+    | _ -> sprintf "%O" d
+// | Closure(name, pars, body, env) -> name + " : (" + List.reduce (fun a b -> a + ", " + b) pars + ") -> "
+// | ADTClosure((name, types), supername, env) -> supername + " : " + name
 // | _ -> "Couldn't find proper value"
 
 let rec printExpr (d: Expr): string =
@@ -72,7 +73,7 @@ let rec printExpr (d: Expr): string =
     | Function(name, pars, body, next) -> printValue (Closure(name, pars, body, []))
     | ADT(name, cs, next) -> "ADT: " + name
     | Apply(name, args) ->
-        "Apply(" + name + "(" + (List.map printExpr args |> List.reduce (fun a b -> a + ", " + b)) + ")"
+        "Apply(" + printExpr name + "(" + (List.map printExpr args |> List.reduce (fun a b -> a + ", " + b)) + ")"
     | Pattern(x, patterns) ->
         "match " + printExpr x + " with\n"
         + (List.reduce (+) <| List.map (fun (c, e) -> "| " + printExpr c + " -> " + printExpr e + "\n") patterns)

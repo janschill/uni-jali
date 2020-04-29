@@ -14,8 +14,8 @@ let rec tryLookup (env: 'v Env) x =
     | (y, v) :: r ->
         if x = y then Some(v) else tryLookup r x
 
-let rec matchSingleVal env (actual: Value) (pattern: Expr) =
-    let matchSingle = matchSingleVal env
+let rec matchSingleVal (lookupValue: string -> option<Value>) (actual: Value) (pattern: Expr) =
+    let matchSingle = matchSingleVal lookupValue
 
     let matchAllVals values exprs =
         let matchings = List.map2 (matchSingle) values exprs
@@ -28,10 +28,10 @@ let rec matchSingleVal env (actual: Value) (pattern: Expr) =
     | (_, Constant(CharValue '_')) -> Some []
     | (a, Constant v) when a = v -> Some []
     | (a, Variable x) ->
-        match tryLookup env x with
+        match lookupValue x with
         | Some(ADTValue(a, b, c)) -> matchSingle actual (Constant(ADTValue(a, b, c)))
         | _ -> Some [ (x, a) ]
-    | (ADTValue(name, _, values), Apply(callName, exprs)) when name = callName -> matchAllVals values exprs
+    | (ADTValue(name, _, values), Apply(Variable(callName), exprs)) when name = callName -> matchAllVals values exprs
     | (TupleValue(v1, v2), Tuple(p1, p2)) ->
         match (matchSingle v1 p1, matchSingle v2 p2) with
         | (Some(v1), Some(v2)) -> Some(v1 @ v2)
@@ -119,8 +119,8 @@ let rec eval (e: Expr) (env: Value Env): Value =
         let newEnv = List.fold (addADTConstr) env constructors
 
         eval expression newEnv
-    | Apply(fname, farguments) ->
-        let fclosure = lookup env fname
+    | Apply(f, farguments) ->
+        let fclosure = eval f env
         match fclosure with
         | Closure(cname, cparameters, cexpression, declarationEnv) ->
             if (farguments.Length > cparameters.Length) then failwith "too many args"
@@ -128,8 +128,8 @@ let rec eval (e: Expr) (env: Value Env): Value =
                 let leftoverParams = List.skip farguments.Length cparameters
                 let args = List.map (fun a -> Constant(eval a env)) farguments
                 let variables = List.map (Variable) leftoverParams
-                let body = Apply(cname, (List.append args variables))
-                Closure("part_" + fname, leftoverParams, body, env)
+                let body = Apply(Variable cname, (List.append args variables))
+                Closure("part_" + cname, leftoverParams, body, env)
             else
                 let newEnv =
                     List.fold2 (fun dEnv parameterName argument -> (parameterName, eval argument env) :: dEnv)
@@ -138,9 +138,10 @@ let rec eval (e: Expr) (env: Value Env): Value =
         | ADTClosure((name, argTypes), adtName, declarationEnv) ->
             let values = List.map2 (fun argType arg -> eval arg env) argTypes farguments
             ADTValue(name, adtName, values) // we chould check whether the arguments have the same length and types as the type list ??
-        | _ -> failwith <| sprintf "Evaluator failed on apply: %s is not a function" fname
+        | _ -> failwith <| sprintf "Evaluator failed on apply: %O is not a function" f
     | Pattern(matchExpression, (patternList)) ->
-        let matchPattern x (case, expr) = matchSingleVal env x case |> Option.map (fun bs -> (case, expr, bs))
+        let matchPattern x (case, expr) =
+            matchSingleVal (tryLookup env) x case |> Option.map (fun bs -> (case, expr, bs))
         let x = eval matchExpression env
         match List.tryPick (matchPattern x) patternList with
         | Some(case, expr, bindings) -> env @ bindings |> eval expr
