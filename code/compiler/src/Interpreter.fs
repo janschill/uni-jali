@@ -14,8 +14,8 @@ let rec tryLookup (env: 'v Env) x =
     | (y, v) :: r ->
         if x = y then Some(v) else tryLookup r x
 
-let rec matchSingleVal env (actual: Value) (pattern: Expr) =
-    let matchSingle = matchSingleVal env
+let rec matchSingleVal (lookupValue: string -> option<Value>) (actual: Value) (pattern: Expr) =
+    let matchSingle = matchSingleVal lookupValue
 
     let matchAllVals values exprs =
         let matchings = List.map2 (matchSingle) values exprs
@@ -28,7 +28,7 @@ let rec matchSingleVal env (actual: Value) (pattern: Expr) =
     | (_, Constant(CharValue '_')) -> Some []
     | (a, Constant v) when a = v -> Some []
     | (a, Variable x) ->
-        match tryLookup env x with
+        match lookupValue x with
         | Some(ADTValue(a, b, c)) -> matchSingle actual (Constant(ADTValue(a, b, c)))
         | _ -> Some [ (x, a) ]
     | (ADTValue(name, _, values), Apply(Variable(callName), exprs)) when name = callName -> matchAllVals values exprs
@@ -43,8 +43,6 @@ let rec matchSingleVal env (actual: Value) (pattern: Expr) =
             [ (h, List.head valList)
               (t, ListValue(List.tail valList)) ]
     | _, _ -> None
-
-
 
 let rec eval (e: Expr) (env: Value Env): Value =
     match e with
@@ -138,7 +136,8 @@ let rec eval (e: Expr) (env: Value Env): Value =
             ADTValue(name, adtName, values) // we chould check whether the arguments have the same length and types as the type list ??
         | _ -> failwith <| sprintf "Evaluator failed on apply: %O is not a function" f
     | Pattern(matchExpression, (patternList)) ->
-        let matchPattern x (case, expr) = matchSingleVal env x case |> Option.map (fun bs -> (case, expr, bs))
+        let matchPattern x (case, expr) =
+            matchSingleVal (tryLookup env) x case |> Option.map (fun bs -> (case, expr, bs))
         let x = eval matchExpression env
         match List.tryPick (matchPattern x) patternList with
         | Some(case, expr, bindings) -> env @ bindings |> eval expr

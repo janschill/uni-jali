@@ -96,38 +96,13 @@ let rec reduce2 (e: Expr) (context: bool) (store: Expr Env): Expr =
         | Constant(c) -> Constant(c)
         | _ -> raise <| ReduceError(e, sprintf "Reduce failed on apply: %O is not a function" func)
     | Pattern(matchExpression, (patternList)) ->
-        let rec matchSingleVal (actual: Value) (pattern: Expr) =
-            // printfn "actual: %O\npattern: %O" (printValue actual) (printExpr pattern)
-            match (actual, pattern) with
-            | (_, Constant(CharValue '_')) -> Some []
-            | (a, Constant v) when a = v -> Some []
-            | (a, Variable x) ->
-                match tryLookup store x with
-                | Some(Constant(ADTValue(a, b, c))) -> matchSingleVal actual (Constant(ADTValue(a, b, c)))
-                | _ -> Some [ (x, a) ]
-            | (ADTValue(name, _, values), Apply(Variable(callName), exprs)) when name = callName ->
-                matchAllVals values exprs
-            | (TupleValue(v1, v2), Tuple(p1, p2)) ->
-                match (matchSingleVal v1 p1, matchSingleVal v2 p2) with
-                | (Some(v1), Some(v2)) -> Some(v1 @ v2)
-                | _ -> None
-            | (ListValue([]), List([])) -> Some []
-            | (ListValue(valList), List(exprList)) when valList.Length = exprList.Length ->
-                matchAllVals valList exprList
-            | (ListValue(valList), ConcatC(Variable h, Variable t)) when valList.Length > 0 ->
-                Some
-                    [ (h, List.head valList)
-                      (t, ListValue(List.tail valList)) ]
-            | _, _ -> None
-
-        and matchAllVals values exprs =
-            let matchings = List.map2 (matchSingleVal) values exprs
-            if List.forall Option.isSome matchings
-            then Some(List.collect Option.get matchings)
-            else None
+        let lookupVal x =
+            match tryLookup store x with
+            | Some(Constant(v)) -> Some(v)
+            | _ -> None
 
         let makeStatic = List.map (fun (name, v) -> (name, Constant v))
-        let matchPattern x (case, expr) = matchSingleVal x case |> Option.map (fun bs -> (case, expr, bs))
+        let matchPattern x (case, expr) = matchSingleVal lookupVal x case |> Option.map (fun bs -> (case, expr, bs))
         let rActual = reduce2 matchExpression context store
         match rActual with
         | Constant v ->
