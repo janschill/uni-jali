@@ -5,7 +5,6 @@ type Differ =
     Null
   | Change Node
   | Path Integer Differ;
-type Option = None;
 
 (* DIFF *)
 func diff view1 view2 =
@@ -22,7 +21,7 @@ func diff view1 view2 =
   | (Tag (t1) (atts1) (children1), Tag (t2) (atts2) (children2)) ->
       if t1 == t2
       then fold (children1) (children2) (0)
-      else Change (Tag (t2) (atts2) (ns2))
+      else Change (Tag (t2) (atts2) (children2))
   | (Text (s1), Text (s2)) ->
       if (s1 == s2) then Null else Change(Text s2)
 end
@@ -74,19 +73,3 @@ view2 = view (2);
 changes = diff (view1) (view2);
 patched = patch (view1) (changes);
 patched
-
-(*
-Diff (view model1) (view model2)
-Maximal change: static_change = reduce (diff (view model1) (view model2))
-static_view = patch static_change (view model0)
-
-Diff (view (model0)) ((view current_model))
-Differ2js (diff)  = “…”
-Differ2js (diff (model0) (current_model))
-Reduce (Differ2js (diff (model0) (current_model)))
-
-make reduce work
-generate HTML from view
-diff generate javascript
-diff against model0
-*)
