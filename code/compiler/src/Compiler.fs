@@ -1,7 +1,5 @@
 module Compiler
 
-
-
 open AbstractSyntax
 open Interpreter
 
