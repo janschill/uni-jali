@@ -25,21 +25,11 @@ func diff view1 view2 =
       if (s1 == s2) then Null else Change(Text s2)
 end
 
-(*
-Diff (view model1) (view model2)
-Maximal change: static_change = reduce (diff (view model1) (view model2))
-static_view = patch static_change (view model0)
-
-Diff (view (model0)) ((view current_model))
-Differ2js (diff)  = “…”
-Differ2js (diff (model0) (current_model))
-Reduce (Differ2js (diff (model0) (current_model)))
-
-make reduce work
-generate HTML from view
-diff generate javascript
-diff against model0
-*)
+func update msg m = (* return a view *)
+  match msg with
+  | Increment -> m+1
+  | Decrement -> m+(-1)
+end
 
 func view model =
   Tag ('div') ([]) ([
@@ -62,7 +52,7 @@ init = 1;
 view1 = view (init);
 
 func dynamicDiff model =
-  diff (view1) (view (update Increment model))
+  diff (view1) (view (update (Increment) (model)))
 end
 
 dynamicDiff
