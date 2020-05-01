@@ -56,11 +56,16 @@ func patch view changes =
     | _ -> 'Patch exception'
 end
 
+func patchtojs view changes =
+  0
+end
+
+
 (* VIEW *)
 func view model =
   Tag ('div') ([]) ([
     Text ('Hello world'),
-    Tag ('p') ([]) ([
+    Tag ('p') (['id', 'ptag']) ([
       Text ('Value of the model: '),
       Text (model)
     ])
@@ -72,4 +77,4 @@ view2 = view (2);
 
 changes = diff (view1) (view2);
 patched = patch (view1) (changes);
-patched
+changes

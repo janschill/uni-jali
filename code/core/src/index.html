@@ -8,12 +8,14 @@
 </head>
 
 <body>
-  <div class=div id=myid>Hello World<div class=divInner>
-      <button class=increment
-        onclick="(() => {   const el = document.querySelector(&quot;#model&quot;);  let result = parseInt(el.innerHTML) +1;  el.innerHTML = result;})()">Increment</button>
-      <p id=model>0</p>
-      <button class=decrement
-        onclick="(() => {   const el = document.querySelector(&quot;#model&quot;);  let result = parseInt(el.innerHTML) +-1;  el.innerHTML = result;})()">Decrement</button>
+  <div class=div id=myId data-identifier="div-0">
+    <p data-identifier="p-0">Hello World</p>
+    <div class=divInner data-identifier="div-1"><button class=increment
+        onclick="(() => {   const el = document.querySelector(&quot;#model&quot;);  let result = parseInt(el.innerHTML) +1;  el.innerHTML = result;})()"
+        data-identifier="button-1">Increment</button>
+      <p id=model data-identifier="p-2">0</p><button class=decrement
+        onclick="(() => {   const el = document.querySelector(&quot;#model&quot;);  let result = parseInt(el.innerHTML) +-1;  el.innerHTML = result;})()"
+        data-identifier="button-3">Decrement</button>
     </div>
   </div>
 </body>
