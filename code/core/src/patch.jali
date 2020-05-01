@@ -73,6 +73,26 @@ func changeInnerHTMLToString value =
   'el.innerHTML = ' + value + ';'
 end
 
+func setAttributesToString element attributes =
+  match attributes with
+  | [] -> ''
+  | x::xs ->
+    match x with
+    | (k, v) ->
+      element + '.setAttribute("' + k + '", "' + v + '");' +
+      (setAttributesToString (element) (xs))
+    | _ -> 'setAttribute wildcard'
+  | _ -> 'attributes wildcard'
+end
+
+func changeElementToString name atts children =
+  newEl = 'newEl';
+  'const ' + newEl + ' = document.createElement("' + name + '");' +
+  (setAttributesToString (newEl) (atts)) +
+  'newEl.innerHTML = el.innerHTML;' +
+  'el.parentNode.replaceChild(' + newEl + ', el);'
+end
+
 func patchtojs view changes =
   func loop index depth chs =
     match chs with
@@ -80,13 +100,16 @@ func patchtojs view changes =
     | Path (idx) (d) ->
       loop (idx) (depth + 1) (d)
     | Change (n) ->
+      elementToString = selectElementToString (index) (depth);
       match n with
       | Text (t) ->
-        (selectElementToString (index) (depth)) +
+        elementToString +
         (changeInnerHTMLToString (t))
-      | Tag (name) (atts) (children) -> 'tag change'
+      | Tag (name) (atts) (children) ->
+        elementToString +
+        (changeElementToString (name) (atts) (children))
   end
-  loop (0) (-1) changes
+  loop (0) (-1) (changes)
 end
 
 func attributesToString attributes =
@@ -138,8 +161,8 @@ end
 
 func view model =
   Tag ('div') ([]) ([
-    Tag ('p') ([]) ([
-      Text (model)
+    Tag (model) ([('class', model)]) ([
+      Text ('model')
     ])
   ])
 end
