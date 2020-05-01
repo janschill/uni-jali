@@ -52,7 +52,7 @@ let rec reduce2 (e: Expr) (context: bool) (store: Expr Env): Expr =
         match rcond with
         | Constant(BooleanValue(b)) ->
             if b then reduce2 (thenExpr) context store else reduce2 (elseExpr) context store
-        | _ -> If(rcond, reduce2 (thenExpr) context store, reduce2 (elseExpr) context store)
+        | _ -> If(rcond, reduce2 (thenExpr) false store, reduce2 (elseExpr) false store)
     // let thenExpr = reduce2 (thenExpr) store
     // let elseExpr = reduce2 (elseExpr) store
     // if (allStatic [ rcond; thenExpr; elseExpr ]) then // ifs are static only if all e1, e2, e3 are static ?
@@ -63,7 +63,9 @@ let rec reduce2 (e: Expr) (context: bool) (store: Expr Env): Expr =
     // else
     //     If(rcond, thenExpr, elseExpr)
     | Function(name, parameters, expression, expression2) ->
-        ((name, Constant(Closure(name, parameters, expression, []))) :: store) |> reduce2 expression2 context
+        let bodyStore = (name, Variable name) :: List.map (fun p -> p, Variable p) parameters @ store
+        let rbody = reduce2 expression context bodyStore
+        ((name, Constant(Closure(name, parameters, rbody, []))) :: store) |> reduce2 expression2 context
     | ADT(adtName, (constructors: (string * Type list) list), expression) ->
         let eval constrDecl =
             match constrDecl with
