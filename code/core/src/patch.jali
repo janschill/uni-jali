@@ -2,8 +2,60 @@ type Attribute = Att Tuple;
 type Node = Text String | Tag String [Attribute] [Node];
 type Message = Increment | Decrement;
 type Action = Click;
+type Differ =
+    Null
+  | Change Node
+  | Path Integer Differ;
 
-init = 0;
+(* DIFF *)
+func diff view1 view2 =
+  func fold nodes1 nodes2 index =
+    match (nodes1, nodes2) with
+    | (n1::r1, n2::r2) ->
+      match diff (n1) (n2) with
+      | Null -> fold (r1) (r2) (index + 1)
+      | change -> Path (index) (change)
+    | _ -> Null
+  end
+
+  match (view1, view2) with
+  | (Tag (t1) (atts1) (children1), Tag (t2) (atts2) (children2)) ->
+      if t1 == t2
+      then fold (children1) (children2) (0)
+      else Change (Tag (t2) (atts2) (children2))
+  | (Text (s1), Text (s2)) ->
+      if (s1 == s2) then Null else Change(Text s2)
+end
+
+(* PATCH *)
+func mapi f list =
+  func loop index ls =
+    match ls with
+    | x::xs ->
+      head = f (index) (x);
+      tail = loop (index + 1) (xs);
+      head::tail
+    | [] -> []
+  end
+  loop 0 list
+end
+
+func patch view changes =
+  match changes with
+  | Null -> view
+  | Change (n) -> n
+  | Path (index) (d) ->
+    match view with
+    | Tag (name) (atts) (nodes) ->
+      func f i item =
+        if i == index
+        then patch (item) (d)
+        else item
+      end
+      items = mapi (f) (nodes);
+      Tag (name) (atts) (items)
+    | _ -> 'Patch exception'
+end
 
 func update msg model =
   match msg with
@@ -11,27 +63,10 @@ func update msg model =
   | Decrement -> model + (-1)
 end
 
-func onClick msg =
-  update (msg) (init)
-end
-
-func view model =
-  Tag ('div') ([('class', 'div'), ('id', 'myId')]) ([
-    Tag ('p') ([]) ([
-      Text ('Hello World')
-    ]),
-    Tag ('div') ([('class', 'div-inner')]) ([
-      Tag ('button') ([('class', 'increment'), (Click, (onClick (Increment)))]) ([Text ('Increment')]),
-      Tag ('p') ([('id', 'model')]) ([Text (model)]),
-      Tag ('button') ([('class', 'decrement'), (Click, (onClick (Decrement)))]) ([Text ('Decrement')]),
-    ])
-  ])
-end
-
 func selectElementToString index depth =
-  'const el = document.querySelector(#' +
+  'const el = document.querySelector("#' +
     index + '-child--' +
-    depth + '-depth);'
+    depth + '-depth");'
 end
 
 func changeInnerHTMLToString value =
@@ -39,33 +74,20 @@ func changeInnerHTMLToString value =
 end
 
 func patchtojs view changes =
-  func loop index depth changes =
-    match changes with
+  func loop index depth chs =
+    match chs with
     | Null -> 'patchtojs -> Null'
+    | Path (idx) (d) ->
+      loop (idx) (depth + 1) (d)
     | Change (n) ->
       match n with
       | Text (t) ->
         (selectElementToString (index) (depth)) +
         (changeInnerHTMLToString (t))
       | Tag (name) (atts) (children) -> 'tag change'
-    | Path (idx) (d) ->
-      loop (idx) (depth + 1) (d)
+  end
+  loop (0) (0) changes
 end
-
-(*
-'  const el = document.querySelector(&quot;#model&quot;);' +
-'  let result = parseInt(el.innerHTML) +' + v + ';'+
-'  el.innerHTML = result;' +
-
-  ADTValue
-    ("Path","Differ",
-     [IntegerValue 1;
-      ADTValue
-        ("Path","Differ",
-         [IntegerValue 1;
-          ADTValue
-            ("Change","Differ",[ADTValue ("Text","Node",[IntegerValue 2])])])])
-*)
 
 func attributesToString attributes =
   match attributes with
@@ -76,7 +98,7 @@ func attributesToString attributes =
       match k with
       | Click ->
         'onclick="(() => { ' +
-        patchtojs +
+        'TODO: (patchtojs () ())' +
         '})()"'
       | _ -> ' ' + k + '=' + v + ' ' + (attributesToString xs)
 end
@@ -114,12 +136,23 @@ func html tags =
   '</html>'
 end
 
-html (tagToString ([view (init)]) (0) (0))
-
-(*
-func main init view update =
-
+func view model =
+  Tag ('div') ([]) ([
+    Text ('Hello world'),
+    Tag ('p') (['id', 'ptag']) ([
+      Text ('Value of the model: '),
+      Text (model)
+    ])
+  ])
 end
 
-main (0) (view) (update)
+view1 = view (1);
+view2 = view (2);
+
+(*
+patchtojs (view1) (changes)
+changes = diff (view1) (view2);
+changes
 *)
+
+tagToString ([view1]) (0) (0)
