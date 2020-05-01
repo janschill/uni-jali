@@ -3,6 +3,10 @@ module Compiler
 open AbstractSyntax
 open Interpreter
 
+exception ReduceError of Expr * string with
+    override this.Message =
+        sprintf "Reduce error at expression %O \n%s" this.Data0 this.Data1
+
 let isConstant e =
     match e with
     | Constant _ -> true
@@ -21,6 +25,13 @@ let rec reduce2 (e: Expr) (context: bool) (store: Expr Env): Expr =
     match e with
     | Constant c -> Constant c
     | Variable v -> lookup store v
+    | ConcatC(h, t) ->
+        let head = reduce2 h context store
+        let tail = reduce2 t context store
+        match (head, tail) with
+        | (Constant v, Constant(ListValue(vs))) -> Constant(ListValue(v :: vs))
+        | (_, List _) -> ConcatC(head, tail)
+        | _ -> failwith "Reducer failed on concatenation: tail must be a list"
     | Tuple(expr1, expr2) ->
         let rexpr1 = reduce2 expr1 context store
         let rexpr2 = reduce2 expr2 context store
@@ -81,53 +92,28 @@ let rec reduce2 (e: Expr) (context: bool) (store: Expr Env): Expr =
                 else
                     Apply(f, farguments)
             else
-                failwith "Partial application not implemented"
+                raise <| ReduceError(e, "Partial application not implemented")
         | Constant(ADTClosure((name, argTypes), adtName, [])) ->
             let reducedArgs = List.map2 (fun argType arg -> reduce2 arg context store) argTypes farguments
             if allStatic reducedArgs
             then Constant(ADTValue(name, adtName, getValues reducedArgs))
             else Apply(f, reducedArgs) // TODO: Can I eval here, even though i can't give eval an environment?
         | Constant(c) -> Constant(c)
-        | _ -> failwith <| sprintf "Reduce failed on apply: %O is not a function" func
+        | _ -> raise <| ReduceError(e, sprintf "Reduce failed on apply: %O is not a function" func)
     | Pattern(matchExpression, (patternList)) ->
-        let rec matchSingleVal (actual: Value) (pattern: Expr) =
-            // printfn "actual: %O\npattern: %O" (printValue actual) (printExpr pattern)
-            match (actual, pattern) with
-            | (_, Constant(CharValue '_')) -> Some []
-            | (a, Constant v) when a = v -> Some []
-            | (a, Variable x) ->
-                match tryLookup store x with
-                | Some(Constant(ADTValue(a, b, c))) -> matchSingleVal actual (Constant(ADTValue(a, b, c)))
-                | _ -> Some [ (x, a) ]
-            | (ADTValue(name, _, values), Apply(Variable(callName), exprs)) when name = callName ->
-                matchAllVals values exprs
-            | (TupleValue(v1, v2), Tuple(p1, p2)) ->
-                match (matchSingleVal v1 p1, matchSingleVal v2 p2) with
-                | (Some(v1), Some(v2)) -> Some(v1 @ v2)
-                | _ -> None
-            | (ListValue([]), List([])) -> Some []
-            | (ListValue(valList), List(exprList)) when valList.Length = exprList.Length ->
-                matchAllVals valList exprList
-            | (ListValue(valList), ConcatC(Variable h, Variable t)) when valList.Length > 0 ->
-                Some
-                    [ (h, List.head valList)
-                      (t, ListValue(List.tail valList)) ]
-            | _, _ -> None
-
-        and matchAllVals values exprs =
-            let matchings = List.map2 (matchSingleVal) values exprs
-            if List.forall Option.isSome matchings
-            then Some(List.collect Option.get matchings)
-            else None
+        let lookupVal x =
+            match tryLookup store x with
+            | Some(Constant(v)) -> Some(v)
+            | _ -> None
 
         let makeStatic = List.map (fun (name, v) -> (name, Constant v))
-        let matchPattern x (case, expr) = matchSingleVal x case |> Option.map (fun bs -> (case, expr, bs))
+        let matchPattern x (case, expr) = matchSingleVal lookupVal x case |> Option.map (fun bs -> (case, expr, bs))
         let rActual = reduce2 matchExpression context store
         match rActual with
         | Constant v ->
             match List.tryPick (matchPattern v) patternList with
             | Some(case, expr, bindings) -> (makeStatic bindings) @ store |> reduce2 expr context
-            | None -> failwith "No pattern matching"
+            | None -> raise <| ReduceError(e, "No pattern matching")
         | _ -> Pattern(matchExpression, patternList)
     // and matchSingleExpr (actual: Expr) (case: Expr) =
     //     match (actual, case) with
@@ -158,7 +144,7 @@ let rec reduce2 (e: Expr) (context: bool) (store: Expr Env): Expr =
     //     | _, _ -> None
 
 
-    | _ -> failwith "No match found"
+    | _ -> raise <| ReduceError(e, "No match found")
 
 
 let reduce (e: Expr) (store: Expr Env): Expr = reduce2 e true store

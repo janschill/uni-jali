@@ -1,0 +1,5 @@
+func myFun x ls =
+  x::ls
+end
+
+myFun 1 ([2,3])

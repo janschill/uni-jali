@@ -16,7 +16,7 @@ func onClick msg =
 end
 
 func view model =
-  Tag ('div') ([('class', 'div'), ('id', 'myid')]) ([
+  Tag ('div') ([('class', 'div'), ('id', 'myId')]) ([
     Text ('Hello World'),
     Tag ('div') ([('class', 'divInner')]) ([
       Tag ('button') ([('class', 'increment'), (Click, (onClick (Increment)))]) ([Text ('Increment')]),

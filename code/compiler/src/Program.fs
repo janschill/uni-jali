@@ -26,10 +26,15 @@ let evalString (str: string): Value = eval (fromString str) []
 let reduceString (str: string): Expr = reduce (fromString str) []
 let transpileString (str: string): String = transpile (fromString str)
 
-let program = System.IO.File.ReadAllText "./examples/program.javi"
-let html = System.IO.File.ReadAllText "./examples/html.javi"
-let button = System.IO.File.ReadAllText "./examples/button.javi"
-let specializer = System.IO.File.ReadAllText "../core/src/specializer.jali"
+let load = System.IO.File.ReadAllText
+
+let program = load "./examples/program.javi"
+let html = load "./examples/html.javi"
+let button = load "./examples/button.javi"
+
+let pathToSpecializer = "../core/src/specializer.jali"
+let specializer = load pathToSpecializer
+
 
 // let abpro = fromString program
 // let trpro = transpile abpro

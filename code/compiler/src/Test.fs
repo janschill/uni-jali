@@ -240,6 +240,16 @@ match x with
 | _ -> -1
 """ // return [2,3]
 
+let addToList = """
+func myFun x ls =
+  x::ls
+end
+
+myFun 1 ([2,3])
+""" // return [1,2,3]
+
+
+// ADD ALL THESE AS REAL TESTS:
 let recursiveFunctions = """
 func fold i ls =
   if (i == 0)
