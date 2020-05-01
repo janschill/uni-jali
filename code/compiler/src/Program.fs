@@ -32,8 +32,8 @@ let program = load "./examples/program.javi"
 let html = load "./examples/html.javi"
 let button = load "./examples/button.javi"
 
-let pathToSpecializer = "../core/src/specializer.jali"
-let specializer = load pathToSpecializer
+let difference = "../core/src/difference.jali"
+let diff = load difference
 
 
 // let abpro = fromString program
