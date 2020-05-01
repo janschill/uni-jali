@@ -49,7 +49,15 @@
 %token WITH
 
 /* lowest precedence  */
-%left AND
+%nonassoc low
+%nonassoc RARROW
+%left OR
+%left AND // AND binds tighter than OR
+%left EQL NOTEQL
+%left LT
+%left GT
+%left LE
+%left GE
 %left ELSE
 %left PLUS MINUS
 %left TIMES DIV MOD
@@ -100,7 +108,7 @@ AtomicExpression:
   | LocalBinding { $1 }
   | FunctionBinding { $1 }
   | ParenthesizedExpression { $1 }
-  | ADT { $1 }
+  | ADT  { $1 }
 
 ConstantLiteral:
   | CONSTINT { Constant (IntegerValue $1) }
@@ -184,7 +192,7 @@ ComparisonExpression:
   // Apply(Ctor2, ["hello" "jan"])
 
 ADT:
-  TYPE NAME ASSIGN ADTContructor SEMICOLON Expression { ADT($2, $4, $6) }
+  TYPE NAME ASSIGN ADTContructor SEMICOLON Expression %prec low { ADT($2, $4, $6) }
 
 ADTContructor:
   | NAME ADTConstructorParameter { [ADTConstructor($1, $2)] }
