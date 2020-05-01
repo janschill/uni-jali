@@ -65,8 +65,7 @@ end
 func view model =
   Tag ('div') ([]) ([
     Text ('Hello world'),
-    Tag ('p') (['id', 'ptag']) ([
-      Text ('Value of the model: '),
+    Tag ('p') ([('id', 'ptag')]) ([
       Text (model)
     ])
   ])
