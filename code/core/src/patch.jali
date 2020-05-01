@@ -109,7 +109,7 @@ func patchtojs view changes =
         elementToString +
         (changeElementToString (name) (atts) (children))
   end
-  loop (0) (-1) (changes)
+  loop (0) (0) (changes)
 end
 
 func attributesToString attributes =
@@ -123,7 +123,7 @@ func attributesToString attributes =
         'onclick="(() => { ' +
         'TODO: (patchtojs () ())' +
         '})()"'
-      | _ -> ' ' + k + '=' + v + ' ' + (attributesToString xs)
+      | _ -> ' ' + k + '="' + v + '" ' + (attributesToString xs)
 end
 
 func setIdentifier index depth =
@@ -171,8 +171,8 @@ view1 = view (1);
 view2 = view (2);
 
 (*
-tagToString ([view1]) (0) (0)
 changes
+patchtojs (view1) (changes)
 *)
 changes = diff (view1) (view2);
-patchtojs (view1) (changes)
+tagToString ([view1]) (0) (0)
