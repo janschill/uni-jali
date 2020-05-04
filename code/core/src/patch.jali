@@ -134,7 +134,6 @@ func changeElementToString tag index depth =
   (selectElementToString (index) (depth)) +
   (createElementFromString ()) +
   'const ' + newEl + ' = createElementFromString("' + (tagToString ([tag]) (index) (depth)) + '");' +
-  el + '.innerHTML = ' + newEl + ';' +
   el + '.parentNode.replaceChild(' + newEl + ', '+ el + ');'
 end
 
