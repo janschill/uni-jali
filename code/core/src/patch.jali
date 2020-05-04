@@ -7,6 +7,39 @@ type Differ =
   | Change Node
   | Path Integer Differ;
 
+func attributesToString attributes =
+  match attributes with
+  | [] -> ''
+  | x::xs ->
+    match x with
+    | (k, v) ->
+      match k with
+      | Click ->
+        'onclick="(() => { ' +
+        'TODO: (patchtojs () ())' +
+        '})()"'
+      | _ -> ' ' + k + '=' + v + ' ' + (attributesToString xs)
+end
+
+func setIdentifier index depth =
+  ' id=' + index + '-child.' + depth + '-depth'
+end
+
+func tagToString t index depth =
+  match t with
+  | [] -> ''
+  | x::xs ->
+    match x with
+    | Text (text) -> text + (tagToString (xs) (0) (depth + 1))
+    | Tag (elementName) (attributes) (children) ->
+      '<' + elementName + (attributesToString (attributes)) + (setIdentifier (index) (depth)) + '>' +
+          (tagToString (children) (0) (depth + 1)) +
+      '</' + elementName + '>' +
+      (tagToString (xs) (index + 1) (depth))
+    | _ -> ''
+  | _ -> ''
+end
+
 (* DIFF *)
 func diff view1 view2 =
   func fold nodes1 nodes2 index =
@@ -64,13 +97,13 @@ func update msg model =
 end
 
 func selectElementToString index depth =
-  'const el = document.querySelector("#' +
-    index + '-child--' +
+  'const el' + index + depth + ' = document.getElementById("' +
+    index + '-child.' +
     depth + '-depth");'
 end
 
-func changeInnerHTMLToString value =
-  'el.innerHTML = ' + value + ';'
+func changeInnerHTMLToString value index depth =
+  'el' + index + depth + '.innerHTML = ' + value + ';'
 end
 
 func setAttributesToString element attributes =
@@ -85,64 +118,42 @@ func setAttributesToString element attributes =
   | _ -> 'attributes wildcard'
 end
 
-func changeElementToString name atts children =
-  newEl = 'newEl';
-  'const ' + newEl + ' = document.createElement("' + name + '");' +
-  (setAttributesToString (newEl) (atts)) +
-  'newEl.innerHTML = el.innerHTML;' +
-  'el.parentNode.replaceChild(' + newEl + ', el);'
+// Creates a DOM node from an HTML string
+func createElementFromString =
+  'function createElementFromString(htmlString) {' +
+  '  const tempEl = document.createElement("div");' +
+  '  tempEl.innerHTML = htmlString.trim();' +
+  '  return tempEl.firstChild;' +
+  '}'
 end
 
-func patchtojs view changes =
+func changeElementToString tag index depth =
+  el = 'el' + index + depth;
+  newEl = 'newEl';
+
+  (selectElementToString (index) (depth)) +
+  (createElementFromString ()) +
+  'const ' + newEl + ' = createElementFromString("' + (tagToString ([tag]) (index) (depth)) + '");' +
+  el + '.innerHTML = ' + newEl + ';' +
+  el + '.parentNode.replaceChild(' + newEl + ', '+ el + ');'
+end
+
+func patchtojs changes =
   func loop index depth chs =
     match chs with
     | Null -> 'patchtojs -> Null'
     | Path (idx) (d) ->
       loop (idx) (depth + 1) (d)
     | Change (n) ->
-      elementToString = selectElementToString (index) (depth);
+      (* set inner html to result of tagToString *)
       match n with
       | Text (t) ->
-        elementToString +
-        (changeInnerHTMLToString (t))
-      | Tag (name) (atts) (children) ->
-        elementToString +
-        (changeElementToString (name) (atts) (children))
+        (selectElementToString (index) (depth + (-1))) +
+        (changeInnerHTMLToString (t) (index) (depth + (-1)))
+      | tag -> changeElementToString (tag) (index) (depth)
+      | _ -> 'error'
   end
   loop (0) (0) (changes)
-end
-
-func attributesToString attributes =
-  match attributes with
-  | [] -> ''
-  | x::xs ->
-    match x with
-    | (k, v) ->
-      match k with
-      | Click ->
-        'onclick="(() => { ' +
-        'TODO: (patchtojs () ())' +
-        '})()"'
-      | _ -> ' ' + k + '="' + v + '" ' + (attributesToString xs)
-end
-
-func setIdentifier index depth =
-  ' id="' + index + '-child--' + depth + '-depth"'
-end
-
-func tagToString t index depth =
-  match t with
-  | [] -> ''
-  | x::xs ->
-    match x with
-    | Text (text) -> text + (tagToString (xs) (0) (depth))
-    | Tag (elementName) (attributes) (children) ->
-      '<' + elementName + (attributesToString (attributes)) + (setIdentifier (index) (depth)) + '>' +
-          (tagToString (children) (0) (depth + 1)) +
-      '</' + elementName + '>' +
-      (tagToString (xs) (index + 1) (depth))
-    | _ -> ''
-  | _ -> ''
 end
 
 func html tags =
@@ -159,20 +170,20 @@ func html tags =
   '</html>'
 end
 
-func view model =
+func view model tagname =
   Tag ('div') ([]) ([
-    Tag (model) ([('class', model)]) ([
-      Text ('model')
+    Tag (tagname) ([]) ([
+      Text (model)
     ])
   ])
 end
 
-view1 = view (1);
-view2 = view (2);
+view1 = view (1) ('p');
+view2 = view (2) ('span');
 
 (*
 changes
-patchtojs (view1) (changes)
+html (tagToString ([view1]) (0) (0))
 *)
 changes = diff (view1) (view2);
-tagToString ([view1]) (0) (0)
+patchtojs changes
