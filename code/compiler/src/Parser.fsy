@@ -150,8 +150,8 @@ IfStatement:
 MatchExpr: MATCH Expression WITH PatternBody { Pattern($2, $4) }
 
 PatternBody:
-  | PIPE ConstantLiteral RARROW Expression { [($2, $4)] }
-  | PIPE ConstantLiteral RARROW Expression PatternBody { ($2, $4)::$5 }
+  | PIPE Expression RARROW Expression { [($2, $4)] }
+  | PIPE Expression RARROW Expression PatternBody { ($2, $4)::$5 }
 
 // LogicalNegation:
 // | NOT Expression { Not($1) }
