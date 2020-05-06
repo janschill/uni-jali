@@ -68,25 +68,68 @@
 %%
 
 /*
+
 # Grammar
 
-AtomicExpression:
-  Constant literal
-  Local variable, parameter
-  Local binding
-  Function binding
-  Parenthesized expression
+Main ::=
+  Expression
 
-AppExpression:
-  One-argument function call
-  Multi-argument function call
+expr ::=
+  atomicexpr                            atomic expression
+  !expr                                 logical negation
+  expr op expr                          base operations: arithemtic, comparison
+  if expr then expr else expr           conditional expression
+  match expr with patterns              match expression
+  NAME atomicexprs                      function call
+  binding                               types, locals, functions
 
-Expression:
-  Atomic expression
-  Function call
-  Conditional expression
-  Logical negation
-  Arithemtic, comparison
+atomicexpr ::=
+  const                                 constant literals
+  NAME                                  local variable or parameter
+  (expr, expr)                          tuple
+  [ expr, expr, ..., expr ]             list
+  expr::expr                            list deconstruction, list concatenation
+  ( expr )                              parenthesized expression
+
+const ::=
+  CONSTINT                              integer literal
+  CONSTBOOL                             boolean literal
+  STRINGLITERAL                         string literal
+  USCORE                                wildcard literal
+
+binding ::=
+  type NAME = constructors; expr        abstract data type binding
+  NAME = expr; expr                     local binding
+  function NAME params = expr end expr  function binding
+
+patterns ::=
+  | expr -> expr                        one pattern
+  | expr -> expr patterns               more than one pattern
+
+constructors ::=
+  NAME typespec                         one type constructor
+  NAME typespec | constructors          more than one type constructor
+
+typeSpec ::=
+  (* empty *)                           zero type parameters
+  type typeSpec                         more than thero type parameters
+
+type ::=
+  INT                                   Integer type
+  FLOAT                                 Float type
+  BOOLEAN                               Boolean type
+  STRING                                String type
+  CHAR                                  Char type
+  NAME                                  Name variable type, e.g. name of another type
+  RSQUARE typeSpec LSQUARE              List of type
+
+atomicexprs ::=
+  atomicexpr                            one expression
+  atomicexpr atomicexprs                more than one expression
+
+params ::=
+  NAME                                  one parameter
+  NAME params                           more than one parameter
 */
 
 Main:
