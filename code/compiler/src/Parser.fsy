@@ -89,7 +89,7 @@ Main:
 
 Expression:
   | AtomicExpression { $1 }
-  | AppExpression { $1 }
+  | FunctionCall { $1 }
   | ConditionalExpression { $1 }
   | Baseoperation { $1 }
 
@@ -123,9 +123,6 @@ Params:
 
 ParenthesizedExpression:
   | LPAR Expression RPAR { $2 }
-
-AppExpression:
-  | FunctionCall { $1 }
 
 FunctionCall:
   | NAME Args { Apply(Variable $1, $2) }
