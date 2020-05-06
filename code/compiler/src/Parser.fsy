@@ -145,13 +145,12 @@ Expression:
 
 AtomicExpression:
   | ConstantLiteral { $1 } // constant literal and local variable, parameter
-  | ParenthesizedExpression { $1 }
   | NAME { Variable $1 }
   | LPAR Expression RPAR { $2 }
   | LPAR Expression COMMA Expression RPAR { Tuple($2, $4) }
   | LSQUARE List RSQUARE { List($2) }
   | NAME DCOLON NAME { ConcatC(Variable($1), Variable($3)) }
-  
+
 
 ConstantLiteral:
   | CONSTINT { Constant (IntegerValue $1) }
@@ -173,9 +172,6 @@ FunctionBinding:
 Params:
   | NAME { [$1] }
   | NAME Params { $1::$2 }
-
-ParenthesizedExpression:
-  | LPAR Expression RPAR { $2 }
 
 FunctionCall:
   | NAME Args { Apply(Variable $1, $2) }
