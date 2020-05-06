@@ -59,12 +59,11 @@
 %left GT LT GE LE
 %left PLUS MINUS
 %left TIMES DIV MOD
-/* highest precedence  */
 %nonassoc NOT
+/* highest precedence  */
 
 %start Main
-%type <AbstractSyntax.Expr> Main Expression // ADT
-// %type <AbstractSyntax.Type> TypeSpec
+%type <AbstractSyntax.Expr> Main Expression
 %%
 
 /*
@@ -72,7 +71,7 @@
 # Grammar
 
 Main ::=
-  Expression
+  expr
 
 expr ::=
   atomicexpr                            atomic expression
