@@ -120,7 +120,7 @@ FunctionBinding:
   | FUNCTION NAME Params ASSIGN Expression END Expression { Function($2, $3, $5, $7) }
 
 Params:
-  | /* empty */ { [] }
+  | NAME { [$1] }
   | NAME Params { $1::$2 }
 
 ParenthesizedExpression:
@@ -130,16 +130,11 @@ AppExpression:
   | FunctionCall { $1 }
 
 FunctionCall:
-  | NAME Args { Apply(Variable($1), $2) }
-  | NAME LPAR RPAR { Apply(Variable $1, []) } // THIS IS NEW, NOT TESTED PROBERLY. Was made to handle empty function calls
+  | NAME Args { Apply(Variable $1, $2) }
 
 Args:
-  | /* empty */ { [] }
-  | Arg Args { $1::$2 }
-
-Arg:
-  | ConstantLiteral { $1 }
-  | LPAR Expression RPAR { $2 }
+  | AtomicExpression { [$1] }
+  | AtomicExpression Args { $1::$2 }
 
 List:
   | /* empty */  { [] }
