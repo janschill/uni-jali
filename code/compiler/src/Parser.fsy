@@ -187,19 +187,18 @@ ADT:
   TYPE NAME ASSIGN ADTContructor SEMICOLON Expression { ADT($2, $4, $6) }
 
 ADTContructor:
-  | NAME ADTConstructorParameter { [ADTConstructor($1, $2)] }
-  | NAME ADTConstructorParameter PIPE ADTContructor { ADTConstructor($1, $2)::$4 }
-
-ADTConstructorParameter:
-  | /* empty */ { [] }
-  | TypeSpec ADTConstructorParameter { $1::$2 }
-  | LSQUARE TypeSpec RSQUARE ADTConstructorParameter { $2::$4 }
+  | NAME TypeSpec { [ADTConstructor($1, $2)] }
+  | NAME TypeSpec PIPE ADTContructor { ADTConstructor($1, $2)::$4 }
 
 TypeSpec:
+  | /* empty */ { [] }
+  | Type TypeSpec { $1::$2 }
+
+Type:
   | INT { Int }
   | FLOAT { Float }
   | BOOLEAN { Boolean }
   | STRING { String }
   | CHAR { Char }
   | NAME { Typevar $1 }
-  | RSQUARE TypeSpec LSQUARE { ListType($2) }
+  | LSQUARE TypeSpec RSQUARE { ListType($2) }
