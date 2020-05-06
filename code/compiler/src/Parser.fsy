@@ -150,7 +150,6 @@ AtomicExpression:
   | LSQUARE List RSQUARE { List($2) }
   | NAME DCOLON NAME { ConcatC(Variable($1), Variable($3)) }
 
-
 ConstantLiteral:
   | CONSTINT { Constant (IntegerValue $1) }
   | CONSTBOOL { Constant (BooleanValue $1) }
@@ -237,4 +236,4 @@ Type:
   | STRING { String }
   | CHAR { Char }
   | NAME { Typevar $1 }
-  | LSQUARE TypeSpec RSQUARE { ListType($2) }
+  | LSQUARE Type RSQUARE { ListType($2) }
