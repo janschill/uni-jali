@@ -63,7 +63,7 @@
 %nonassoc NOT
 
 %start Main
-%type <AbstractSyntax.Expr> Main Expression FunctionBinding // ADT
+%type <AbstractSyntax.Expr> Main Expression // ADT
 // %type <AbstractSyntax.Type> TypeSpec
 %%
 
