@@ -91,8 +91,7 @@ Expression:
   | AtomicExpression { $1 }
   | AppExpression { $1 }
   | ConditionalExpression { $1 }
-  | ArtihemticExpression { $1 }
-  | ComparisonExpression { $1 }
+  | Baseoperation { $1 }
 
 AtomicExpression:
   | ConstantLiteral { $1 } // constant literal and local variable, parameter
@@ -153,8 +152,11 @@ PatternBody:
   | PIPE Expression RARROW Expression { [($2, $4)] }
   | PIPE Expression RARROW Expression PatternBody { ($2, $4)::$5 }
 
-// LogicalNegation:
-// | NOT Expression { Not($1) }
+Baseoperation:
+  // | LogicalNegation { $1 }
+  | ArtihemticExpression { $1 }
+  | ComparisonExpression { $1 }
+
 ArtihemticExpression:
   | MINUS Expression { Prim("-", Constant (IntegerValue 0), $2) }
   | Expression PLUS Expression { Prim("+", $1, $3) }
