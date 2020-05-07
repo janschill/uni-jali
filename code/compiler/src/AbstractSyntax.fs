@@ -6,6 +6,7 @@ type Type =
     | Boolean
     | String
     | Char
+    | TupleType of Type * Type
     | ListType of Type
     | Typevar of string
 

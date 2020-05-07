@@ -1,5 +1,5 @@
-type Attribute = Att Tuple;
-type Node = Text String | Tag String [Attribute] [Node];
+type Attribute = Att (String, String);
+type Node = Text String | Tag String [(String, String)] [Node];
 type Message = Increment | Decrement;
 type Differ =
     Null
