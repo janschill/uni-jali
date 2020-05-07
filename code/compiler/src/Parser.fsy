@@ -119,7 +119,7 @@ ConstantLiteral:
   | LPAR Expression COMMA Expression RPAR { Tuple($2, $4) }
   | FunctionCall { $1 }
   | LSQUARE List RSQUARE { List($2) }
-  | NAME DCOLON NAME { ConcatC(Variable($1), Variable($3)) }
+  | Expression DCOLON Expression { ConcatC($1, $3) }
 
 LocalBinding:
   | NAME ASSIGN Expression SEMICOLON Expression { Let($1, $3, $5) }

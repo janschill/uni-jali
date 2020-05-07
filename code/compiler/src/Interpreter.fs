@@ -36,7 +36,6 @@ let rec matchSingleVal (lookupValue: string -> option<Value>) (actual: Value) (p
         match (matchSingle v1 p1, matchSingle v2 p2) with
         | (Some(v1), Some(v2)) -> Some(v1 @ v2)
         | _ -> None
-    | (ListValue([]), List([])) -> Some []
     | (ListValue(valList), List(exprList)) when valList.Length = exprList.Length -> matchAllVals valList exprList
     | (ListValue(valList), ConcatC(Variable h, Variable t)) when valList.Length > 0 ->
         Some
@@ -48,6 +47,11 @@ let rec eval (e: Expr) (env: Value Env): Value =
     match e with
     | Constant c -> c
     | Variable v -> lookup env v
+    | ConcatC(h, t) ->
+        let head = eval h env
+        match eval t env with
+        | ListValue(tail) -> ListValue(head :: tail)
+        | _ -> failwith "Evaluator failed on concatenation: tail must be a list"
     | Tuple(expr1, expr2) -> TupleValue(eval expr1 env, eval expr2 env)
     | List(list) -> ListValue(List.map (fun e -> eval e env) list)
     | And(expression1, expression2) ->

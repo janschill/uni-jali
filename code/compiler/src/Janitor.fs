@@ -14,28 +14,21 @@ type Differ =
 // | Path of list<(int * Differ)>
 
 let rec diff (view1: Node) (view2: Node): Differ =
-    let rec loop (v1: Node) (v2: Node) =
-        match (v1, v2) with
-        | (Tag(t1, atts1, ns1), Tag(t2, atts2, ns2)) ->
-            if t1 = t2 && atts1 = atts2 then
-                match fold ns1 ns2 0 with
-                | Null -> Null
-                | change -> change
-            else
-                Change(Tag(t2, atts2, ns2))
-
-        | (Text(s1), Text(s2)) ->
-            if (s1 = s2) then Null else Change(Text(s2))
-
-    and fold (nodes1: list<Node>) (nodes2: list<Node>) (index): Differ =
+    let rec fold (nodes1: list<Node>) (nodes2: list<Node>) (index): Differ =
         match (nodes1, nodes2) with
         | (n1 :: ns1, n2 :: ns2) ->
-            match loop n1 n2 with
+            match diff n1 n2 with
             | Null -> fold ns1 ns2 <| index + 1
             | change -> Path(index, change)
         | _ -> Null // extend cases: list, []; [], list; both empty
 
-    loop view1 view2
+    match (view1, view2) with
+    | (Tag(t1, atts1, ns1), Tag(t2, atts2, ns2)) ->
+        if t1 = t2 && atts1 = atts2 then fold ns1 ns2 0 else Change(Tag(t2, atts2, ns2))
+    | (Text(s1), Text(s2)) ->
+        if (s1 = s2) then Null else Change(Text(s2))
+    | _ -> failwith "Diff error"
+
 
 (*
   traverse view and replace nodes with nodes
