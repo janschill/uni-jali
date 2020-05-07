@@ -106,12 +106,8 @@ patterns ::=
   | expr -> expr patterns               more than one pattern
 
 constructors ::=
-  NAME typespec                         one type constructor
-  NAME typespec | constructors          more than one type constructor
-
-typeSpec ::=
-  (* empty *)                           zero type parameters
-  type typeSpec                         more than thero type parameters
+  NAME typeparams                       one type constructor
+  NAME typeparams | constructors        more than one type constructor
 
 type ::=
   INT                                   Integer type
@@ -120,7 +116,12 @@ type ::=
   STRING                                String type
   CHAR                                  Char type
   NAME                                  Name variable type, e.g. name of another type
-  RSQUARE typeSpec LSQUARE              List of type
+  ( type, type )                        Tuple of types
+  [ type ]                              List of type
+
+typeparams ::=
+  (* empty *)                           zero type parameters
+  type typeparams                       more than zero type parameters
 
 atomicexprs ::=
   atomicexpr                            one expression
