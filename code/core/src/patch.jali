@@ -118,21 +118,19 @@ func setAttributesToString element attributes =
   | _ -> 'attributes wildcard'
 end
 
-// Creates a DOM node from an HTML string
-func createElementFromString =
+createElementFromString =
   'function createElementFromString(htmlString) {' +
   '  const tempEl = document.createElement("div");' +
   '  tempEl.innerHTML = htmlString.trim();' +
   '  return tempEl.firstChild;' +
-  '}'
-end
+  '}';
 
 func changeElementToString tag index depth =
   el = 'el' + index + depth;
   newEl = 'newEl';
 
   (selectElementToString (index) (depth)) +
-  (createElementFromString ()) +
+  createElementFromString +
   'const ' + newEl + ' = createElementFromString("' + (tagToString ([tag]) (index) (depth)) + '");' +
   el + '.parentNode.replaceChild(' + newEl + ', '+ el + ');'
 end
