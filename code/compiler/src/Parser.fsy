@@ -235,5 +235,6 @@ Type:
   | BOOLEAN { Boolean }
   | STRING { String }
   | CHAR { Char }
+  | LPAR Type COMMA Type RPAR { TupleType($2, $4) }
   | NAME { Typevar $1 }
   | LSQUARE Type RSQUARE { ListType($2) }
