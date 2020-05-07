@@ -1,0 +1,4 @@
+x = [];
+match x with
+| [] -> true
+| _ -> false

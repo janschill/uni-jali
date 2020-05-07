@@ -1,0 +1,75 @@
+type Attribute = Att (String, String);
+type Node = Text String | Tag String [(String, String)] [Node];
+type Message = Increment | Decrement;
+type Differ =
+    Null
+  | Change Node
+  | Path Integer Differ;
+
+(* DIFF *)
+func diff view1 view2 =
+  func fold nodes1 nodes2 index =
+    match (nodes1, nodes2) with
+    | (n1::r1, n2::r2) ->
+      match diff (n1) (n2) with
+      | Null -> fold (r1) (r2) (index + 1)
+      | change -> Path (index) (change)
+    | _ -> Null
+  end
+
+  match (view1, view2) with
+  | (Tag (t1) (atts1) (children1), Tag (t2) (atts2) (children2)) ->
+      if t1 == t2
+      then fold (children1) (children2) (0)
+      else Change (Tag (t2) (atts2) (children2))
+  | (Text (s1), Text (s2)) ->
+      if (s1 == s2) then Null else Change(Text s2)
+end
+
+(* PATCH *)
+func mapi f list =
+  func loop index ls =
+    match ls with
+    | x::xs ->
+      head = f (index) (x);
+      tail = loop (index + 1) (xs);
+      head::tail
+    | [] -> []
+  end
+  loop 0 list
+end
+
+func patch view changes =
+  match changes with
+  | Null -> view
+  | Change (n) -> n
+  | Path (index) (d) ->
+    match view with
+    | Tag (name) (atts) (nodes) ->
+      func f i item =
+        if i == index
+        then patch (item) (d)
+        else item
+      end
+      items = mapi (f) (nodes);
+      Tag (name) (atts) (items)
+    | _ -> 'Patch exception'
+end
+
+(* VIEW *)
+func view model =
+  Tag ('div') ([]) ([
+    Text ('Hello world'),
+    Tag ('p') ([]) ([
+      Text ('Value of the model: '),
+      Text (model)
+    ])
+  ])
+end
+
+view1 = view (1);
+view2 = view (2);
+
+changes = diff (view1) (view2);
+patched = patch (view1) (changes);
+patched

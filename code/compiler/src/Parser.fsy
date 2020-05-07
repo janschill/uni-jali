@@ -149,7 +149,7 @@ AtomicExpression:
   | LPAR Expression RPAR { $2 }
   | LPAR Expression COMMA Expression RPAR { Tuple($2, $4) }
   | LSQUARE List RSQUARE { List($2) }
-  | NAME DCOLON NAME { ConcatC(Variable($1), Variable($3)) }
+  | AtomicExpression DCOLON AtomicExpression { ConcatC($1, $3) }
 
 ConstantLiteral:
   | CONSTINT { Constant (IntegerValue $1) }
