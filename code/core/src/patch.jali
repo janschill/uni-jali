@@ -15,8 +15,8 @@ func attributesToString attributes =
     | (k, v) ->
       match k with
       | Click ->
-        'onclick="(() => { ' +
-        'TODO: (patchtojs () ())' +
+        ' onclick="(() => { ' +
+        'TODO: (patchToJs () ())' +
         '})()"'
       | _ -> ' ' + k + '=' + v + ' ' + (attributesToString xs)
 end
@@ -29,14 +29,14 @@ func tagToString t index depth =
   match t with
   | [] -> ''
   | x::xs ->
-    match x with
+    (match x with
     | Text (text) -> text + (tagToString (xs) (0) (depth + 1))
     | Tag (elementName) (attributes) (children) ->
       '<' + elementName + (attributesToString (attributes)) + (setIdentifier (index) (depth)) + '>' +
           (tagToString (children) (0) (depth + 1)) +
       '</' + elementName + '>' +
       (tagToString (xs) (index + 1) (depth))
-    | _ -> ''
+    | _ -> '')
   | _ -> ''
 end
 
@@ -45,9 +45,9 @@ func diff view1 view2 =
   func fold nodes1 nodes2 index =
     match (nodes1, nodes2) with
     | (n1::r1, n2::r2) ->
-      match diff (n1) (n2) with
+      (match diff (n1) (n2) with
       | Null -> fold (r1) (r2) (index + 1)
-      | change -> Path (index) (change)
+      | change -> Path (index) (change))
     | _ -> Null
   end
 
@@ -110,11 +110,11 @@ func setAttributesToString element attributes =
   match attributes with
   | [] -> ''
   | x::xs ->
-    match x with
+    (match x with
     | (k, v) ->
       element + '.setAttribute("' + k + '", "' + v + '");' +
       (setAttributesToString (element) (xs))
-    | _ -> 'setAttribute wildcard'
+    | _ -> 'setAttribute wildcard')
   | _ -> 'attributes wildcard'
 end
 
@@ -137,14 +137,13 @@ func changeElementToString tag index depth =
   el + '.parentNode.replaceChild(' + newEl + ', '+ el + ');'
 end
 
-func patchtojs changes =
+func patchToJs changes =
   func loop index depth chs =
     match chs with
-    | Null -> 'patchtojs -> Null'
+    | Null -> 'patchToJs -> Null'
     | Path (idx) (d) ->
       loop (idx) (depth + 1) (d)
     | Change (n) ->
-      (* set inner html to result of tagToString *)
       match n with
       | Text (t) ->
         (selectElementToString (index) (depth + (-1))) +
@@ -169,6 +168,43 @@ func html tags =
   '</html>'
 end
 
+init = 0;
+
+func onClick msg =
+  update (msg) (init)
+end
+
+func renderStateAsJs model =
+  'let model = ' + model + ';'
+end
+
+func view model =
+  Tag ('div') ([]) ([
+    Tag ('button') ([(Click, (onClick (Increment)))]) ([Text ('Increment')]),
+    Tag ('p') ([]) ([
+      Text (model)
+    ]),
+    Tag ('button') ([(Click, (onClick (Decrement)))]) ([Text ('Decrement')]),
+    Tag ('script') ([]) ([
+      Text (renderStateAsJs model)
+    ])
+  ])
+end
+
+view1 = view (1);
+view2 = view (2);
+
+(*
+patchToJs changes
+changes = diff (view1) (view2);
+html (tagToString ([view1]) (0) (0))
+*)
+changes = diff (view1) (view (update (Increment) (init)));
+changes
+
+
+(*
+
 func view model tagname =
   Tag ('div') ([]) ([
     Tag (tagname) ([]) ([
@@ -180,9 +216,4 @@ end
 view1 = view (1) ('p');
 view2 = view (2) ('span');
 
-(*
-changes
-html (tagToString ([view1]) (0) (0))
 *)
-changes = diff (view1) (view2);
-patchtojs changes

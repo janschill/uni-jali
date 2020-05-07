@@ -2,8 +2,6 @@
 <html lang="en">
 
 <head>
-  <meta charset='utf-8'>
-  <meta name='viewport' content='width=device-width,initial-scale=1'>
   <title>Node app</title>
 </head>
 
@@ -16,8 +14,8 @@
 
 <script>
   let count = 0;
-  const $button = document.getElementById('button')
-  $button.addEventListener('click', () => {
-    $button.textContent = `Clicked ${++count} ${count == 1 ? 'time' : 'times'}`;
+  const button = document.getElementById('button')
+  button.addEventListener('click', () => {
+    button.textContent = `Clicked ${++count} ${count == 1 ? 'time' : 'times'}`;
   });
 </script>

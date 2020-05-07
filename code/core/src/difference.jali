@@ -62,7 +62,7 @@ end
 
 
 (* VIEW *)
-func view model =
+func view model tagname =
   Tag ('div') ([]) ([
     Text ('Hello world'),
     Tag ('p') ([('id', 'ptag')]) ([
