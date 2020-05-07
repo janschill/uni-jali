@@ -198,10 +198,12 @@ PatternBody:
   | PIPE Expression RARROW Expression PatternBody { ($2, $4)::$5 }
 
 Baseoperation:
-  // | LogicalNegation { $1 }
+  | LogicalNegation { $1 }
   | ArtihemticExpression { $1 }
   | ComparisonExpression { $1 }
 
+LogicalNegation:
+  | NOT Expression { Negate($2)}
 ArtihemticExpression:
   | MINUS Expression { Prim("-", Constant (IntegerValue 0), $2) }
   | Expression PLUS Expression { Prim("+", $1, $3) }
