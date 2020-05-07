@@ -64,6 +64,10 @@ let rec eval (e: Expr) (env: Value Env): Value =
         | BooleanValue true -> BooleanValue true
         | BooleanValue false -> eval expression2 env
         | _ -> failwith "Can only use boolean values on logical OR"
+    | Negate (expression) ->
+        match eval expression env with
+        | BooleanValue b -> BooleanValue(not b)
+        | _ -> failwithf "Negation is only a valid operation on booleans but not a valid operation on %O" expression
     | Prim(operation, expression1, expression2) ->
         let value1 = eval expression1 env
         let value2 = eval expression2 env
