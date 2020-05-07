@@ -6,6 +6,7 @@ type Type =
     | Boolean
     | String
     | Char
+    | TupleType of Type * Type
     | ListType of Type
     | Typevar of string
 
@@ -34,6 +35,7 @@ and Expr =
     | Prim of string * Expr * Expr
     | And of Expr * Expr
     | Or of Expr * Expr
+    | Negate of Expr
     | Let of string * Expr * Expr
     | If of Expr * Expr * Expr
     | Function of string * string list * Expr * Expr (* (f, x, fBody, letBody) *)
