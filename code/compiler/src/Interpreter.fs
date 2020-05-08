@@ -15,6 +15,7 @@ let rec tryLookup (env: 'v Env) x =
         if x = y then Some(v) else tryLookup r x
 
 let rec matchSingleVal (lookupValue: string -> option<Value>) (actual: Value) (pattern: Expr) =
+    // printf "actual: %O, pattern: %O" actual pattern
     let matchSingle = matchSingleVal lookupValue
 
     let matchAllVals values exprs =

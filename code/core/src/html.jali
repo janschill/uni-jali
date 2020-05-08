@@ -7,8 +7,8 @@ init = 0;
 
 func update msg model =
   match msg with
-  | Increment -> model + 1
-  | Decrement -> model - 1
+  | Increment -> model + (1)
+  | Decrement -> model + (-1)
 end
 
 func onClick msg =
@@ -17,14 +17,55 @@ end
 
 func view model =
   Tag ('div') ([('class', 'div'), ('id', 'myId')]) ([
-    Text ('Hello World'),
-    Tag ('div') ([('class', 'divInner')]) ([
+    Tag ('p') ([]) ([
+      Text ('Hello World')
+    ]),
+    Tag ('div') ([('class', 'div-inner')]) ([
       Tag ('button') ([('class', 'increment'), (Click, (onClick (Increment)))]) ([Text ('Increment')]),
       Tag ('p') ([('id', 'model')]) ([Text (model)]),
       Tag ('button') ([('class', 'decrement'), (Click, (onClick (Decrement)))]) ([Text ('Decrement')]),
     ])
   ])
 end
+
+func selectElementToString index depth =
+  'const el = document.querySelector(#' +
+    index + '-child--' +
+    depth + '-depth);'
+end
+
+func changeInnerHTMLToString value =
+  'el.innerHTML = ' + value + ';'
+end
+
+func patchtojs view changes =
+  func loop index depth changes =
+    match changes with
+    | Null -> 'patchtojs -> Null'
+    | Change (n) ->
+      match n with
+      | Text (t) ->
+        (selectElementToString (index) (depth)) +
+        (changeInnerHTMLToString (t))
+      | Tag (name) (atts) (children) -> 'tag change'
+    | Path (idx) (d) ->
+      loop (idx) (depth + 1) (d)
+end
+
+(*
+'  const el = document.querySelector(&quot;#model&quot;);' +
+'  let result = parseInt(el.innerHTML) +' + v + ';'+
+'  el.innerHTML = result;' +
+
+  ADTValue
+    ("Path","Differ",
+     [IntegerValue 1;
+      ADTValue
+        ("Path","Differ",
+         [IntegerValue 1;
+          ADTValue
+            ("Change","Differ",[ADTValue ("Text","Node",[IntegerValue 2])])])])
+*)
 
 func attributesToString attributes =
   match attributes with
@@ -35,24 +76,26 @@ func attributesToString attributes =
       match k with
       | Click ->
         'onclick="(() => { ' +
-        '  const el = document.querySelector(&quot;#model&quot;);' +
-        '  let result = parseInt(el.innerHTML) +' + v + ';'+
-        '  el.innerHTML = result;' +
+        patchtojs +
         '})()"'
       | _ -> ' ' + k + '=' + v + ' ' + (attributesToString xs)
 end
 
-func tagToString t =
+func setIdentifier index depth =
+  ' id="' + index + '-child--' + depth + '-depth"'
+end
+
+func tagToString t index depth =
   match t with
   | [] -> ''
   | x::xs ->
     match x with
-    | Text (text) -> text + (tagToString xs)
+    | Text (text) -> text + (tagToString (xs) (0) (depth))
     | Tag (elementName) (attributes) (children) ->
-      '<' + elementName + attributesToString (attributes) + '>' +
-          (tagToString children) +
+      '<' + elementName + (attributesToString (attributes)) + (setIdentifier (index) (depth)) + '>' +
+          (tagToString (children) (0) (depth + 1)) +
       '</' + elementName + '>' +
-      (tagToString xs)
+      (tagToString (xs) (index + 1) (depth))
     | _ -> ''
   | _ -> ''
 end
@@ -71,7 +114,7 @@ func html tags =
   '</html>'
 end
 
-html (tagToString ([view (init)]))
+html (tagToString ([view (init)]) (0) (0))
 
 (*
 func main init view update =

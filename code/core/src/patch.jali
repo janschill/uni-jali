@@ -1,0 +1,232 @@
+type Attribute = Att Tuple;
+type Node = Text String | Tag String [Attribute] [Node];
+type Message = Increment | Decrement;
+type Action = Click;
+type Differ =
+    Null
+  | Change Node
+  | Path Integer Differ;
+
+func append ls1 ls2 =
+  match (ls1, ls2) with
+  | ([], ls2) -> ls2
+  | (l::ls, ls2) -> l::(append (ls) (ls2))
+end
+
+func attributesToHTML attributes =
+  match attributes with
+  | [] -> ''
+  | x::xs ->
+    match x with
+    | (k, v) ->
+      match k with
+      | Click ->
+        ' onclick="(() => { ' +
+        'TODO: (patchToJs () ())' +
+        '})()"'
+      | _ -> ' ' + k + '=' + v + ' ' + (attributesToHTML xs)
+end
+
+(*
+  We are currently wrapping every text node in a <span>.
+  This is because our diff function does not distinguish
+  between Tag or Text creating a Path deeper, telling us
+  to change the Text, where we really need to change the
+  parent node of the Text node.
+  Tag ('div') ([]) ([
+    Text "Hello World"
+  ])
+  Path 0 (Change (Text "Hello World"))
+  Meaning the first element within the <div>.
+  But because the correct HTML would be: <div>Hello World</div>
+  and we cannot grab just the text, we need to grab the parent.
+*)
+func viewToHTML tags =
+  match tags with
+  | [] -> ''
+  | x::xs ->
+    (match x with
+    | Text (text) ->
+      '<span>' + text +  '</span>' + (viewToHTML (xs))
+    | Tag (elementName) (attributes) (children) ->
+      '<' + elementName + (attributesToHTML (attributes)) + '>' +
+          (viewToHTML (children)) +
+      '</' + elementName + '>' +
+      (viewToHTML (xs))
+    | _ -> '')
+  | _ -> ''
+end
+
+(* DIFF *)
+func diff view1 view2 =
+  func fold nodes1 nodes2 index =
+    match (nodes1, nodes2) with
+    | (n1::r1, n2::r2) ->
+      (match diff (n1) (n2) with
+      | Null -> fold (r1) (r2) (index + 1)
+      | change -> Path (index) (change))
+    | _ -> Null
+  end
+
+  match (view1, view2) with
+  | (Tag (t1) (atts1) (children1), Tag (t2) (atts2) (children2)) ->
+      if t1 == t2
+      then fold (children1) (children2) (0)
+      else Change (Tag (t2) (atts2) (children2))
+  | (Text (s1), Text (s2)) ->
+      if (s1 == s2) then Null else Change(Text s2)
+end
+
+(* PATCH *)
+func mapi f list =
+  func loop index ls =
+    match ls with
+    | x::xs ->
+      head = f (index) (x);
+      tail = loop (index + 1) (xs);
+      head::tail
+    | [] -> []
+  end
+  loop 0 list
+end
+
+func patch view changes =
+  match changes with
+  | Null -> view
+  | Change (n) -> n
+  | Path (index) (d) ->
+    match view with
+    | Tag (name) (atts) (nodes) ->
+      func f i item =
+        if i == index
+        then patch (item) (d)
+        else item
+      end
+      items = mapi (f) (nodes);
+      Tag (name) (atts) (items)
+    | _ -> 'Patch exception'
+end
+
+func update msg model =
+  match msg with
+  | Increment -> model + (1)
+  | Decrement -> model + (-1)
+end
+
+(*
+  Looping through the sequence of elements:
+  [0,1,0] means:
+    - get children of first element
+    - get children of second element
+    - select first element
+  `document.body.children[0].children[1].children[0]`
+*)
+func documentChildren seq =
+  func loop str list =
+    match list with
+    | [] -> str
+    | x::xs ->
+      s = str + '.children[' + x + ']';
+      loop (s) (xs)
+  end
+  loop ('document.body') (seq)
+end
+
+func changeInnerHTMLToString seq value =
+  element = documentChildren (seq);
+  element + '.innerHTML = ' + value + ';'
+end
+
+createElementFromString =
+  'function createElementFromString(htmlString) {' +
+  '  const tempEl = document.createElement("div");' +
+  '  tempEl.innerHTML = htmlString.trim();' +
+  '  return tempEl.firstChild;' +
+  '}';
+
+func changeElementToString tag seq =
+  el = documentChildren (seq);
+  newEl = 'newEl';
+
+  createElementFromString +
+  'const ' + newEl + ' = createElementFromString("' + (viewToHTML ([tag])) + '");' +
+  el + '.parentNode.replaceChild(' + newEl + ', '+ el + ');'
+end
+
+func patchToJs changes =
+  func loop seq depth chs =
+    match chs with
+    | Null -> 'patchToJs -> Null'
+    | Path (idx) (d) ->
+      loop (append (seq) ([idx])) (depth + 1) (d)
+    | Change (n) ->
+      match n with
+      | Text (t) ->
+        (changeInnerHTMLToString (seq) (t))
+      | tag -> changeElementToString (tag) (seq)
+      | _ -> 'error'
+  end
+  loop ([0]) (0) (changes)
+end
+
+func html tags =
+  '<!DOCTYPE html>' +
+  '<html lang="en">' +
+  '<head>' +
+  '    <meta charset="UTF-8">' +
+  '    <meta name="viewport" content="width=device-width, initial-scale=1.0">' +
+  '    <title>Hello World</title>' +
+  '  </head>' +
+  '<body>' +
+     tags +
+  '</body>' +
+  '</html>'
+end
+
+init = 0;
+
+func onClick msg =
+  update (msg) (init)
+end
+
+func renderStateAsJs model =
+  'let model = ' + model + ';'
+end
+
+func view model tagname =
+  Tag ('div') ([]) ([
+      Text (model)
+  ])
+end
+
+view1 = view (1) ('p');
+view2 = view (2) ('span');
+
+(*
+html (viewToHTML ([view1]))
+changes = diff (view1) (view (update (Increment) (init)));
+changes = diff (view1) (view2);
+patchToJs changes
+html (viewToHTML ([view1]))
+*)
+changes = diff (view1) (view2);
+changes
+
+
+(*
+
+func view model =
+  Tag ('div') ([]) ([
+    Tag ('button') ([(Click, (onClick (Increment)))]) ([Text ('Increment')]),
+    Tag ('p') ([]) ([
+      Text (model)
+    ]),
+    Tag ('button') ([(Click, (onClick (Decrement)))]) ([Text ('Decrement')])
+  ])
+end
+
+view1 = view (1);
+view2 = view (2);
+
+
+*)
