@@ -13,6 +13,12 @@ func append ls1 ls2 =
   | (l::ls, ls2) -> l::(append (ls) (ls2))
 end
 
+func head ls =
+  match ls with
+  | [] -> 'Head exception'
+  | x::xs -> x
+end
+
 func attributesToHTML attributes =
   match attributes with
   | [] -> ''
@@ -25,6 +31,12 @@ func attributesToHTML attributes =
         'TODO: (patchToJs () ())' +
         '})()"'
       | _ -> ' ' + k + '=' + v + ' ' + (attributesToHTML xs)
+end
+
+func scriptTagToHTML children =
+  match (head children) with
+  | Text (t) -> '<script>' + t + '</script>'
+  | _ -> ''
 end
 
 (*
@@ -49,10 +61,13 @@ func viewToHTML tags =
     | Text (text) ->
       '<span>' + text +  '</span>' + (viewToHTML (xs))
     | Tag (elementName) (attributes) (children) ->
-      '<' + elementName + (attributesToHTML (attributes)) + '>' +
-          (viewToHTML (children)) +
-      '</' + elementName + '>' +
-      (viewToHTML (xs))
+      if elementName == 'script'
+      then scriptTagToHTML (children)
+      else
+        '<' + elementName + (attributesToHTML (attributes)) + '>' +
+            (viewToHTML (children)) +
+        '</' + elementName + '>' +
+        (viewToHTML (xs))
     | _ -> '')
   | _ -> ''
 end
@@ -154,11 +169,11 @@ func changeElementToString tag seq =
 end
 
 func patchToJs changes =
-  func loop seq depth chs =
+  func loop seq chs =
     match chs with
     | Null -> 'patchToJs -> Null'
     | Path (idx) (d) ->
-      loop (append (seq) ([idx])) (depth + 1) (d)
+      loop (append (seq) ([idx])) (d)
     | Change (n) ->
       match n with
       | Text (t) ->
@@ -166,7 +181,7 @@ func patchToJs changes =
       | tag -> changeElementToString (tag) (seq)
       | _ -> 'error'
   end
-  loop ([0]) (0) (changes)
+  loop ([0]) (changes)
 end
 
 func html tags =
@@ -193,6 +208,33 @@ func renderStateAsJs model =
   'let model = ' + model + ';'
 end
 
+func view model =
+  Tag ('div') ([]) ([
+    Tag ('button') ([(Click, (onClick (Increment)))]) ([Text ('Increment')]),
+    Tag ('p') ([]) ([
+      Text (model)
+    ]),
+    Tag ('button') ([(Click, (onClick (Decrement)))]) ([Text ('Decrement')]),
+    Tag ('script') ([]) ([Text ('let model = ' + model + ';')])
+  ])
+end
+
+view1 = view (1);
+view2 = view (2);
+(*
+html (viewToHTML ([view1]))
+changes = diff (view1) (view (update (Increment) (init)));
+changes = diff (view1) (view2);
+patchToJs changes
+changes
+*)
+changes = diff (view1) (view2);
+html (viewToHTML ([view1]))
+
+
+(*
+
+
 func view model tagname =
   Tag ('div') ([]) ([
       Text (model)
@@ -201,32 +243,6 @@ end
 
 view1 = view (1) ('p');
 view2 = view (2) ('span');
-
-(*
-html (viewToHTML ([view1]))
-changes = diff (view1) (view (update (Increment) (init)));
-changes = diff (view1) (view2);
-patchToJs changes
-html (viewToHTML ([view1]))
-*)
-changes = diff (view1) (view2);
-changes
-
-
-(*
-
-func view model =
-  Tag ('div') ([]) ([
-    Tag ('button') ([(Click, (onClick (Increment)))]) ([Text ('Increment')]),
-    Tag ('p') ([]) ([
-      Text (model)
-    ]),
-    Tag ('button') ([(Click, (onClick (Decrement)))]) ([Text ('Decrement')])
-  ])
-end
-
-view1 = view (1);
-view2 = view (2);
 
 
 *)
