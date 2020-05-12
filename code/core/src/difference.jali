@@ -10,7 +10,7 @@ type Differ =
 func update msg m = (* return a view *)
   match msg with
   | Increment -> m+1
-  | Decrement -> m+(-1)
+  | Decrement -> m-1
 end
 
 (* VIEW *)
@@ -29,9 +29,9 @@ func diff view1 view2 =
   func fold nodes1 nodes2 index =
     match (nodes1, nodes2) with
     | (n1::r1, n2::r2) ->
-      match diff (n1) (n2) with
+      (match diff (n1) (n2) with
       | Null -> fold (r1) (r2) (index + 1)
-      | change -> Path (index) (change)
+      | change -> Path (index) (change))
     | _ -> Null
   end
 
