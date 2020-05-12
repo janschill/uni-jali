@@ -28,13 +28,15 @@ let rec matchSingleVal (lookupValue: string -> option<Value>) (actual: Value) (p
         match lookupValue x with
         | Some (ADTValue (a, b, c)) -> matchSingle actual (Constant(ADTValue(a, b, c)))
         | _ -> Some [ (x, a) ]
-    | (ADTValue (name, _, values), Apply (Variable (callName), exprs)) when name = callName -> matchAllVals values exprs
+    | (ADTValue (name, _, values), Apply (Variable (callName), exprs)) when name = callName ->
+        forAll matchSingle values exprs
     | (TupleValue (v1, v2), Tuple (p1, p2)) ->
         match (matchSingle v1 p1, matchSingle v2 p2) with
         | (Some (v1), Some (v2)) -> Some(v1 @ v2)
         | _ -> None
-    | (ListValue (valList), List (exprList)) when valList.Length = exprList.Length -> matchAllVals valList exprList
-    | (ListValue (h :: t), ConcatC (h', t')) -> matchAllVals [ h; (ListValue t) ] [ h'; t' ]
+    | (ListValue (valList), List (exprList)) when valList.Length = exprList.Length ->
+        forAll matchSingle valList exprList
+    | (ListValue (h :: t), ConcatC (h', t')) -> forAll matchSingle [ h; (ListValue t) ] [ h'; t' ]
     | _, _ -> None
 
 let rec eval (e: Expr) (env: Value Env): Value =
