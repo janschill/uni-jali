@@ -76,9 +76,11 @@ let rec reduce2 (e: Expr) (context: bool) (store: Expr Env): Expr =
             @ store
 
         let rbody = reduce2 expression context bodyStore
-        ((name, Constant(Closure(name, parameters, rbody, [])))
-         :: store)
-        |> reduce2 expression2 context
+
+        let cl =
+            Constant(Closure(name, parameters, rbody, []))
+
+        (name, cl) :: store |> reduce2 expression2 context
     | ADT (adtName, (constructors: (string * Type list) list), expression) ->
         let eval constrDecl =
             match constrDecl with
@@ -115,7 +117,8 @@ let rec reduce2 (e: Expr) (context: bool) (store: Expr Env): Expr =
             if allStatic reducedArgs
             then Constant(ADTValue(name, adtName, getValues reducedArgs))
             else Apply(f, reducedArgs) // TODO: Can I eval here, even though i can't give eval an environment?
-        | Constant (c) -> Constant(c)
+        | Constant c -> Constant c
+        | Variable x -> Apply(f, farguments)
         | _ ->
             raise
             <| ReduceError(e, sprintf "Reduce failed on apply: %O is not a function" func)
