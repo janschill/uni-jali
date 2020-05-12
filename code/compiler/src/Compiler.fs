@@ -152,7 +152,7 @@ let rec reduce2 (e: Expr) (context: bool) (store: Expr Env): Expr =
     //     //     Interpreter.matchSingleExpr [] c expr |> Option.map (List.map (fun (name, v) -> (name, Constant(v))))
     //     | (e, Variable x) ->
     //         match tryLookup x store with
-    //         | Some(v) -> matchSingleExpr e <| DsToExpr v // TODO test if this is correct
+    //         | Some(Apply(name, vals)) -> matchSingleExpr (Apply(name, vals))  // <| DsToExpr v
     //         | None -> Some [ (x, e) ]
     //     | (Apply(name, values), Apply(pname, patternValues)) when name = pname ->
     //         matchAllExpr values patternValues
@@ -169,6 +169,8 @@ let rec reduce2 (e: Expr) (context: bool) (store: Expr Env): Expr =
     //               (t', List(t)) ]
 
     //     | _, _ -> None
+
+    // (* ((Tag 'div' ['n'] ['m']), (Tag x y x)) *)
 
 
     | _ -> raise <| ReduceError(e, "No match found")
