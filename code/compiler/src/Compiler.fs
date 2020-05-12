@@ -24,7 +24,7 @@ let getValues = List.map getValue
 let rec reduce2 (e: Expr) (context: bool) (store: Expr Env): Expr =
     match e with
     | Constant c -> Constant c
-    | Variable v -> lookup store v
+    | Variable x -> lookup store x
     | ConcatC (h, t) ->
         let head = reduce2 h context store
         let tail = reduce2 t context store
@@ -131,18 +131,13 @@ let rec reduce2 (e: Expr) (context: bool) (store: Expr Env): Expr =
                 | Some (Constant (v)) -> Some(v)
                 | _ -> None
 
-            let makeStatic =
-                List.map (fun (name, v) -> (name, Constant v))
+            let matchAndReduce actual (case, expr) =
+                tryMatch lookupVal actual case
+                |> Option.map (List.map (fun (name, value) -> name, Constant value))
+                |> Option.map (fun bindings -> reduce2 expr context <| bindings @ store)
 
-            let matchPattern x (case, expr) =
-                matchSingleVal lookupVal x case
-                |> Option.map (fun bs -> (case, expr, bs))
-
-            match List.tryPick (matchPattern v) patternList with
-            | Some (case, expr, bindings) ->
-                (makeStatic bindings)
-                @ store
-                |> reduce2 expr context
+            match List.tryPick (matchAndReduce v) patternList with
+            | Some (expr) -> expr
             | None -> raise <| ReduceError(e, "No pattern matching")
         | _ ->
             let rec collect =
@@ -152,8 +147,9 @@ let rec reduce2 (e: Expr) (context: bool) (store: Expr Env): Expr =
                     | Some (Constant (ADTValue (name, sname, vals))) -> []
                     | _ -> [ (x, Variable x) ]
                 | (Tuple (e1, e2)) -> collect e1 @ collect e2
-                | (List exprList1) -> exprList1 |> List.collect collect
+                | (List exprs) -> exprs |> List.collect collect
                 | (ConcatC (h, t)) -> collect h @ collect t
+                | Apply (name, values) -> values |> List.collect collect
                 | _ -> []
 
             let rec tryMatch (actual: Expr) (case: Expr) =
@@ -166,10 +162,6 @@ let rec reduce2 (e: Expr) (context: bool) (store: Expr Env): Expr =
                     | _ -> Some [ (x, e) ]
                 | Variable x, _ -> Some <| collect case
                 | Constant av, Constant pv when av = pv -> Some []
-                // | (Constant c, expr) ->
-                //     let vs = matchSingleVal c expr
-                //     Option.map (List.map (fun (name, v) -> (name, Constant(v)))) vs
-                //     Interpreter.tryMatch [] c expr |> Option.map (List.map (fun (name, v) -> (name, Constant(v))))
                 | Apply (name, values), Apply (pname, patternValues) when name = pname ->
                     forAll tryMatch values patternValues
                 | Tuple (e1, e2), Tuple (p1, p2) ->
