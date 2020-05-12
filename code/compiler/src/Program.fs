@@ -19,8 +19,10 @@ let fromString (str: string): Expr =
     try
         Parser.Main Lexer.Token lexbuf
     with
-    | Failure("parse error") -> raise <| SyntaxError((lexbuf.EndPos.Line + 1), lexbuf.EndPos.Column)
-    | _ -> reraise()
+    | Failure ("parse error") ->
+        raise
+        <| SyntaxError((lexbuf.EndPos.Line + 1), lexbuf.EndPos.Column)
+    | _ -> reraise ()
 
 let evalString (str: string): Value = eval (fromString str) []
 let reduceString (str: string): Expr = reduce (fromString str) []
@@ -28,9 +30,9 @@ let transpileString (str: string): String = transpile (fromString str)
 
 let load = System.IO.File.ReadAllText
 
-let program = load "./examples/program.javi"
-let html = load "./examples/html.javi"
-let button = load "./examples/button.javi"
+// let program = load "./examples/program.javi"
+// let html = load "./examples/html.javi"
+// let button = load "./examples/button.javi"
 
 let difference = "../core/src/difference.jali"
 let diff = load difference
