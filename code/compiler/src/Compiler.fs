@@ -175,7 +175,7 @@ let rec reduce2 (e: Expr) (context: bool) (store: Expr Env): Expr =
 
             let matchAndReduce (case, exp) =
                 tryMatch rActual case
-                |> Option.map (fun bindings -> reduce2 exp context <| bindings @ store)
+                |> Option.map (fun bindings -> reduce2 exp false <| (bindings @ store))
                 |> Option.map (fun rBody -> (case, rBody))
 
             match List.choose (matchAndReduce) patternList with
