@@ -80,7 +80,13 @@ let rec reduce2 (e: Expr) (context: bool) (store: Expr Env): Expr =
         let cl =
             Constant(Closure(name, parameters, rbody, []))
 
-        (name, cl) :: store |> reduce2 expression2 context
+        let expr2 =
+            ((name, cl) :: store)
+            |> reduce2 expression2 context
+
+        match expr2 with
+        | Constant v -> expr2
+        | _ -> Function(name, parameters, rbody, expr2)
     | ADT (adtName, (constructors: (string * Type list) list), expression) ->
         let eval constrDecl =
             match constrDecl with
