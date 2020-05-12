@@ -134,7 +134,8 @@ let rec eval (e: Expr) (env: Value Env): Value =
                 let args = List.map (fun a -> Constant(eval a env)) farguments
                 let variables = List.map (Variable) leftoverParams
                 let body = Apply(Variable cname, (List.append args variables))
-                Closure("part_" + cname, leftoverParams, body, env)
+                let argString = List.fold (fun s a -> s + printArg a) "" args
+                Closure(cname+argString, leftoverParams, body, env)
             else
                 let newEnv =
                     List.fold2 (fun dEnv parameterName argument -> (parameterName, eval argument env) :: dEnv)
