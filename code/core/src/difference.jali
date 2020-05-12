@@ -90,8 +90,5 @@ THE FOLLOWING IS AN ATTEMPT TO REDUCE THE DYNAMIC ELM-LIKE WEB APPLICATION IN JA
 init = 1;
 view1 = view (init);
 
-func dynamicDiff model =
-  diff (view1) (view (update (Increment) (model)))
-end
+diff (view init) (view (update (Increment) (init)))
 
-dynamicDiff

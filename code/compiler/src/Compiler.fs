@@ -142,32 +142,51 @@ let rec reduce2 (e: Expr) (context: bool) (store: Expr Env): Expr =
                 |> reduce2 expr context
             | None -> raise <| ReduceError(e, "No pattern matching")
         | _ ->
-            let rec matchSingleExpr (actual: Expr) (case: Expr) =
+            let rec collect =
+                function
+                | (Variable x) ->
+                    match tryLookup store x with
+                    | Some (Constant (ADTValue (name, sname, vals))) -> []
+                    | _ -> [ (x, Variable x) ]
+                | (Tuple (e1, e2)) -> collect e1 @ collect e2
+                | (List exprList1) -> exprList1 |> List.collect collect
+                | (ConcatC (h, t)) -> collect h @ collect t
+                | _ -> []
+
+            let rec tryMatch (actual: Expr) (case: Expr) =
                 match (actual, case) with
-                | (_, Constant (CharValue '_')) -> Some []
-                | (Constant av, Constant pv) when av = pv -> Some []
+                | _, Constant (CharValue '_') -> Some []
+                | e, Variable x ->
+                    match tryLookup store x with
+                    | Some (Constant (ADTValue (name, sname, vals))) ->
+                        tryMatch e (Constant <| ADTValue(name, sname, vals)) // i don't think this ever happens?
+                    | _ -> Some [ (x, e) ]
+                | Variable x, _ -> Some <| collect case
+                | Constant av, Constant pv when av = pv -> Some []
                 // | (Constant c, expr) ->
                 //     let vs = matchSingleVal c expr
                 //     Option.map (List.map (fun (name, v) -> (name, Constant(v)))) vs
-                //     Interpreter.matchSingleExpr [] c expr |> Option.map (List.map (fun (name, v) -> (name, Constant(v))))
-                | (e, Variable x) ->
-                    match tryLookup store x with
-                    | Some (Apply (name, vals)) -> matchSingleExpr e (Apply(name, vals)) // <| DsToExpr v
-                    | _ -> Some [ (x, e) ]
-                | (Apply (name, values), Apply (pname, patternValues)) when name = pname ->
-                    forAll matchSingleExpr values patternValues
-                | (Tuple (e1, e2), Tuple (p1, p2)) ->
-                    match (matchSingleExpr e1 p1, matchSingleExpr e2 p2) with
-                    | (Some (v1), Some (v2)) -> Some(v1 @ v2)
+                //     Interpreter.tryMatch [] c expr |> Option.map (List.map (fun (name, v) -> (name, Constant(v))))
+                | Apply (name, values), Apply (pname, patternValues) when name = pname ->
+                    forAll tryMatch values patternValues
+                | Tuple (e1, e2), Tuple (p1, p2) ->
+                    match tryMatch e1 p1, tryMatch e2 p2 with
+                    | Some v1, Some v2 -> Some <| v1 @ v2
                     | _ -> None
-                | (List ([]), List ([])) -> Some []
-                | (List (exprList1), List (exprList2)) when exprList1.Length = exprList2.Length ->
-                    forAll matchSingleExpr exprList1 exprList2
-                | (List (h :: t), ConcatC (Variable h', Variable t')) -> Some [ (h', h); (t', List(t)) ]
-
+                | List exprs1, List exprs2 when exprs1.Length = exprs2.Length -> forAll tryMatch exprs1 exprs2
+                | List (h :: t), ConcatC (Variable h', Variable t') -> Some [ (h', h); (t', List(t)) ]
+                // Concat variables should be changed to expressions
                 | _, _ -> None
 
-            Pattern(rActual, patternList)
+            let matchAndReduce (case, exp) =
+                tryMatch rActual case
+                |> Option.map (fun bindings -> reduce2 exp context <| bindings @ store)
+                |> Option.map (fun rBody -> (case, rBody))
+
+            match List.choose (matchAndReduce) patternList with
+            | [] -> raise <| ReduceError(e, "Empty patternlist")
+            | [ (case, body) ] -> body
+            | many -> Pattern(rActual, many)
     // (* ((Tag 'div' ['n'] ['m']), (Tag x y x)) *)
 
 
