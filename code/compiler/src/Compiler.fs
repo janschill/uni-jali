@@ -30,8 +30,8 @@ let rec reduce2 (e: Expr) (context: bool) (store: Expr Env): Expr =
         let tail = reduce2 t context store
         match (head, tail) with
         | (Constant v, Constant (ListValue (vs))) -> Constant(ListValue(v :: vs))
-        | (_, List _) -> ConcatC(head, tail)
-        | _ -> failwith "Reducer failed on concatenation: tail must be a list"
+        | _ -> ConcatC(head, tail)
+    // | _ -> failwith "Reducer failed on concatenation: tail must be a list"
     | Tuple (expr1, expr2) ->
         let rexpr1 = reduce2 expr1 context store
         let rexpr2 = reduce2 expr2 context store
