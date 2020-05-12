@@ -38,10 +38,8 @@ let rec matchSingleVal (lookupValue: string -> option<Value>) (actual: Value) (p
         | (Some(v1), Some(v2)) -> Some(v1 @ v2)
         | _ -> None
     | (ListValue(valList), List(exprList)) when valList.Length = exprList.Length -> matchAllVals valList exprList
-    | (ListValue(valList), ConcatC(Variable h, Variable t)) when valList.Length > 0 ->
-        Some
-            [ (h, List.head valList)
-              (t, ListValue(List.tail valList)) ]
+    | (ListValue(valList), ConcatC(h, t)) when valList.Length > 1 ->
+        matchAllVals [valList.Head; (ListValue(valList.Tail))] [h;t]
     | _, _ -> None
 
 let rec eval (e: Expr) (env: Value Env): Value =
