@@ -120,56 +120,54 @@ let rec reduce2 (e: Expr) (context: bool) (store: Expr Env): Expr =
             raise
             <| ReduceError(e, sprintf "Reduce failed on apply: %O is not a function" func)
     | Pattern (matchExpression, (patternList)) ->
-        let lookupVal x =
-            match tryLookup store x with
-            | Some (Constant (v)) -> Some(v)
-            | _ -> None
-
-        let makeStatic =
-            List.map (fun (name, v) -> (name, Constant v))
-
-        let matchPattern x (case, expr) =
-            matchSingleVal lookupVal x case
-            |> Option.map (fun bs -> (case, expr, bs))
-
         let rActual = reduce2 matchExpression context store
         match rActual with
         | Constant v ->
+            let lookupVal x =
+                match tryLookup store x with
+                | Some (Constant (v)) -> Some(v)
+                | _ -> None
+
+            let makeStatic =
+                List.map (fun (name, v) -> (name, Constant v))
+
+            let matchPattern x (case, expr) =
+                matchSingleVal lookupVal x case
+                |> Option.map (fun bs -> (case, expr, bs))
+
             match List.tryPick (matchPattern v) patternList with
             | Some (case, expr, bindings) ->
                 (makeStatic bindings)
                 @ store
                 |> reduce2 expr context
             | None -> raise <| ReduceError(e, "No pattern matching")
-        | _ -> Pattern(rActual, patternList)
-    // and matchSingleExpr (actual: Expr) (case: Expr) =
-    //     match (actual, case) with
-    //     | (_, Constant(CharValue '_')) -> Some []
-    //     | (Constant av, Constant pv) when av = pv -> Some []
-    //     | (Constant c, expr) ->
-    //         let vs = matchSingleVal c expr
-    //         Option.map (List.map (fun (name, v) -> (name, Constant(v)))) vs
-    //     //     Interpreter.matchSingleExpr [] c expr |> Option.map (List.map (fun (name, v) -> (name, Constant(v))))
-    //     | (e, Variable x) ->
-    //         match tryLookup x store with
-    //         | Some(Apply(name, vals)) -> matchSingleExpr (Apply(name, vals))  // <| DsToExpr v
-    //         | None -> Some [ (x, e) ]
-    //     | (Apply(name, values), Apply(pname, patternValues)) when name = pname ->
-    //         matchAllExpr values patternValues
-    //     | (Tuple(e1, e2), Tuple(p1, p2)) ->
-    //         match (matchSingleExpr e1 p1, matchSingleExpr e2 p2) with
-    //         | (Some(v1), Some(v2)) -> Some(v1 @ v2)
-    //         | _ -> None
-    //     | (List([]), List([])) -> Some []
-    //     | (List(exprList1), List(exprList2)) when exprList1.Length = exprList2.Length ->
-    //         matchAllExpr exprList1 exprList2
-    //     | (List(h :: t), ConcatC(Variable h', Variable t')) ->
-    //         Some
-    //             [ (h', h)
-    //               (t', List(t)) ]
+        | _ ->
+            let rec matchSingleExpr (actual: Expr) (case: Expr) =
+                match (actual, case) with
+                | (_, Constant (CharValue '_')) -> Some []
+                | (Constant av, Constant pv) when av = pv -> Some []
+                // | (Constant c, expr) ->
+                //     let vs = matchSingleVal c expr
+                //     Option.map (List.map (fun (name, v) -> (name, Constant(v)))) vs
+                //     Interpreter.matchSingleExpr [] c expr |> Option.map (List.map (fun (name, v) -> (name, Constant(v))))
+                | (e, Variable x) ->
+                    match tryLookup store x with
+                    | Some (Apply (name, vals)) -> matchSingleExpr e (Apply(name, vals)) // <| DsToExpr v
+                    | _ -> Some [ (x, e) ]
+                | (Apply (name, values), Apply (pname, patternValues)) when name = pname ->
+                    forAll matchSingleExpr values patternValues
+                | (Tuple (e1, e2), Tuple (p1, p2)) ->
+                    match (matchSingleExpr e1 p1, matchSingleExpr e2 p2) with
+                    | (Some (v1), Some (v2)) -> Some(v1 @ v2)
+                    | _ -> None
+                | (List ([]), List ([])) -> Some []
+                | (List (exprList1), List (exprList2)) when exprList1.Length = exprList2.Length ->
+                    forAll matchSingleExpr exprList1 exprList2
+                | (List (h :: t), ConcatC (Variable h', Variable t')) -> Some [ (h', h); (t', List(t)) ]
 
-    //     | _, _ -> None
+                | _, _ -> None
 
+            Pattern(rActual, patternList)
     // (* ((Tag 'div' ['n'] ['m']), (Tag x y x)) *)
 
 
