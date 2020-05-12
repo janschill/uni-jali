@@ -1,11 +1,1 @@
-Closure
-    ("part",["y"],
-     Apply
-       ("f",
-        [Constant (IntegerValue 1); Constant (IntegerValue 2); Variable "y"]),
-     [("f",
-       Closure
-         ("f",["x"; "y"; "z"],
-          Let
-            ("k",Prim ("+",Variable "x",Prim ("*",Variable "y",Variable "z")),
-             Variable "k"),[]))])
+7
