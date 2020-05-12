@@ -118,10 +118,7 @@ let rec reduce2 (e: Expr) (context: bool) (store: Expr Env): Expr =
             then Constant(ADTValue(name, adtName, getValues reducedArgs))
             else Apply(f, reducedArgs) // TODO: Can I eval here, even though i can't give eval an environment?
         | Constant c -> Constant c
-        | Variable x -> Apply(f, farguments)
-        | _ ->
-            raise
-            <| ReduceError(e, sprintf "Reduce failed on apply: %O is not a function" func)
+        | x -> Apply(x, farguments)
     | Pattern (matchExpression, (patternList)) ->
         let rActual = reduce2 matchExpression context store
         match rActual with
