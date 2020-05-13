@@ -8,7 +8,7 @@
     <Compile Include="Transpiler.fs" />
     <Compile Include="./generated/Parser.fsi" />
     <Compile Include="./generated/Parser.fs" />
-    <Compile Include="./generated/Lexer.fs" />
+    <Compile Include="./generated/LexerInteractive.fs" />
     <Compile Include="Util.fs" />
     <Compile Include="Interpreter.fs" />
     <Compile Include="Compiler.fs" />
