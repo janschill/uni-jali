@@ -66,6 +66,7 @@ ParserLib=bin/Parser.dll
 LexerLib=bin/Lexer.dll
 InterpreterLib=bin/Interpreter.dll
 CompilerLib=bin/Compiler.dll
+UtilLib=bin/Util.dll
 fsharpc=fsharpc -r ~/$(fsharp_dir)/FsLexYacc.Runtime.dll
 mkbundle=mkbundle --sdk /Library/Frameworks/Mono.framework/Versions/Current
 JaLiExe=bin/JaLi.exe
@@ -76,7 +77,7 @@ clean:
 all: bin/jali
 
 bin/jali: $(JaLiExe)
-	$(mkbundle) -L bin/ -L lib/ -L ~/$(fsharp_dir) bin/JaLi.exe ~/$(fsharp_dir)/FsLexYacc.Runtime.dll bin/FSharp.Core.dll bin/AbstractSyntax.dll bin/Parser.dll bin/Lexer.dll bin/Interpreter.dll bin/Compiler.dll -o bin/jali
+	$(mkbundle) -L bin/ -L lib/ -L ~/$(fsharp_dir) bin/JaLi.exe ~/$(fsharp_dir)/FsLexYacc.Runtime.dll bin/FSharp.Core.dll bin/AbstractSyntax.dll bin/Parser.dll bin/Lexer.dll bin/Util.dll bin/Interpreter.dll bin/Compiler.dll -o bin/jali
 
 $(LexerGen): src/Lexer.fsl
 	fslex src/Lexer.fsl -o $(LexerGen)
@@ -93,11 +94,14 @@ $(ParserLib): $(ParserGen) $(AbstractSyntaxLib)
 $(LexerLib): $(LexerGen) $(AbstractSyntaxLib) $(ParserLib)
 	$(fsharpc) -a $(LexerGen) -r $(AbstractSyntaxLib) -r $(ParserLib) -o $(LexerLib)
 
+$(UtilLib): src/Util.fs $(AbstractSyntaxLib)
+	$(fsharpc) -a src/Util.fs -r $(AbstractSyntaxLib) -o $(UtilLib)
+
 $(InterpreterLib): src/Interpreter.fs $(AbstractSyntaxLib)
-	$(fsharpc) -a src/Interpreter.fs -r $(AbstractSyntaxLib) -o $(InterpreterLib)
+	$(fsharpc) -a src/Interpreter.fs -r $(AbstractSyntaxLib) -r $(UtilLib) -o $(InterpreterLib)
 
 $(CompilerLib): src/Compiler.fs $(AbstractSyntaxLib) $(InterpreterLib)
-	$(fsharpc) -a src/Compiler.fs -r $(AbstractSyntaxLib) -r $(InterpreterLib) -o $(CompilerLib)
+	$(fsharpc) -a src/Compiler.fs -r $(AbstractSyntaxLib) -r $(InterpreterLib) -r $(UtilLib) -o $(CompilerLib)
 
-$(JaLiExe): src/JaLi.fsx $(AbstractSyntaxLib) $(ParserLib) $(LexerLib) $(CompilerLib) $(InterpreterLib)
-	$(fsharpc) src/JaLi.fsx -o $(JaLiExe) -r $(AbstractSyntaxLib) -r $(ParserLib) -r $(LexerLib) -r $(CompilerLib) -r $(InterpreterLib) -o $(JaLiExe)
+$(JaLiExe): src/JaLi.fsx $(AbstractSyntaxLib) $(ParserLib) $(LexerLib) $(UtilLib) $(CompilerLib) $(InterpreterLib)
+	$(fsharpc) src/JaLi.fsx -o $(JaLiExe) -r $(AbstractSyntaxLib) -r $(ParserLib) -r $(LexerLib) -r $(UtilLib) -r $(CompilerLib) -r $(InterpreterLib) -o $(JaLiExe)
