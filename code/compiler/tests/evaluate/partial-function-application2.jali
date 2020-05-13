@@ -3,8 +3,8 @@ func f x y z =
   k
 end
 
-func part y =
-  f 1 2 y
+func part x y =
+  f 1 x y
 end
 
-part
+part 2 3

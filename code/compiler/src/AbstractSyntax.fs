@@ -35,6 +35,7 @@ and Expr =
     | Prim of string * Expr * Expr
     | And of Expr * Expr
     | Or of Expr * Expr
+    | Negate of Expr
     | Let of string * Expr * Expr
     | If of Expr * Expr * Expr
     | Function of string * string list * Expr * Expr (* (f, x, fBody, letBody) *)
@@ -53,7 +54,7 @@ let rec printValue d =
     | CharValue c -> "'" + (string c) + "'"
     | StringValue s -> "\"" + s + "\""
     | TupleValue(v1, v2) -> "(" + (printValue v1) + "," + (printValue v2) + ")"
-    | ListValue(vs) -> sprintf "%O" (List.map printValue vs)
+    | ListValue(vs) -> "[" + (List.map printValue vs |> List.reduce (fun a b -> a + ", " + b)) + "]"
     | ADTValue(name, supertype, vs) -> name + (List.fold (fun acc e -> acc + " " + printValue e) "" vs)
     | _ -> sprintf "%O" d
 // | Closure(name, pars, body, env) -> name + " : (" + List.reduce (fun a b -> a + ", " + b) pars + ") -> "
@@ -78,3 +79,21 @@ let rec printExpr (d: Expr): string =
     | Pattern(x, patterns) ->
         "match " + printExpr x + " with\n"
         + (List.reduce (+) <| List.map (fun (c, e) -> "| " + printExpr c + " -> " + printExpr e + "\n") patterns)
+
+
+let rec printArg (d: Expr): string =
+    match d with
+    | ConcatC(h, t) -> "Con(" + printExpr h + "::" + printExpr t + ")"
+    | List(es) -> "[" + (List.map printExpr es |> List.reduce (fun a b -> a + ", " + b)) + "]"
+    | Constant v -> printValue v
+    | StringLiteral s -> sprintf "'%s'" s
+    | Variable x -> sprintf "Var() %s" x
+    | Tuple(a, b) -> "(" + printExpr a + ", " + printExpr b + ")"
+    | Prim(op, a, b) -> "Prim( " + printExpr a + op + printExpr b + ")"
+    | Let(name, a, b) -> sprintf "Letbind"
+    | If(a, b, c) -> sprintf "IfElse"
+    | Function(name, pars, body, next) -> sprintf "Func(" + name + ")"
+    | ADT(name, cs, next) -> "ADT(" + name + ")"
+    | Apply(name, args) -> "Apply(" + printArg name + ")"
+    | Pattern(x, patterns) -> sprintf "Pattern"
+    | _ -> sprintf "%O" d
