@@ -1,5 +1,5 @@
 #!/bin/bash
-# Before executing set env to your installation of fsharp
+# Before executing set this in env to the path to your installation of fsharp
 fsharp_dir="${FSHARP_DIR}"
 
 buildInteractive:
@@ -20,7 +20,7 @@ run:
 	@echo " -- STARTING INTERACTIVE --"
 	@echo ""
 	fsharpi -r ~/$(fsharp_dir)/FsLexYacc.Runtime.dll --consolecolors --lib:$(shell pwd)/src/generated/ \
-		src/AbstractSyntax.fs src/Transpiler.fs Parser.fs LexerInteractive.fs src/Interpreter.fs src/Test.fs src/Compiler.fs src/Program.fs
+		src/AbstractSyntax.fs src/Transpiler.fs Parser.fs LexerInteractive.fs src/Util.fs src/Interpreter.fs src/Test.fs src/Compiler.fs src/Program.fs
 
 setup:
 	# This setup is based on this guide: https://gist.github.com/AndreasHassing/16567f299b77b0090d94441115a5d031/ae1db7572fd877df733213120800084fbafe9858#5-link-the-runtime-dll-to-your-fsharp-folder
