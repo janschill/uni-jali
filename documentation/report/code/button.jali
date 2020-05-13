@@ -1,0 +1,22 @@
+type Node = Text String | Tag String [Tuple] [Node];
+type Msg =
+    Increment
+  | Decrement;
+
+model = 0;
+
+func update msg val =
+  match msg with
+    | Increment -> val + 1
+    | Decrement -> val - 1
+end
+
+func view val =
+  Tag ('div') [('class', 'body')] [
+    Tag ('button') [('onClick', update (Increment) (val) )] [Text ('Increment')],
+    Tag ('p') [] [Text (val)],
+    Tag ('button') [('onClick', update (Decrement) (val) )] [Text ('Decrement')],
+  ]
+end
+
+view model

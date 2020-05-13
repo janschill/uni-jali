@@ -1,0 +1,16 @@
+func patch view changes =
+  match changes with
+  | Null -> view
+  | Change (n) -> n
+  | Path (index) (d) ->
+    match view with
+    | Tag (name) (atts) (nodes) ->
+      func f i item =
+        if i == index
+        then patch (item) (d)
+        else item
+      end
+      items = mapi (f) (nodes);
+      Tag (name) (atts) (items)
+    | _ -> 'Patch exception'
+end

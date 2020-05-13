@@ -1,0 +1,84 @@
+When all inputs to a program are given, an interpreter evaluates the program, and obtains a result. This is possible only when all of the inputs are known. 
+Partial evaluation is a program optimization technique concerned with specialisation and evaluation of programs where only parts of the inputs are known. 
+
+Most developers are familiar with specialisation from partial application of functions. Partially applying a two-argument function obtains a one argument function where the first value has been 'fixed' to the given value. Fixing the variable to a specific value is called specialization. As an example, partially applying the function in Figure \ref{fig:specialize-easy} with the static parameter 3 yields a new function which adds 3 to any argument it receives. 
+\begin{figure}
+    \begin{verbatim}
+        add x y = x + y;
+        int -> int -> int
+    \end{verbatim}
+Function specialized with static input 3
+    \begin{verbatim}
+        add3 y = 3 + y;
+        int -> int
+    \end{verbatim}
+    \caption{Small example}
+    \label{fig:specialize-easy}
+\end{figure}
+
+A partial evaluator is an algorithm which, when given a program and some of its input, will attempt to execute the program as much as possible. The output is an reduced 'residual' program which executes the rest of the program when given the rest of the inputs. It works as if the input has been 'incorporated' into the original program, as much as possible has been evaluated, and unnecessary branches has been reduced away. Evaluation of the residual program with the rest of the inputs should yield the same output as evaluation of the original program with all of the inputs. In that sense, it is a specialized version of the original program, and partial evaluation is also known as 'program specialization'.
+
+Figure \ref{fig:specialize-update} shows the two input program update, which either increments or decrements the model by one, based on the given msg. The second program is the program specialized with the static parameter Increment.
+\begin{figure}
+    \begin{verbatim}
+    func update msg model =
+      match msg with
+      | Increment -> model + 1
+      | Decrement -> model - 1
+    end
+    \end{verbatim}
+    
+    \begin{verbatim}
+    func updateIncrement model =
+      model + (1)
+    end
+    \end{verbatim}
+    
+    \caption{Caption}
+    \label{fig:specialize-update}
+\end{figure}
+
+There are three main partial evaluation techniques: \textit{symbolic computation}, \textit{unfolding function calls}, and \textit{program point specialization}.
+- Symbolic execution: computing with symbolic values in terms of rewriting or evaluation. \textcolor{red}{Symbols (here expressions) are rewritable terms while values imply the end of rewritability.}
+- Unfolding: replacing a function call by a copy of f's body where all parameter variables has been replaced by the correponding arguments.
+- Program point specialization: 
+
+There are two strategies for unfolding; either it can be done \textit{on the fly} or in a post phase. We will be using the first. Unfolding on the fly improves the residual program, but requires a strategy that avoids infinite unfolding, avoids duplication code and computation, and that produces as few residual calls as possible. 
+- One strategy to avoid infinite unfolding it to just not unfold function calls - however this would mean that the function calls would not be unfolded even though the arguments are static, resulting in very little specialization. 
+- Another strategy is to only unfold function calls when all parameters are static. \textcolor{red}{(I don't fully understand the next, help) This introduces a risk of infinite unfolding, but only if there is already a potential infinite loop in the subject program, controlled only by static conditionals (or none at all).} 
+\liv {Do i need to talk about binding-time analysis? Is it only relevant for this strategy? (finding a congruent division, annotating expressions as either s or d)}
+
+** Sestoft book ** 
+- pre-compute all expressions involving n
+- unfold the recursive calls to function f
+- reduce x*1 to x. \textbf{This optimization was possible because the program's control is completely determined by n.} If on the other hand x = 5 but n is unknown, specialization gives no significant speedup.
+\\\\
+Intuitively, specialization is done by performing those of p's calculations that depend only on in1, and by generating code for those calculations that depend on the as yet unavailable input in2. A partial evaluator performs a mixture of execution and code generation actions. 
+\\\\
+Three main partial evaluation techniques are well known from program transformation
+[43]: \textit{symbolic computation}, \textit{unfolding function calls}, and \textit{program point specialization}. The latter is a combination of definition and folding, amounting to memoization. Figure 1.2 applied the first two techniques; the third was unnecessary since the specialized program had no function calls. The idea of program point specialization is that a single function or label in program p may appear in the specialized program pin1 in several specialized versions, each corresponding to data determined at partial evaluation time.\\
+
+- Chief motivation is speedup. \\
+- Specialization is advantageous if in2 changes more frequently than in1. Construct pin1 (which is faster than p) and run it on in2 until in1 changes again.\\
+- Partial evaluation can even be advantageous in a \textit{single run}, since it often happens that partial evaluation p on in1 and then running on in2, is faster than running p on in1 and in2. An analogy is that compilation plus target run time is often faster than interpretation in Lisp.\\
+\\\\
+Does partial evaluation eliminate the need to write compilers? Yes and no...\\
+Pro: ...\\
+Contra: the generated target code is in the partial evaluator's output language,
+typically the language the interpreter is written in. ... \\
+
+** Sestoft book end ** \\\\
+
+
+
+
+
+
+
+Our partial evaluator is going to produce a residual program by running through the program and pre-compute as much as possible, based on static variables and arguments to function calls. \\\\
+    
+\\\\
+The essence of what we are going to do is that we are going to exploit as much of the statically known data in the program, by reducing it into a smaller residual program, which is then compiled into html and javascript. The program we are reducing is the update-model-view described in chapter 1. Reducing this program will allow us circumvent the entire diffing cycle, because we can generate JavaScript functions that knows exactly what document elements to change, when that are called. 
+
+\subsection{Implementation}
+

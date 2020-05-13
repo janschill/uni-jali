@@ -1,0 +1,25 @@
+\begin{verbatim}
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8">
+    <title>Button counter</title>
+  </head>
+  <body>
+    <button onclick=increment()>Increment</button>
+    <p id="model">0</p>
+    <button onclick=decrement()>Increment</button>
+  </body>
+</html>
+<script>
+  let count = 0;
+  const model = document.getElementById('model');
+  function increment() {
+    model.textContent = ++count;
+  }
+  function decrement() {
+    model.textContent = --count;
+  }
+</script>
+
+\end{verbatim}

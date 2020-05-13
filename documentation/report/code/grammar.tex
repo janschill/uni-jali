@@ -1,0 +1,63 @@
+\begin{Verbatim}[numbers=left,xleftmargin=\parindent]
+Main ::=
+  expr
+
+expr ::=
+  atomicexpr                            atomic expression
+  !expr                                 logical negation
+  expr op expr                          base operations, arithmetic, 
+                                        comparison
+  if expr then expr else expr           conditional expression
+  match expr with patterns              match expression
+  NAME atomicexprs                      function call
+  binding                               types, locals, functions
+
+atomicexpr ::=
+  const                                 constant literals
+  NAME                                  local variable or parameter
+  (expr, expr)                          tuple
+  [ expr, expr, ..., expr ]             list
+  expr::expr                            cons operator
+  ( expr )                              parenthesized expression
+
+const ::=
+  CONSTINT                              integer literal
+  CONSTBOOL                             boolean literal
+  STRINGLITERAL                         string literal
+  USCORE                                wildcard literal
+
+binding ::=
+  type NAME = constructors; expr        abstract data type binding
+  NAME = expr; expr                     local binding
+  function NAME params = expr end expr  function binding
+
+patterns ::=
+  | expr -> expr                        one pattern
+  | expr -> expr patterns               more than one pattern
+
+constructors ::=
+  NAME typeparams                       one type constructor
+  NAME typeparams | constructors        more than one type constructor
+
+type ::=
+  INT                                   Integer type
+  FLOAT                                 Float type
+  BOOLEAN                               Boolean type
+  STRING                                String type
+  CHAR                                  Char type
+  NAME                                  Name variable type
+  ( type, type )                        Tuple of types
+  [ type ]                              List of type
+  
+typeparams ::=
+  (* empty *)                           zero type parameters
+  type typeparams                       more than zero type parameters
+
+atomicexprs ::=
+  atomicexpr                            one expression
+  atomicexpr atomicexprs                more than one expression
+
+params ::=
+  NAME                                  one parameter
+  NAME params
+\end{Verbatim}
