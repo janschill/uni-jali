@@ -7,6 +7,13 @@ open Util
 exception ReduceError of Expr * string with
     override this.Message = sprintf "Reduce error at expression %O \n%s" this.Data0 this.Data1
 
+type Bindings = list<string * Expr>
+
+type ReducedMatch =
+    | NoMatch
+    | DynamicMatch of Bindings
+    | StaticMatch of Bindings
+
 let isConstant e =
     match e with
     | Constant _ -> true
@@ -50,12 +57,20 @@ let rec reduce2 (e: Expr) (context: bool) (store: Expr Env): Expr =
         if (allStatic reducedItems)
         then Constant(ListValue(getValues reducedItems))
         else List(reducedItems)
-    | Prim (operation, expression1, expression2) ->
+    | Prim (op, expression1, expression2) ->
         let rexpr1 = reduce2 expression1 context store
         let rexpr2 = reduce2 expression2 context store
-        if allStatic [ rexpr1; rexpr2 ]
-        then Constant(eval (Prim(operation, rexpr1, rexpr2)) [])
-        else Prim(operation, rexpr1, rexpr2)
+        match op, rexpr1, rexpr2 with
+        | _, Constant _, Constant _ -> Constant(eval (Prim(op, rexpr1, rexpr2)) [])
+        | "*", _, Constant (IntegerValue 0) -> Constant <| IntegerValue 0
+        | "*", _, Constant (IntegerValue 1) -> rexpr1
+        | "+", _, Constant (IntegerValue 0) -> rexpr1
+        | "*", Constant (IntegerValue 0), _ -> Constant <| IntegerValue 0
+        | "*", Constant (IntegerValue 1), _ -> rexpr2
+        | "+", Constant (IntegerValue 0), _ -> rexpr2
+        | "==", Variable x, Prim("+", Variable x', _) -> Constant <| BooleanValue false
+        | "==", Variable x, Prim("+", _, Variable x') -> Constant <| BooleanValue false
+        | _ -> Prim(op, rexpr1, rexpr2)
     | Let (name, expression1, expression2) ->
         let e = reduce2 expression1 context store
         (name, e) :: store |> reduce2 expression2 context
@@ -149,39 +164,100 @@ let rec reduce2 (e: Expr) (context: bool) (store: Expr Env): Expr =
                 | Apply (name, values) -> values |> List.collect collect
                 | _ -> []
 
-            let rec tryMatch (actual: Expr) (case: Expr) =
+            (* tryMatch returns
+                    None            if there can never be a match
+                    Some bindings   *)
+
+            let rec match1 (actual: Expr, case: Expr) =
+                // printfn "match1: %A ? %A" actual case
                 match (actual, case) with
-                | _, Constant (CharValue '_') -> Some []
-                | Variable x, _ -> Some <| collect case // If actual is dynamic, just collect bindings
-                | Constant (ADTValue (name, _, [])), Variable x when name = x -> Some []
-                | Constant (ADTClosure ((name, _), _, [])), Variable x when name = x -> Some []
+                | Constant v1, Constant v2 when v1 = v2 -> StaticMatch []
+                | Constant v1, Constant v2 when v1 <> v2 -> NoMatch
+                | _, Constant (CharValue '_') -> StaticMatch []
+
+                | Variable dyn, Variable x ->
+                    // We're binding a variable to a dynamic value. This will always succeed.
+                    // REPORT: Try removing this bit and see what it does to the output. Discuss in the report.
+                    match tryLookup store dyn with
+                    | Some (Variable y) when y = dyn -> StaticMatch [x, Variable dyn]
+                    | v -> printfn "Unexpected value %A for dynamic %s" v x; NoMatch
+
+                | Variable x, _ ->
+                    // printfn "Looking up %s in match --> %A" x <| tryLookup store x
+                    match tryLookup store x with
+                    | Some (Variable x') when x = x' -> DynamicMatch <| collect case // If actual is dynamic, just collect bindings
+                    | v ->
+                        printfn "Unexpected value %A for dynamic %s" v x
+                        NoMatch
+                // REPORT: The key problem seems to be that ADT values has too many different representations: Constant ADTValue,
+                //         Constant ADTClosure, Apply Variable. Likely the reducer will fail on similarly missing cases as soon
+                //         as we try it on a larger program
+                | Constant (ADTValue (name, _, [])), Variable x -> StaticMatch []
+                | Constant (ADTValue (name, _, values)), Apply (Variable name', exprs) ->
+                    if name = name'
+                    then matchMany (List.map Constant values) exprs
+                    else NoMatch
+                | Constant (ADTClosure ((name, _), _, [])), Variable x when name = x -> StaticMatch []
                 | _, Variable x ->
                     match tryLookup store x with
-                    | Some (Constant (ADTValue (name, sname, vals))) -> None // the pattern variable might be an adtvalue, e.g. Increment, but matching would have happened in the previous statement
-                    | _ -> Some [ (x, actual) ]
-                // | Apply (expr, args), Apply (pExpr, pargs) -> forAll tryMatch (expr :: args) (pExpr :: pargs)
-                // TODO: this should fix e.g. Apply(Constant(Closure(_)) . It checks if everything matches: expr match pExpr, and args match pargs
-                // However, it throws the error 'list1 shorter than list2'
-                | Constant v, Constant v' when v = v' -> Some []
-                | Apply (name, values), Apply (pname, patternValues) when name = pname ->
-                    forAll tryMatch values patternValues
-                | Tuple (e1, e2), Tuple (p1, p2) ->
-                    match tryMatch e1 p1, tryMatch e2 p2 with
-                    | Some v1, Some v2 -> Some <| v1 @ v2
-                    | _ -> None
-                | List exprs1, List exprs2 when exprs1.Length = exprs2.Length -> forAll tryMatch exprs1 exprs2
-                | List (h :: t), ConcatC (h', t') -> forAll tryMatch [ h; (List t) ] [ h'; t' ]
-                | _, _ -> None
+                    | Some (Constant (ADTValue (name, sname, vals))) -> NoMatch // the pattern variable might be an adtvalue, e.g. Increment, but matching would have happened in the previous statement
+                    | None -> StaticMatch [ (x, actual) ] // Pattern variable
+                    | v ->
+                        printfn "Unexpected value for %s -> %A" x v
+                        NoMatch
+                | Constant v, Constant v' when v = v' -> StaticMatch []
+                | Apply (name, exprs), Apply (pname, pats) when List.length exprs = List.length pats ->
+                    matchMany (name :: exprs) (pname :: pats)
+                | Tuple (e1, e2), Tuple (p1, p2) -> matchMany [ e1; e2 ] [ p1; p2 ]
+                // REPORT: Also lists has too many distinct representations.
+                | List es, List pats when es.Length = pats.Length -> matchMany es pats
+                | List (h :: t), ConcatC (h', t') -> matchMany [ h; (List t) ] [ h'; t' ]
+                | Constant (ListValue (v :: vs)), ConcatC (e1, e2) ->
+                    matchMany [ Constant v; Constant <| ListValue vs ] [ e1; e2 ]
+                | _, _ ->
+                    printfn "No match: %A ~ %A" actual case
+                    NoMatch
 
-            let matchAndReduce (case, exp) =
-                tryMatch rActual case
-                |> Option.map (fun bindings -> reduce2 exp false <| (bindings @ store))
-                |> Option.map (fun rBody -> (case, rBody))
+            and matchMany exprs pats =
+                let matches = List.map match1 <| List.zip exprs pats
+                if List.exists ((=) NoMatch) matches then
+                    NoMatch
+                else
+                    let bindings =
+                        matches
+                        |> List.collect (function
+                            | DynamicMatch bindings -> bindings
+                            | StaticMatch bindings -> bindings
+                            | NoMatch -> failwithf "Impossible: NoMatch")
 
-            match List.choose (matchAndReduce) patternList with
-            | [] -> raise <| ReduceError(e, "Empty patternlist")
-            | [ (case, body) ] -> body
-            | many -> Pattern(rActual, many)
+                    if List.exists (function
+                        | DynamicMatch _ -> true
+                        | _ -> false) matches then
+                        DynamicMatch bindings
+                    else
+                        StaticMatch bindings
+
+            let reducedMatches =
+                patternList
+                |> List.choose (fun (pat, body) ->
+                    let m = match1 (rActual, pat)
+                    printfn "Reduced case %O -> %O" pat m
+                    match m with
+                    | StaticMatch bindings -> Some((pat, reduce2 body context <| (bindings @ store)), true)
+                    | DynamicMatch bindings -> Some((pat, reduce2 body false <| (bindings @ store)), false)
+                    | NoMatch -> None)
+            // Second part of tuple signals whether the case is known to fully match (true), or
+            // only might match depending on dynamic values (false).
+
+            match reducedMatches with
+            | ((_, body), true) :: _ ->
+                // The first match is static and will always match, no matter the dynamic values.
+                // Replace the entire branch expression with the body
+                body
+            | [] ->
+                raise
+                <| ReduceError(e, "All patterns are known statically to not match")
+            | many -> Pattern(rActual, List.map fst many)
 
     | _ -> raise <| ReduceError(e, "No match found")
 

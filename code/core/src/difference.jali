@@ -48,7 +48,7 @@ end
 
 func dynamicDiff model =
   // view (update Increment model)
-  diff (view 1) (view model)
+  diff (view model) (view (update Increment model))
 end
 
 dynamicDiff
