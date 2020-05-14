@@ -1,11 +1,22 @@
-type Attribute = Att Tuple;
-type Node = Text String | Tag String [Attribute] [Node];
+type Node = Text String | Tag String [(String, String)] [Node];
 type Message = Increment | Decrement;
 type Action = Click;
 type Differ =
     Null
   | Change Node
   | Path Integer Differ;
+
+func update msg m =
+  match msg with
+  | Increment -> m + 1
+  | Decrement -> m - 1
+end
+
+func view model =
+  Tag ('div') ([]) ([
+      Text (model)
+  ])
+end
 
 (* List helper functions *)
 func head ls =
@@ -18,18 +29,6 @@ func append ls1 ls2 =
   match (ls1, ls2) with
   | ([], ls2) -> ls2
   | (l::ls, ls2) -> l::(append (ls) (ls2))
-end
-
-func mapi f list =
-  func loop index ls =
-    match ls with
-    | x::xs ->
-      head = f (index) (x);
-      tail = loop (index + 1) (xs);
-      head::tail
-    | [] -> []
-  end
-  loop 0 list
 end
 
 (* JaLi to HTML *)
@@ -106,28 +105,7 @@ func diff view1 view2 =
       if (s1 == s2) then Null else Change(Text s2)
 end
 
-func patch view changes =
-  match changes with
-  | Null -> view
-  | Change (n) -> n
-  | Path (index) (d) ->
-    match view with
-    | Tag (name) (atts) (nodes) ->
-      func f i item =
-        if i == index
-        then patch (item) (d)
-        else item
-      end
-      items = mapi (f) (nodes);
-      Tag (name) (atts) (items)
-    | _ -> 'Patch exception'
-end
 
-func update msg model =
-  match msg with
-  | Increment -> model + (1)
-  | Decrement -> model + (-1)
-end
 
 (*
   Looping through the sequence of elements:
@@ -137,15 +115,15 @@ end
     - select first element
   `document.body.children[0].children[1].children[0]`
 *)
+func loop1 str list =
+  (match list with
+  | [] -> str
+  | x::xs ->
+    s = str + '.children[' + x + ']';
+    loop1 (s) (xs))
+end
 func documentChildren seq =
-  func loop str list =
-    match list with
-    | [] -> str
-    | x::xs ->
-      s = str + '.children[' + x + ']';
-      loop (s) (xs)
-  end
-  loop ('document.body') (seq)
+  loop1 ('document.body') (seq)
 end
 
 func changeInnerHTMLToString seq value =
@@ -171,16 +149,16 @@ end
 
 func patchToJs changes =
   func loop seq chs =
-    match chs with
-    | Null -> 'patchToJs -> Null'
+    (match chs with
     | Path (idx) (d) ->
       loop (append (seq) ([idx])) (d)
+    | Null -> 'patchToJs -> Null'
     | Change (n) ->
-      match n with
+      (match n with
       | Text (t) ->
         (changeInnerHTMLToString (seq) (t))
       | tag -> changeElementToString (tag) (seq)
-      | _ -> 'error'
+      | _ -> 'error'))
   end
   loop ([0]) (changes)
 end
@@ -199,83 +177,34 @@ func html tags =
   '</html>'
 end
 
-init = 0;
-
-func onClick msg =
-  update (msg) (init)
-end
-
-func renderStateAsJs model =
-  'let model = ' + model + ';'
-end
-
-func eval javascriptString =
-end
-
-func readGlobal modelName =
-end
-
-func setGlobal modelName value =
-end
-
 (*
-updateAndPatch
-  Model = readglobal "model"
-  model1 = update increment model
-  Eval (patch2js (diff (view model1) model))
-  SetGlobal "model" model1
-*)
-
-func updateAndPatch action =
-  oldModel = readGlobal ('model');
-  newModel = update (action) (oldModel);
-  eval (patchToJs (diff (view newModel) (oldModel)))
-  setGlobal ('model') (newModel)
-end
-
-(*
-'const oldModel = model;' +
-'const newModel = ' +
-''
-'model = newModel;'
-
-*)
-
 func view model =
   Tag ('div') ([]) ([
-    Tag ('button') ([(Click, (updateAndPatch (Increment)))]) ([Text ('Increment')]),
+    Tag ('button') ([]) ([Text ('Increment')]),
     Tag ('p') ([]) ([
       Text (model)
     ]),
-    Tag ('button') ([(Click, (updateAndPatch (Decrement)))]) ([Text ('Decrement')]),
-    Tag ('script') ([]) ([Text (renderStateAsJs model)])
-  ])
-end
-
-view1 = view (1);
-view2 = view (2);
-(*
-html (viewToHTML ([view1]))
-changes = diff (view1) (view2);
-html (viewToHTML ([view1]))
-changes = diff (view1) (view2);
-patchToJs changes
-*)
-changes = diff (view (init)) (view (update (Increment) (init)));
-changes
-
-
-(*
-
-
-func view model tagname =
-  Tag ('div') ([]) ([
-      Text (model)
+    Tag ('button') ([]) ([Text ('Decrement')])
   ])
 end
 
 view1 = view (1) ('p');
 view2 = view (2) ('span');
-
-
+view1 = view (1);
+view2 = view (2);
+html (viewToHTML ([view1]))
+changes = diff (view1) (view2);
+html (viewToHTML ([view1]))
+changes = diff (view1) (view2);
+patchToJs changes
+changes = diff (view (init)) (view (update (Increment) (init)));
+changes
 *)
+
+func dynamicDiff model =
+  newModel = update Increment model;
+  patchToJs (diff (view model) (view newModel))
+  // diff (view model) (view (update Increment model))
+end
+
+dynamicDiff
