@@ -1,0 +1,99 @@
+We will attempt to optimise away (a) the generation of intermediary \gls{dom} representation and (b) diffing of intermediary and actual \gls{dom} by using techniques from partial evaluation.
+\\\\
+Either we use an existing language and write a new compiler to do our planned compiler optimisation or we create own language that is small enough to demonstrate example and has compiler optimisation. We have chosen the latter. 
+\\\\
+Having implemented our own language, we now implement the Elm-like web-framework that can be used generate and update an \gls{html} website. As in an Elm-like model-view-update, we have two explicitly states functions 'update' and 'view':
+
+\begin{verbatim}
+    update: Action -> Model -> Model
+    view: Model -> View 
+\end{verbatim}
+
+The view function, takes a model and outputs an \gls{html} like structure, describing how the view should look like. The update function takes an action and a model and updates the model accordingly. We then have a diff function, which takes two views, and returns a data structure that describes the path to all differences between the two views.
+
+\begin{verbatim}
+    diff: View -> View -> DOM-Update-Actions
+\end{verbatim}
+
+Assume that we have a current view based on the current model m. When a user event triggers some action a on the model m, the functions are applied as follows:
+
+\begin{verbatim}
+    diff current_view (view (update a m))
+\end{verbatim}
+
+We update the model m with a, and then call view to get the view of the new model. Then we diff the old view with the new view, to get the changes that needs to be applied to the current view. 
+\\\\
+Now all we need is a patch function, which takes the initial view and the returned structure from the differ function and applies the changes onto the passed view, returning a new view with all fields updated.
+
+\begin{verbatim}
+    patch: View -> DOM-Update-Actions -> View
+\end{verbatim}
+
+To demonstrate that this works, we do it by example: Take as example a website with a single counter on the screen, and two buttons; one that increments and one that decrements the counter. The corresponding Jali program can be found below. To store the state of the counter it has a simple model which is just an integer set to 0. It has two actions: Increment and Decrement. The update function either increment or decrements the model, depending on the given action. Lastly we have the view function, which describes how to turn a given model into an \gls{html} like structure. The view is described as the \gls{adt} type 'Node' in the top, which can either be a 'Text' node containing a string, or a 'Tag' node containing a name, a list of attributes as tuples and a list of children.
+
+\lstinputlisting[language=Jali, caption=Jali example]{./code/button.jali}
+
+Running the Jali program through the interpreter will generate our initial view represented as an \gls{adt} value of 'Tag'. This \gls{adt} can now be translated into \gls{html}. The function that translates the \gls{adt} to \gls{html} and the \gls{html} output can be found in Appendix ??. Figure \ref{fig:buttons_in_browser} shows the generated \gls{html} displayed in the browser.   
+
+\lstinputlisting[language=Jali, caption=View example]{./code/button-output.fs}
+
+Add html figure here:
+\begin{figure}
+    \centering
+    % \includegraphics{}
+    \caption{Todo: caption}
+    \label{fig:buttons_in_browser}
+\end{figure}
+
+\liv{How to display the diff and patch function? }
+
+However, pressing these buttons will not do anything without any JavaScript code. That is, from our model, we also need to generate the JavaScript that knows what should happen when we press the button. This is where partial evaluation will help us. 
+
+We have a diff function and a patch function which will figure out the change we need to make, and patch the view according to that change. This is applied as follow: 
+\begin{verbatim}
+    patch (diff current_view (view (update a m)))
+\end{verbatim}
+
+\liv{Explain about the reducer?}
+\liv{Explain about patchtojs?}
+We take the reducer, we apply it as follows:
+
+\begin{verbatim}
+    reduce (patchtojs (diff current_view (view (update a m))))
+\end{verbatim}
+
+
+
+
+
+\textit{Notes: Our Jali program works very similar to ELM. We have 4 functions: update, view, diff and patch. \\
+- First, we need a view function, which describes how to turn our model into \gls{html}\\
+- We need the update function, which takes an action and a model and updates the model accordingly. \\
+- The differ function takes two views and will return a data structure that describes the path to all differences between the two views.\\
+- The patch function takes the initial view and the returned structure from the differ function and applies the changes onto the passed view, returning a new view with all fields updated.}]
+
+
+
+
+
+\paragraph{From reducing elm architecture}
+
+So having implemented ... we apply it to the original button example. That is, we implement the view and update functions in jali to construct a view with a button that increments a counter, and with the initial model being set to zero.
+1) We generate the html of the initial view/model using our viewToHtml function, and
+2) each place that calls the update function, we can generate the corresponding JavaScript that will make this update to the model at runtime, and then we attach the JavaScript to the button. Lets use our very simple button example; we have a model = 0 and a view with a single increment button along with a 'div' displaying the model. We generate the html using our htmlToView function, and the JavaScript for the increment button using our patchToJs method: The generated JavaScript will then simply set the inner html of the counter to 1.
+
+\begin{verbatim}
+    html = viewToHtml (view model)
+    inc_javascript = patchToJs  (view model) (diff (view model) (view (update Increment model)))
+\end{verbatim}
+
+The html and javascript output can be seen in \ref{???}. To see that it works, save it to an html file, open it in the browser and press the button.
+
+\textbf{Insert html and javascript output}
+
+Now the JavaScript here simply sets the inner html to 1, so it really only works one time: it simply sets the counter to a fixed number, calculated from the model that was used as argument when generating the JavaScript. This is not exactly what we want: what we want is a JavaScript function that increments the value based on the current value of the model. 
+
+
+So we need a JavaScript function that takes one argument, the model, and then sets the counter to the given model incremented by 1.\\
+HERE WE USE THE REDUCER -> GENERATES THE CORRESPONDING JALI FUNCTION -> AND THEN THE COMPILER TO CONVERT IT TO JAVASCRIPT. SEE BELOW\\
+(* By reducing 'dynamicPatchToJs' in the below example, we obtain a Jali function that needs one last argument, and outputs JavaScript that increments the model. Compiling this output to JavaScript will generate a corresponding JavaScript function, that takes one argument, the model, and outputs the JavaScript that increments the given model. We attach the function to the Increment button, and now every time it is pressed, it will call this JavaScript function with the current model. *)

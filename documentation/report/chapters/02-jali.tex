@@ -1,0 +1,155 @@
+The JaLi language is a minimal higher-order functional language without type checking. The syntax is closely coupled to FSharp and Haskell.
+
+\lstinputlisting[label={jali_button_example}, language=JaLi, caption=Button example written in JaLi]{./code/button.jali}
+    
+Listing \ref{jali_button_example} shows how the button example from the previous chapter could look like in the JaLi language.
+It introduces an \gls{adt} called \texttt{Node} in line 1, that has two constructors: \texttt{Text} and \texttt{Tag}. An \gls{adt} is a composition type, which means that it is used to introduce new and more complex types to a language. This is especially useful when wanting to depict a type from the outside into the language. To illustrate this on an example by also continuing to explain the given example:
+The \texttt{Node} type is representing an \gls{html} document element. In \gls{html} an element always carries an element name, for example \texttt{button}: \texttt{<button></button>}; a list of key-value pairs, named as \gls{attributes}: \texttt{id=buttonIncrement} , which are set after the element name in the opening tag and lastly it holds elements or text in between its opening and closing tags.
+
+\begin{lstlisting}[columns=fullflexible, label={button_increment_html}, language=JaLi, caption=Button increment in HTML]
+<button id=buttonIncrement>Increment</button>
+\end{lstlisting}
+
+Represented in JaLi as an \gls{adt} the single button \gls{html} element would look like in listing \ref{button_increment_jali}.
+
+\begin{lstlisting}[columns=fullflexible, label={button_increment_jali}, language=JaLi, caption=Button increment in JaLi as ADT]
+Tag ('button') ([('id', 'buttonIncrement')]) ([
+  Text 'Increment'
+])
+\end{lstlisting}
+
+Just like in \gls{html} then, the \gls{adt} can recursively be nested to construct a tree-like structure.
+Another example for this would be a recursive list data type
+
+\begin{lstlisting}[columns=fullflexible, label={recursive_list}, language=JaLi, caption=Recursive list data type]
+type List = Nil | Cons Integer List;
+
+Cons 1 (Cons 2 (Cons 3 (Nil)))
+\end{lstlisting}
+
+An \gls{adt} always carries super-type defined right after the keyword \texttt{type}, followed by a number of constructors, which are used to instantiate an actual value of the defined \gls{adt}. These constructors can carry optional type parameters, which need to be given, when creating it. Like in the listing \ref{button_increment_jali} the \texttt{Tag} constructor needs a string and two lists.
+
+\glspl{adt} make mostly only sense with pattern matching implemented as well. Pattern matching will allow the flow of the program according to the state of the matching \gls{adt} values.
+
+\begin{lstlisting}[columns=fullflexible, label={pattern_match}, language=JaLi, caption=Pattern matching on Msg]
+type Msg = Increment | Decrement;
+message = Increment;
+
+match message with
+  | Increment -> 'Increment the model'
+  | Decrement -> 'Decrement the model'
+  | _ -> 'Unknown action'
+\end{lstlisting}
+
+The example in listing \ref{pattern_match} shows the known \gls{adt} definition in line 1. After it on line 2 a \textit{let binding} can be seen, where the value on the right side is assigned to the variable called \texttt{message}. Afterwards this binding is used in pattern matching context. The value of \texttt{message} will be matched with the available patterns defined after the pipe symbol. There are three patterns that can be matched with, each valid action and one \textit{wild card} pattern, that acts like the \textit{else} block in an \textit{if statement}. The complete \texttt{match} block will then return only the right side of the matched pattern.
+
+Functions are defined by enclosing a name, parameters and a function body between the key words \texttt{func} and \texttt{end}.
+
+\begin{lstlisting}[columns=fullflexible, label={pattern_match}, language=JaLi, caption=Pattern matching on Msg]
+func factorial n =
+  func mult x y =
+    x * y
+  end
+  
+  if n == 0
+  then 1
+  else mult (n) (factorial (n - 1))
+end
+factorial 5 // => 120
+\end{lstlisting}
+
+Functions can be recursively called and can even have inner functions.
+
+\subsection{Grammar}\label{Grammar}
+The lexer, parser and interpreter are all written in FSharp with the help of the libraries \textit{FsLex} and \textit{FsYacc}.
+
+\subsubsection{Lexer}
+The lexer receives a JaLi program as a string, recognizes and transforms its characters in the program to tokens in FSharp. These tokens are defined in the \textit{Lexer.fsl} and \textit{Parser.fsy}. The lexer does this by having a defined list of regular expressions to tokens and matches the input string character by character to those patterns.
+The result is a list of tokens that might end up looking lik listing \ref{lexer_input}
+
+\begin{lstlisting}[columns=fullflexible, label={lexer_input}, language=JaLi, caption=Lexer result]
+// JaLi program as string:
+"5 + 10"
+// Result of lexing the string:
+Parser.token = CONSTINT 5
+Parser.token = PLUS
+Parser.token = CONSTINT 10
+Parser.token = EOF
+\end{lstlisting}
+
+After the whole string is successfully transformed into tokens, the parser will try to make sense of it.
+
+\subsubsection{Parser}
+The parser receives the list of tokens after the lexical analysis and builds an \gls{ast} from it. It does this by recognizing different combinations of tokens, that are defined explicitly.
+
+In the case of JaLi, a program -- indicated by is point of entry with \texttt{Main} -- is an \texttt{Expression}, which is defined in the parser as the following:
+
+\begin{lstlisting}[columns=fullflexible, label={parser_expression}, language=FSharp, caption=Program defined by \texttt{Expression}]
+Main:
+    Expression EOF { $1 }
+
+Expression:
+  | AtomicExpression { $1 }
+  | FunctionCall { $1 }
+  | ConditionalExpression { $1 }
+  | Baseoperation { $1 }
+  | Binding { $1 }
+\end{lstlisting}
+
+From only knowing this, it might not be obvious how a program then can be multiple \texttt{Bindings} or \texttt{Functions} with a \texttt{FunctionCall} in the end. This is realized by defining a \texttt{Binding} by its \texttt{Expression} that it binds to, but also expecting another \texttt{Expression} right after the binding.
+
+\begin{lstlisting}[columns=fullflexible, label={parser_binding}, language=FSharp, caption=Binding with \texttt{Expression} afterwards]
+Binding:
+  | LocalBinding { $1 }
+  | FunctionBinding { $1 }
+  | ADTBinding { $1 }
+  
+LocalBinding:
+  | NAME ASSIGN Expression SEMICOLON Expression { Let($1, $3, $5) }
+\end{lstlisting}
+
+The \texttt{SEMICOLON} marks an end of a \texttt{Binding}, indicating that the \texttt{Expression} after it, is the next \texttt{Expression} in the program -- allowing multi-line programs and not just a single line program. The part in curly braces after a parser rule was up until here completely ignored, but shall be explained as being the mapping to its \gls{ast} element. A \texttt{Binding} in the \gls{ast} is represented by a \texttt{Let} key word, which holds three values, these are passed over by the call on line 7 in listing \ref{parser_binding}.
+The \texttt{Let} is specified as \texttt{Let of string * Expr * Expr} in the \gls{ast} file. This means that the first parameter needs to be of type string, the name and the other two parameters of type \texttt{Expr}, which is a defined type.
+
+\begin{lstlisting}[columns=fullflexible, label={ast}, language=FSharp, caption=An excerpt of the \gls{ast} of JaLi]
+type Value =    
+    | IntegerValue of int
+    | BooleanValue of bool
+    | CharValue of char
+    | StringValue of string
+    | TupleValue of Value * Value
+    | ListValue of Value list
+    | ADTValue of string * string * Value list
+    | Closure of string * string list * Expr * Value Env
+    | ADTClosure of ADTConstructor * string * Value Env
+
+and Expr =
+    | ConcatC of Expr * Expr
+    | List of Expr list
+    | Constant of Value
+    | StringLiteral of string
+    | Variable of string
+    | Tuple of Expr * Expr
+    | Prim of string * Expr * Expr
+    | Let of string * Expr * Expr
+    | If of Expr * Expr * Expr
+    | Function of string * string list * Expr * Expr
+    | ADT of string * ADTConstructor list * Expr
+    | Apply of Expr * Expr list
+    | Pattern of Expr * (Expr * Expr) list
+\end{lstlisting}
+
+\vspace{0.3cm}
+
+The listing \ref{ast} gives a rough overview of the multiple \texttt{Expressions} that are currently implemented and reveal a bit of its possibilities.
+
+Returning back to the grammar in the parser the implementation and characteristic of the JaLi grammar shall be explained.
+As already mentioned everything reduces to an \texttt{Expression}, which are split into the ones shown in listing \ref{parser_expression}.
+
+We distinguish between \texttt{Atomic Expression} and other expressions. An \texttt{Atomic Expression} is a constant, a variable, a tuple, a list, a cons operator, or a parenthesized expression (so that it is easy to see where an \texttt{Atomic Expression} begins and ends). Constants are integers, booleans, strings, and the wildcard character '\_' which is used for match expressions.
+
+The reason we make this distinction is because syntax like function applications without parentheses makes the language ambiguous, as we then can not decide when the function application expression ends and another begins. A solution to this, is to distinguish between \texttt{Atomic Expression} and other expressions, and then require arguments for function application to be atomic. 
+\\\\
+Besides \texttt{Atomic Expression}, an expression can be a logical negation, a base operation for arithmetic and comparison (+, -, ==), a conditional expressions, a match expressions, a function call or a binding. A binding is an \gls{adt} declaration, a local binding, or a function declaration. 
+
+\input{code/grammar}

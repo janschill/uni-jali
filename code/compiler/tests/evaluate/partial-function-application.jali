@@ -3,4 +3,6 @@ func f x y z =
   k
 end
 
-f 1 2
+partial = f 1 2;
+
+partial 3

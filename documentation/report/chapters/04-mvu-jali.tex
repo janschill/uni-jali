@@ -1,0 +1,117 @@
+% Chapter 4
+% Result: JaLi implementation of Elm model
+%   Give example: button inc/dec
+%   Show what it looks like in code
+%   Give all examples, what it suppose to do
+%   State what everything needs to be called if not reduced
+%     The intended execution model (and that is why we want to reduce: so we
+%     don’t need to go through all this)
+%   runtime, how much in the language itself (almost everything)
+%   Compile vs. having JaLi code generate JavaScript
+
+% \jan{
+% \begin{enumerate}
+%     \item No JavaScript compiler -> no state in frontend
+%     \item Small snippets of JavaScript that do the change (like button example)
+%     \item 
+% \end{enumerate}
+% }
+
+With the JaLi language in place, this chapter will show how the \gls{mvu} architecture can be implemented using JaLi. The button example will be continued and his somewhat influenced from the Elm button example.
+The program will have a model, that holds the current state of the program. An update function defining how to handle each possible action, like \textit{Increment} and \textit{Decrement}. The last function \textit{view} is responsible of taking the model's value and transforming it to \gls{html} for the browser to render.
+An \gls{adt} named \texttt{Msg} will hold the different actions that are possible. The \gls{html} structure can be represented by a \texttt{Node} type, which was explained in chapter \ref{jali}.
+The \texttt{view} function takes the model and places into the \texttt{Tag} structure that is going to be the \gls{html} in the end, but returns here just a structure of type \texttt{Node}. This can then be passed to \texttt{viewToHtml} which translates the a value of type \texttt{Node} into a string containing valid \gls{html}.
+This is good enough to prepare one static view that can be rendered in the browser.
+To make it dynamic it needs a \textit{handler}, that attaches to all the places where a user can interact with the website. For the button program it would make most sense to attach an on-click handler, that is triggered when a button is being clicked. In order to make this work in the browser, all actions need to be written in JavaScript, as the browser does not execute any other programming language on the client. This is no problem, but requires a JavaScript compiler, which is unfortunately missing, but can be simulated to a limited degree.
+
+\begin{figure}
+    \centering
+\begin{verbatim}
+type Node
+type Msg
+update: Msg -> Model -> Model
+view: Model -> Node 
+
+type Differ
+diff: Node -> Node -> Differ
+patch: Differ -> Node -> Node
+
+patchToJs: Differ -> String
+viewToHtml: Node -> String
+\end{verbatim}
+    \caption{Pseudo code to show functions, types, \glspl{adt}}
+    \label{fig:mvu_types}
+\end{figure}
+
+For the button example the actions \textit{Increment} and \textit{Decrement} alter the displayed value, by either incrementing its value or decrementing by one.
+To make this as generic as possible and adapt previous ideas like \gls{vdom} comparing, two functions will be implemented: \texttt{diff} and \texttt{patch}. These are also the functions that need to be translated to JavaScript and executed -- with the update function -- on every action.
+The \texttt{diff} function detects changes between two views and the \texttt{patch} function takes these changes and patches them in the view that is being shown.
+
+Constructing two different views by calling the \texttt{view} function with 1 and 2 would, when given to the \texttt{diff} function, return the \texttt{Differ} from listing \ref{non-reduced-differ}.
+
+\begin{lstlisting}[columns=fullflexible, label={two_views}, language=JaLi, caption=Two views to compare]
+view1 = Tag ('div') [] [
+    Tag ('button') [] [Text ('Increment')],
+    Tag ('p') [] [Text ((*@\textcolor{blue}{1}@*))],
+    Tag ('button') [] [Text ('Decrement')],
+];
+view2 = Tag ('div') [] [
+    Tag ('button') [] [Text ('Increment')],
+    Tag ('p') [] [Text ((*@\textcolor{blue}{2}@*))],
+    Tag ('button') [] [Text ('Decrement')],
+];
+\end{lstlisting}
+
+Listing \ref{diff_function} shows the definition for the \texttt{diff} function. It receives two views and steps through it comparing always the first element in the list of nodes, if both \texttt{Tags} are the same it continues comparing, by using the helper function \texttt{fold} to iterate over the children nodes on the compared tags.
+If it encounters a difference either on the \texttt{Tag} or on the \texttt{Text} it returns a \texttt{Change} constructor with the value from view2, as this is the newer view.
+\texttt{fold} basically just takes the first element out of the list and calls \texttt{diff} on it again, if that call returns a \texttt{Change} it indicates that there is a change by returning a \texttt{Path} to show the way to get to that change.
+This function at this stage only detects the first difference on two views and then terminates. This is for the trivial button example sufficient, but should be extended for real use.
+
+\lstinputlisting[columns=fullflexible, label={diff_function}, language=JaLi, caption=Diff function detecting changes on two views]{./code/diff.jali}
+
+\begin{lstlisting}[columns=fullflexible, label={non-reduced-differ}, language=Other, caption=Differ path detecting change on \texttt{Text} node]
+$ Constant
+(ADTValue
+   ("Path","Differ",
+    [IntegerValue (*@\textcolor{blue}{1}@*);
+     ADTValue
+       ("Path","Differ",
+        [IntegerValue (*@\textcolor{blue}{0}@*);
+         ADTValue
+           ("Change","Differ",
+             [ADTValue ("Text","Node",[IntegerValue (*@\textcolor{blue}{2}@*)])])
+        ])]))
+\end{lstlisting}
+
+In order to apply this detected change the \texttt{patch} function takes the old view, the changes and returns a new view.
+
+\lstinputlisting[columns=fullflexible, label={patch_function}, language=JaLi, caption=Patch function applying changes on old view]{./code/patch.jali}
+
+It does this by iterating over the \texttt{Differ} \gls{adt} held in \texttt{changes}, which is a recursive path structure that has a \texttt{Path} and \texttt{Change} constructor. When a \texttt{Change} is encountered it immediately returns the value from it, otherwise it will take the index from the \texttt{Path} and find the corresponding \texttt{Tag} node in the view and follow it recursively by calling patch again.
+It uses two helper functions: \texttt{mapi} and the inner function called \texttt{f}. \texttt{mapi} iterates through a list a applies the given function on each element it passes while maintaining an index, that is passed to the function. This allows the tracking of elements in the view and the index from the \texttt{Path}.
+Ultimately \texttt{patch} will then return an updated \texttt{Node} structure that looks like \texttt{view2} from listing \ref{two_views}.
+
+This whole process is then finished, but by now only shown on two views, that means the second view, was already constructed, triggered by something. This shall be explained now and how that might look in JavaScript after all.
+
+\jan{write about the JavaScript that is being generated. What the handler actually triggers}
+
+
+% \liv{should we just get rid of 'patch'?}
+% \jan{no, as it is useful to show what the JaLi can do}
+% The view function, takes a model and returns a string that represents the structure in form of valid \gls{html}. The update function takes an action and a model and updates the model accordingly. To demonstrate how this works, we construct a simple example consisting of two buttons: \textit{Increment} and \textit{Decrement} and a paragraph element displaying a counter, that can be altered by using the buttons respectively. The corresponding JaLi program can be found in figure \ref{JaliMeetsElm}. 
+
+% \lstinputlisting[label=JaliMeetsElm, language=Jali, caption=Button example in JaLi]{./code/button.jali}
+
+% To store the state of the counter it has a simple model which is just an integer set to 0. 
+
+% The \texttt{view} function describes the view, in terms of the \gls{adt} \texttt{Node}. To illustrate how this data type can be used to represent an \gls{html} page with a counter an to buttons, see the \texttt{view} function in the code listing \ref{JaliMeetsElm}. A \texttt{Node}, can either be a \texttt{Tag}, representing \gls{html} elements like \texttt{<div></div>} or \texttt{<p></p>}, or a \texttt{Text} node, which represents the plain text that can be written within \gls{html} elements. A \texttt{Tag} takes three arguments: a string to denote the type of the tag (\textit{button}), a list of key-value pairs that are called attributes (\textit{value=42}), and a list of child nodes, which are the nested tags in this element. A \texttt{Text} node is a leaf node and can only contain text.
+% In this example, the \texttt{view} function takes an integer as argument and returns the view with the model inserted as the counter: when the top button is pressed, \texttt{update Increment} is called, and when the lower button is pressed, \texttt{update Decrement} is called. 
+
+% By giving the view function the initial model 0 we get an ADT of value of 'Tag' corresponding to an \gls{html} page with two buttons and a counter set to 0.
+
+% \liv{ How to proceed? }
+% \jan{explain the other functions and show example outputs}
+% \liv{should we show the generated adt?} 
+% \jan{yes}
+% % we use the evaluater on the Differ (Diff (view init) (view (update Increment) init) -> and then translate that to javascript
+% \jan{write about diffing and what happens and pretend JavaScript compiler exists, show outputs}

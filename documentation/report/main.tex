@@ -1,0 +1,207 @@
+\documentclass[runningheads]{llncs}
+\usepackage[T1]{fontenc}
+\usepackage{listings}
+\usepackage{graphicx}
+\usepackage[inline]{enumitem}
+\usepackage{hyperref}
+\usepackage[acronym]{glossaries}
+\makeglossaries
+\include{abbreviation}
+\usepackage{float}
+\usepackage{upquote}
+\usepackage{fancyvrb}
+\usepackage{color}
+\definecolor{bluekeywords}{rgb}{0.13,0.13,1}
+\definecolor{commentscolor}{rgb}{0.5,0.5,0.5}
+\definecolor{greenstrings}{rgb}{0,0.5,0}
+\definecolor{codepurple}{rgb}{0.58,0,0.82}
+\definecolor{codered}{rgb}{0.8, 0.25, 0.33}
+\definecolor{codeorange}{rgb}{1.0, 0.49, 0.0}
+\definecolor{codebrown}{rgb}{0.8, 0.58, 0.46}
+
+\lstset{escapeinside={(*@}{@*)}}
+
+\lstdefinelanguage{FSharp}%
+{ morekeywords={[0]{let, new, match, with, rec, open, module, namespace, type, of, member, and, for, while, true, false, in, do, begin, end, fun, function, return, yield, try, mutable, if, then, else, cloud, async, static, use, abstract, interface, inherit, finally }},
+  otherkeywords={ let!, return!, do!, yield!, use!, var, from, select, where, order, by },
+  keywordstyle={[0]{\color{codeorange}}},
+  morekeywords={[1]{Value, int, bool, char, string, list, Expr, Env, ADTConstructor}},
+  keywordstyle={[1]{\color{codered}}},
+  sensitive=true,
+  basicstyle=\ttfamily,
+  breaklines=true,
+  xleftmargin=\parindent,
+  aboveskip=\bigskipamount,
+  tabsize=2,
+  morecomment=[l][\color{greencomments}]{///},
+  morecomment=[l][\color{greencomments}]{//},
+  morecomment=[s][\color{greencomments}]{{(*}{*)}},
+  morestring=[b]",
+  showstringspaces=false,
+  literate={`}{\`}1,
+  stringstyle=\color{redstrings},
+  numbers=left,
+  stepnumber=1,
+}
+\definecolor{bluekeywords}{rgb}{0.13,0.13,1}
+\definecolor{greencomments}{rgb}{0,0.5,0}
+
+\lstdefinelanguage{JaLi}%
+{ keywords={[0]{let, match, with, type, true, false, end, func, function, if, then, else}},
+  keywordstyle={[0]\color{codeorange}},
+  morekeywords={[1]{Node, String, Tuple, Msg, List, Integer}},
+  keywordstyle={[1]{\color{codered}\bfseries}},
+  sensitive=true,
+  numbers=left,
+  stepnumber=1,
+  basicstyle=\ttfamily,
+  breaklines=true,
+  xleftmargin=\parindent,
+  aboveskip=\bigskipamount,
+  tabsize=2,
+  morecomment=[l][\color{commentscolor}]{///},
+  morecomment=[l][\color{commentscolor}]{//},
+  morecomment=[s][\color{commentscolor}]{{(*}{*)}},
+  morestring=[b]',
+  showstringspaces=false,
+  literate={`}{\`}1,
+  stringstyle=\color{greenstrings},
+}
+
+\lstdefinelanguage{Other}%
+{ sensitive=true,
+  numbers=left,
+  stepnumber=1,
+  basicstyle=\ttfamily,
+  breaklines=true,
+  xleftmargin=\parindent,
+  aboveskip=\bigskipamount,
+  tabsize=2,
+  morecomment=[l][\color{commentscolor}]{///},
+  morecomment=[l][\color{commentscolor}]{//},
+  morecomment=[s][\color{commentscolor}]{{(*}{*)}},
+  morestring=[b]",
+  showstringspaces=false,
+  literate={`}{\`}1,
+  stringstyle=\color{greenstrings},
+}
+\begin{document}
+
+\title{%  
+  Optimization of the model-view-update pattern
+  by using partial evaluation\break%
+}
+
+\author{Liv Hartoft Borre 
+\and Jan Schill
+}
+
+\authorrunning{L. H. Borre \and J. Schill}
+
+\institute{
+IT University of Copenhagen, Copenhagen, Denmark\\
+\email{\{livb,schi\}@itu.dk}
+}
+
+\maketitle
+
+\begin{abstract}
+    \input{chapters/00-abstract}
+\end{abstract}
+
+\newcommand{\jan}[1]{\par\smallskip\noindent{\small\llap{\textbf{{jan:}~~}}{\textsf{#1}}}\par\smallskip}
+\newcommand{\liv}[1]{\par\smallskip\noindent{\small\llap{\textsf{{liv:}~~}}{\textsl{#1}}}\par\smallskip}
+
+\section{Introduction}
+\input{chapters/01-introduction.tex}
+\newpage
+
+\section{The JaLi language} \label{jali}
+\input{chapters/02-jali.tex}
+\newpage
+
+\section{Reducer}
+\input{chapters/03-reducer.tex}
+\newpage
+
+\section{Model-view-update architecture in JaLi} \label{Model-view-update-architecture-in-JaLi}
+\input{chapters/04-mvu-jali.tex}
+\newpage
+
+\section{Reducing the model-view-update architecture}
+\input{chapters/05-reducing_elm.tex}
+\newpage
+
+\section{Conclusion}
+\input{chapters/06-conclusion.tex}
+
+\section{--Old stuff--}
+\input{chapters/old-stuff.tex}
+\newpage
+
+% \subsection{A Subsection Sample}
+% Please note that the first paragraph of a section or subsection is not indented. The first paragraph that follows a table, figure, equation etc. does not need an indent, either.
+
+% Subsequent paragraphs, however, are indented.
+
+% \subsubsection{Sample Heading (Third Level)} 
+% Only two levels of headings should be numbered. Lower level headings remain unnumbered; they are formatted as run-in headings.
+
+% \paragraph{Sample Heading}
+% The contribution should contain no more than four levels of headings. Table~\ref{tab1} gives a summary of all heading levels.
+
+% \begin{table}
+% \caption{Table captions should be placed above the tables.}\label{tab1}
+% \begin{tabular}{|l|l|l|}
+% \hline
+% Heading level &  Example & Font size and style\\
+% \hline
+% Title (centered) &  {\Large\bfseries Lecture Notes} & 14 point, bold\\
+% 1st-level heading &  {\large\bfseries 1 Introduction} & 12 point, bold\\
+% 2nd-level heading & {\bfseries 2.1 Printing Area} & 10 point, bold\\
+% 3rd-level heading & {\bfseries Run-in Heading in Bold.} Text follows & 10 point, bold\\
+% 4th-level heading & {\itshape Lowest Level Heading.} Text follows & 10 point, italic\\
+% \hline
+% \end{tabular}
+% \end{table}
+
+
+% Please try to avoid rasterized images for line-art diagrams and schemas. Whenever possible, use vector graphics instead (see Fig.~\ref{fig1}).
+
+% \begin{figure}
+% \includegraphics[width=\textwidth]{fig1.eps}
+% \caption{A figure caption is always placed % below the illustration.
+% Please note that short captions are centered, while long ones are justified by the macro package automatically.} \label{fig1}
+% \end{figure}
+
+%
+% the environments 'definition', 'lemma', 'proposition', 'corollary',
+% 'remark', and 'example' are defined in the LLNCS documentclass as well.
+%
+
+% For citations of references, we prefer the use of square brackets and consecutive numbers. Citations using labels or the author/year convention are also acceptable. The following bibliography provides a sample reference list with entries for journal articles~\cite{ref_article1}, an LNCS chapter~\cite{ref_lncs1}, a book~\cite{ref_book1}, proceedings without editors~\cite{ref_proc1}, and a homepage~\cite{ref_url1}. Multiple citations are grouped
+% \cite{ref_article1,ref_lncs1,ref_book1},
+% \cite{ref_article1,ref_book1,ref_proc1,ref_url1}.
+%
+% ---- Bibliography ----
+%
+% BibTeX users should specify bibliography style 'splncs04'.
+% References will then be sorted and formatted in the correct style.
+\bibliographystyle{splncs04}
+\begin{thebibliography}{8}
+\bibitem{ref_article1}
+Author, F.: Article title. Journal \textbf{2}(5), 99--110 (2016)
+
+% \bibitem{ref_book1}
+% Author, F., Author, S., Author, T.: Book title. 2nd edn. Publisher,
+% Location (1999)
+
+% \bibitem{ref_proc1}
+% Author, A.-B.: Contribution title. In: 9th International Proceedings
+% on Proceedings, pp. 1--2. Publisher, Location (2010)
+
+% \bibitem{ref_url1}
+% LNCS Homepage, \url{http://www.springer.com/lncs}. Last accessed 4
+% Oct 2017
+\end{thebibliography}
+\end{document}
