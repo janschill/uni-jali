@@ -227,10 +227,10 @@ updateAndPatch
 *)
 
 func updateAndPatch action =
-  oldModel = readGlobal ("model");
+  oldModel = readGlobal ('model');
   newModel = update (action) (oldModel);
   eval (patchToJs (diff (view newModel) (oldModel)))
-  setGlobal ("model") (newModel)
+  setGlobal ('model') (newModel)
 end
 
 (*
