@@ -182,13 +182,7 @@ let rec reduce2 (e: Expr) (context: bool) (store: Expr Env): Expr =
                     | Some (Variable y) when y = dyn -> StaticMatch [x, Variable dyn]
                     | v -> printfn "Unexpected value %A for dynamic %s" v x; NoMatch
 
-                | Variable x, _ ->
-                    // printfn "Looking up %s in match --> %A" x <| tryLookup store x
-                    match tryLookup store x with
-                    | Some (Variable x') when x = x' -> DynamicMatch <| collect case // If actual is dynamic, just collect bindings
-                    | v ->
-                        printfn "Unexpected value %A for dynamic %s" v x
-                        NoMatch
+                | Variable x, _ -> DynamicMatch <| collect case // If actual is dynamic, just collect bindings
                 // REPORT: The key problem seems to be that ADT values has too many different representations: Constant ADTValue,
                 //         Constant ADTClosure, Apply Variable. Likely the reducer will fail on similarly missing cases as soon
                 //         as we try it on a larger program
