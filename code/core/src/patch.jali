@@ -6,18 +6,6 @@ type Differ =
   | Change Node
   | Path Integer Differ;
 
-func update msg m =
-  match msg with
-  | Increment -> m + 1
-  | Decrement -> m - 1
-end
-
-func view model =
-  Tag ('div') ([]) ([
-      Text (model)
-  ])
-end
-
 (* List helper functions *)
 func head ls =
   match ls with
@@ -41,11 +29,12 @@ func attributesToHTML attributes =
       match k with
       | Click ->
         ' onclick="(() => { ' +
-        'TODO: (patchToJs () ())' +
+        '   eval(' + v + ')' +
         '})()"'
       | _ -> ' ' + k + '=' + v + ' ' + (attributesToHTML xs)
 end
 
+(* Script tags do not have children *)
 func scriptTagToHTML children =
   match (head children) with
   | Text (t) -> '<script>' + t + '</script>'
@@ -105,8 +94,6 @@ func diff view1 view2 =
       if (s1 == s2) then Null else Change(Text s2)
 end
 
-
-
 (*
   Looping through the sequence of elements:
   [0,1,0] means:
@@ -115,15 +102,16 @@ end
     - select first element
   `document.body.children[0].children[1].children[0]`
 *)
-func loop1 str list =
+func documentChildrenLoop str list =
   (match list with
   | [] -> str
   | x::xs ->
     s = str + '.children[' + x + ']';
-    loop1 (s) (xs))
+    documentChildrenLoop (s) (xs))
 end
+
 func documentChildren seq =
-  loop1 ('document.body') (seq)
+  documentChildrenLoop ('document.body') (seq)
 end
 
 func changeInnerHTMLToString seq value =
@@ -201,10 +189,31 @@ changes = diff (view (init)) (view (update (Increment) (init)));
 changes
 *)
 
-func dynamicDiff model =
-  newModel = update Increment model;
-  patchToJs (diff (view model) (view newModel))
-  // diff (view model) (view (update Increment model))
+func update msg m =
+  match msg with
+  | Increment -> m + 1
+  | Decrement -> m - 1
 end
 
-dynamicDiff
+func updatePatchIncrement model =
+  newModel = update Increment model;
+  patchToJs (diff (view model) (view newModel))
+end
+
+func updatePatchDecrement model =
+  newModel = update Decrement model;
+  patchToJs (diff (view model) (view newModel))
+end
+
+func view model =
+  Tag ('div') ([]) ([
+    Tag ('button') ([Click, updatePatch Increment]) ([Text ('Increment')]),
+    Tag ('p') ([]) ([
+      Text (model)
+    ]),
+    Tag ('button') ([Click, updatePatch Decrement]) ([Text ('Decrement')]),
+    Tag ('script') ([]) (Text model)
+  ])
+end
+
+view 0
