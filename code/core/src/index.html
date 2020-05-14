@@ -3,14 +3,23 @@
 
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Hello World</title>
+  <title>Button counter</title>
 </head>
 
 <body>
-  <div><button onclick="(() => { TODO: (patchToJs () ())})()"><span>Increment</span></button>
-    <p><span>1</span></p><button onclick="(() => { TODO: (patchToJs () ())})()"><span>Decrement</span></button>
-  </div>
+  <button onclick=increment()>Increment</button>
+  <p id="model">0</p>
+  <button onclick=decrement()>Decrement</button>
 </body>
 
 </html>
+<script>
+  let count = 0;
+  const model = document.getElementById('model');
+  function increment() {
+    model.textContent = ++count;
+  }
+  function decrement() {
+    model.textContent = --count;
+  }
+</script>

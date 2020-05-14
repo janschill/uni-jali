@@ -22,8 +22,8 @@ type Value =
     | TupleValue of Value * Value
     | ListValue of Value list
     | ADTValue of string * string * Value list
-    | Closure of string * string list * Expr * Value Env (* (f, x, fBody, fDeclEnv) *)
-    | ADTClosure of ADTConstructor * supertype: string * Value Env //  Env is never used...
+    | Closure of string * string list * Expr * Value Env
+    | ADTClosure of ADTConstructor * supertype: string * Value Env
 
 and Expr =
     | ConcatC of Expr * Expr
@@ -38,21 +38,10 @@ and Expr =
     | Negate of Expr
     | Let of string * Expr * Expr
     | If of Expr * Expr * Expr
-    | Function of string * string list * Expr * Expr (* (f, x, fBody, letBody) *)
+    | Function of string * string list * Expr * Expr
     | ADT of string * ADTConstructor list * Expr
     | Apply of Expr * Expr list
     | Pattern of Expr * (Expr * Expr) list
-
-// and Pattern =
-//     | ConstPattern of Value
-//     | Binding of string
-
-
-
-
-
-
-(* A lot of printing: *)
 
 let rec printValue d =
     match d with
@@ -109,28 +98,6 @@ let rec printExpr (d: Expr): string =
         + " with\n"
         + (List.reduce (+)
            <| List.map (fun (c, e) -> "| " + printExpr c + " -> " + printExpr e + "\n") patterns)
-
-
-// let rec printArg (d: Expr): string =
-//     match d with
-//     | ConcatC (h, t) -> "Con(" + printExpr h + "::" + printExpr t + ")"
-//     | List (es) ->
-//         "["
-//         + (List.map printExpr es
-//            |> List.reduce (fun a b -> a + ", " + b))
-//         + "]"
-//     | Constant v -> printValue v
-//     | StringLiteral s -> sprintf "'%s'" s
-//     | Variable x -> sprintf "Var() %s" x
-//     | Tuple (a, b) -> "(" + printExpr a + ", " + printExpr b + ")"
-//     | Prim (op, a, b) -> "Prim( " + printExpr a + op + printExpr b + ")"
-//     | Let (name, a, b) -> sprintf "Letbind"
-//     | If (a, b, c) -> sprintf "IfElse"
-//     | Function (name, pars, body, next) -> sprintf "Func(" + name + ")"
-//     | ADT (name, cs, next) -> "ADT(" + name + ")"
-//     | Apply (name, args) -> "Apply(" + printArg name + ")"
-//     | Pattern (x, patterns) -> sprintf "Pattern"
-//     | _ -> sprintf "%O" d
 
 let rec printArg (d: Expr): string =
     match d with
