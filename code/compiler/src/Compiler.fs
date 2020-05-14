@@ -195,10 +195,7 @@ let rec reduce2 (e: Expr) (context: bool) (store: Expr Env): Expr =
                 | _, Variable x ->
                     match tryLookup store x with
                     | Some (Constant (ADTValue (name, sname, vals))) -> NoMatch // the pattern variable might be an adtvalue, e.g. Increment, but matching would have happened in the previous statement
-                    | None -> StaticMatch [ (x, actual) ] // Pattern variable
-                    | v ->
-                        printfn "Unexpected value for %s -> %A" x v
-                        NoMatch
+                    | _ -> StaticMatch [ (x, actual) ] // Pattern variable
                 | Constant v, Constant v' when v = v' -> StaticMatch []
                 | Apply (name, exprs), Apply (pname, pats) when List.length exprs = List.length pats ->
                     matchMany (name :: exprs) (pname :: pats)
