@@ -61,8 +61,7 @@ func attributesToHTML attributes =
   | x::xs ->
     match x with
     | (k, v) ->
-      match k with
-      | Click ->
+      | #Click ->
         ' onclick="(() => { ' +
         '   eval(' + v + ')' +
         '})()"'
