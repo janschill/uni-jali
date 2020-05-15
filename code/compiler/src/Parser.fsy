@@ -47,6 +47,8 @@
 %token TYPE
 %token USCORE
 %token WITH
+%token HASH
+
 
 /* lowest precedence  */
 %nonassoc low
@@ -195,8 +197,11 @@ IfStatement:
 MatchExpr: MATCH Expression WITH PatternBody { Pattern($2, $4) }
 
 PatternBody:
-  | PIPE Expression RARROW Expression { [($2, $4)] }
-  | PIPE Expression RARROW Expression PatternBody { ($2, $4)::$5 }
+  | PIPE Patternbrr RARROW Expression { [($2, $4)] }
+  | PIPE Patternbrr RARROW Expression PatternBody { ($2, $4)::$5 }
+Patternbrr:
+  | HASH NAME { Constant(ADTValue ($2, "none", [])) }
+  | Expression { $1 }
 
 Baseoperation:
   | LogicalNegation { $1 }

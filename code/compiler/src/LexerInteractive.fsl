@@ -59,6 +59,7 @@ rule Token = parse
   | ">="             { GE }
   | "<="             { LE }
   | '!'              { NOT }
+  | '#'              { HASH }
   | '('              { LPAR }
   | ')'              { RPAR }
   | '['              { LSQUARE }
