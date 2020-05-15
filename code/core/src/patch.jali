@@ -6,6 +6,41 @@ type Differ =
   | Change Node
   | Path Integer Differ;
 
+func update msg m =
+  match msg with
+  | #Increment -> m + 1
+  | #Decrement -> m - 1
+end
+
+func view model =
+
+    Tag ('p') ([]) ([
+      Text (model)
+    ])
+
+end
+
+
+(* model-view-update-cycle *)
+func diff view1 view2 =
+  func fold nodes1 nodes2 index =
+    match (nodes1, nodes2) with
+    | (n1::r1, n2::r2) ->
+      (match diff (n1) (n2) with
+      | #Null -> fold (r1) (r2) (index + 1)
+      | change -> Path (index) (change))
+    | _ -> Null
+  end
+
+  match (view1, view2) with
+  | (Tag (t1) (atts1) (children1), Tag (t2) (atts2) (children2)) ->
+      if t1 == t2
+      then fold (children1) (children2) (0)
+      else Change (Tag (t2) (atts2) (children2))
+  | (Text (s1), Text (s2)) ->
+      if (s1 == s2) then Null else Change(Text s2)
+end
+
 (* List helper functions *)
 func head ls =
   match ls with
@@ -80,7 +115,7 @@ func diff view1 view2 =
     match (nodes1, nodes2) with
     | (n1::r1, n2::r2) ->
       (match diff (n1) (n2) with
-      | Null -> fold (r1) (r2) (index + 1)
+      | #Null -> fold (r1) (r2) (index + 1)
       | change -> Path (index) (change))
     | _ -> Null
   end
@@ -140,7 +175,7 @@ func patchToJs changes =
     (match chs with
     | Path (idx) (d) ->
       loop (append (seq) ([idx])) (d)
-    | Null -> 'patchToJs -> Null'
+    | #Null -> 'patchToJs -> Null'
     | Change (n) ->
       (match n with
       | Text (t) ->
@@ -189,31 +224,8 @@ changes = diff (view (init)) (view (update (Increment) (init)));
 changes
 *)
 
-func update msg m =
-  match msg with
-  | Increment -> m + 1
-  | Decrement -> m - 1
+func dynamicDiff model =
+   patchToJs (diff (view model) (view (update Decrement model)))
 end
 
-func updatePatchIncrement model =
-  newModel = update Increment model;
-  patchToJs (diff (view model) (view newModel))
-end
-
-func updatePatchDecrement model =
-  newModel = update Decrement model;
-  patchToJs (diff (view model) (view newModel))
-end
-
-func view model =
-  Tag ('div') ([]) ([
-    Tag ('button') ([Click, updatePatch Increment]) ([Text ('Increment')]),
-    Tag ('p') ([]) ([
-      Text (model)
-    ]),
-    Tag ('button') ([Click, updatePatch Decrement]) ([Text ('Decrement')]),
-    Tag ('script') ([]) (Text model)
-  ])
-end
-
-view 0
+dynamicDiff
