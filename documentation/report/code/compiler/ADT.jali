@@ -1,0 +1,12 @@
+| ADT (adtName, (constructors: (string * Type list) list), expression) ->
+    let eval constrDecl =
+        match constrDecl with
+        | name, [] -> 
+            (name, Constant <| ADTValue(name, adtName, []))
+        | name, types -> 
+            (name, Constant <| ADTClosure((name, types), adtName, []))
+
+    let storeWithConstructors =
+        List.fold (fun s c -> eval c :: s) store constructors
+
+    reduce expression context storeWithConstructors

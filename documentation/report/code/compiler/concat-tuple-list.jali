@@ -1,0 +1,15 @@
+| ConcatC (h, t) ->
+    let head = reduce h context store
+    let tail = reduce t context store
+    match (head, tail) with
+    | (v, List (vs)) -> List(v :: vs)
+    | _ -> ConcatC(head, tail)
+| Tuple (expr1, expr2) ->
+    let r1 = reduce expr1 context store
+    let r2 = reduce expr2 context store
+    Tuple(rexpr1, rexpr2)
+| List (list) ->
+    let reducedItems =
+        List.map (fun e -> reduce e context store) list
+    
+    List(reducedItems)

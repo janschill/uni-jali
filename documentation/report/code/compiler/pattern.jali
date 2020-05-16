@@ -1,0 +1,27 @@
+| Pattern (matchExpression, patternList) ->
+    let rActual = reduce matchExpression context store
+    match rActual with
+    | Constant v ->
+        patternList
+        |> List.pick (fun (pat, body) ->
+            let m = match1 (rActual, pat)
+            match m with
+            | StaticMatch bindings -> Some(reduce body context <| (bindings @ store))
+            | _ -> None)
+    | _ ->
+        let reducedMatches =
+            patternList
+            |> List.choose (fun (pat, body) ->
+                let m = match1 (rActual, pat)
+                match m with
+                | StaticMatch bindings -> Some((pat, reduce body context <| (bindings @ store)), true)
+                | DynamicMatch bindings -> Some((pat, reduce body false <| (bindings @ store)), false)
+                | NoMatch -> None)
+
+        match reducedMatches with
+        | ((_, body), true) :: _ -> body
+        | [] ->
+            raise
+            <| ReduceError(e, "All patterns are known statically to not match")
+        | many -> Pattern(rActual, List.map fst many)
+

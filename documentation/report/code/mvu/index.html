@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <title>Button counter</title>
+</head>
+
+<body>
+  <div>
+    <button onclick=updateAndPatch(Inc)><span>Increment</span></button>
+    <p id="model"><span>0</span></p>
+    <button onclick=updateAndPatch(Dec)><span>Decrement</span></button>
+  </div>
+</body>
+
+</html>
+
+<script>
+  let model = 0;
+  class Message { }
+  class Increment extends Message { }
+  class Decrement extends Message { }
+  const Inc = new Increment();
+  const Dec = new Decrement();
+
+  class Node { }
+  class Tag extends Node {
+    constructor(elementName, attributes, children) {
+      super();
+      this.elementName = elementName;
+      this.attributes = attributes;
+      this.children = children;
+    }
+  }
+  class Text extends Node { constructor(text) { super(); this.text = text; } }
+
+  class Differ { }
+  class Null extends Differ { }
+  class Change extends Differ { constructor(node) { super(); this.node = node; } }
+  class Path extends Differ {
+    constructor(index, differ) {
+      super();
+      this.index = index;
+      this.differ = differ;
+    }
+  }
+
+  class Action { }
+  class Click extends Action { }
+
+  function update(message, model_) {
+    if (message instanceof Increment) {
+      return ++model_;
+    } else {
+      return --model_;
+    }
+  }
+
+  function diff(view1, view2) {
+    if (view1 instanceof Tag && view2 instanceof Tag) {
+      if (view1.elementName === view2.elementName) {
+        function fold(nodes1, nodes2, index) {
+          if (Array.isArray(nodes1)
+            && Array.isArray(nodes2)
+            && nodes1.length > 0 && nodes2.length > 0) {
+            const tail1 = nodes1.slice(1);
+            const tail2 = nodes2.slice(1);
+            const change = diff(nodes1[0], nodes2[0]);
+            if (change instanceof Null) {
+              return fold(tail1, tail2, ++index);
+            } else {
+              return new Path(index, change)
+            }
+          } else {
+            return new Null();
+          }
+        }
+        return fold(view1.children, view2.children, 0);
+      } else {
+        return new Change(new Tag(view2.elementName, view2.attributes, view2.children));
+      }
+    } else {
+      const textValue1 = view1.text;
+      const textValue2 = view2.text;
+      return textValue1 === textValue2 ? new Null() : new Change(new Text(textValue2));
+    }
+  }
+
+  function changeInnerHTML(seq, value) {
+    const element = ((sq) => {
+      function loop(str, list) {
+        if (list.length === 0) {
+          return str;
+        } else {
+          return loop(`${str}.children[${list[0]}]`, list.slice(1));
+        }
+      }
+      return loop('document.body', seq);
+    })(seq);
+    return `${element}.innerHTML = ${value};`;
+  }
+
+  function patchToJs(changes) {
+    function loop(seq, chs) {
+      if (chs instanceof Null) {
+        return 'patchToJs: No changes detected';
+      } else if (chs instanceof Path) {
+        return loop(seq.concat(chs.index), chs.differ);
+      } else {
+        const node = chs.node;
+        if (node instanceof Text) {
+          return changeInnerHTML(seq, node.text);
+        } else {
+          return 'patchToJs: Not implemented: changeElement(node, seq)';
+        }
+      }
+    }
+    return loop([0], changes);
+  }
+
+  function view(model) {
+    return new Tag('div', [], [
+      new Tag('button', [(new Click(), 'updateAndPatch(new Increment())')], [
+        new Text('Increment')
+      ]),
+      new Tag('p', [], [new Text(model)]),
+      new Tag('button', [(new Click(), 'updateAndPatch(new Decrement())')], [
+        new Text('Decrement')
+      ]),
+    ]);
+  }
+
+  function updateAndPatch(message) {
+    oldModel = model;
+    newModel = update(message, oldModel);
+    eval(patchToJs(diff(view(oldModel), view(newModel))));
+    model = newModel;
+  }
+
+</script>

@@ -1,0 +1,7 @@
+let rec reduce 
+    (e: Expr) 
+    (context: bool) 
+    (store: Expr Env): Expr =
+    match e with
+    | Constant c -> Constant c
+    | Variable x -> lookup store x

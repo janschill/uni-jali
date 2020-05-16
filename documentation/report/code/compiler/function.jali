@@ -1,0 +1,13 @@
+| Function (name, parameters, body, expr2) ->
+    let bodyStore =
+        (name, Constant <| Closure(name, parameters, body, [])) 
+        :: List.map (fun p -> p, Variable p) parameters
+        @ store
+
+    let rbody = reduce body context bodyStore
+
+    let cl =
+        Constant <| Closure(name, parameters, rbody, [])
+
+    ((name, cl) :: store) 
+    |> reduce expr2 context

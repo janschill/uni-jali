@@ -1,0 +1,26 @@
+| Apply (f, args) ->
+    let func = reduce f context store
+    let reduceArgs = List.map (fun a -> reduce a context store)
+
+    match func with
+    | Constant (Closure (name, pars, body, _)) ->
+        if (pars.Length <> args.Length) then fail "Partial application not implemented"
+        else if (context) then
+            let nameArgPairs = reduceArgs args |> List.zip pars
+            nameArgPairs @ store |> reduce body context 
+        else
+            let args = reduceArgs args
+            Apply(func, args)
+
+    | Constant (ADTClosure ((name, argTypes), adtName, [])) ->
+        List.zip argTypes args |> ignore 
+        let args = reduceArgs args
+
+        if allStatic args
+        then Constant(ADTValue(name, adtName, getValues args))
+        else Apply(func, args)
+
+    | Constant c -> Constant c
+    | _ ->
+        sprintf "Reduced func not a function: %O" func
+        |> fail

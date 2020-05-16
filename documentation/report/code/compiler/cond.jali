@@ -1,0 +1,10 @@
+| If (cond, thenExpr, elseExpr) ->
+    let rcond = reduce (cond) context store
+    match rcond with
+    | Constant (BooleanValue (b)) ->
+        if b 
+        then reduce (thenExpr) context store
+        else reduce (elseExpr) context store
+    | _ -> If(rcond, 
+            reduce (thenExpr) false store, 
+            reduce (elseExpr) false store)
