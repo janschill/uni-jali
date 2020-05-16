@@ -128,8 +128,8 @@ let rec eval (e: Expr) (env: Value Env): Value =
             tryMatch (tryLookup env) x case
             |> Option.map (fun bs -> (case, expr, bs))
 
-        let x = eval matchExpression env
-        match List.tryPick (matchPattern x) patternList with
+        let evaluatedMatch = eval matchExpression env
+        match List.tryPick (matchPattern evaluatedMatch) patternList with
         | Some (case, expr, bindings) -> env @ bindings |> eval expr
         | None -> failwith "Pattern match incomplete"
     | _ -> failwith "No match found"

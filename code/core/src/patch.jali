@@ -75,11 +75,18 @@ func viewToHTML tags =
 end
 
 (* model-view-update-cycle *)
+func update msg m =
+  match msg with
+  | Increment -> m + 1
+  | Decrement -> m - 1
+end
+
 func diff view1 view2 =
   func fold nodes1 nodes2 index =
     match (nodes1, nodes2) with
     | (n1::r1, n2::r2) ->
-      (match diff (n1) (n2) with
+      x = diff (n1) (n2);
+      (match x with
       | Null -> fold (r1) (r2) (index + 1)
       | change -> Path (index) (change))
     | _ -> Null
@@ -165,17 +172,21 @@ func html tags =
   '</html>'
 end
 
-(*
 func view model =
   Tag ('div') ([]) ([
-    Tag ('button') ([]) ([Text ('Increment')]),
-    Tag ('p') ([]) ([
-      Text (model)
-    ]),
-    Tag ('button') ([]) ([Text ('Decrement')])
+    Text (model)
   ])
 end
 
+func dynamicDiff model =
+  // diff (view model) (view (update Increment model))
+  patch (diff (view model) (view (update Increment model)))
+end
+
+dynamicDiff
+
+(*
+===================================
 view1 = view (1) ('p');
 view2 = view (2) ('span');
 view1 = view (1);
@@ -187,14 +198,6 @@ changes = diff (view1) (view2);
 patchToJs changes
 changes = diff (view (init)) (view (update (Increment) (init)));
 changes
-*)
-
-func update msg m =
-  match msg with
-  | Increment -> m + 1
-  | Decrement -> m - 1
-end
-
 func updatePatchIncrement model =
   newModel = update Increment model;
   patchToJs (diff (view model) (view newModel))
@@ -215,5 +218,4 @@ func view model =
     Tag ('script') ([]) (Text model)
   ])
 end
-
-view 0
+*)
