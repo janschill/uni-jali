@@ -112,8 +112,8 @@ end
 (* model-view-update-cycle *)
 func update msg m =
   match msg with
-  | Increment -> m + 1
-  | Decrement -> m - 1
+  | #Increment -> m + 1
+  | #Decrement -> m - 1
 end
 
 func diff view1 view2 =

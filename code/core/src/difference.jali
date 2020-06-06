@@ -26,7 +26,7 @@ func diff view1 view2 =
     | (n1::r1, n2::r2) ->
       x = diff (n1) (n2);
       (match x with
-      | Null -> (fold (r1) (r2) (index + 1))
+      | #Null -> (fold (r1) (r2) (index + 1))
       | change -> Path (index) (change))
     | _ -> Null
   end
@@ -47,7 +47,6 @@ end
 // changes
 
 func dynamicDiff model =
-  // view (update Increment model)
   diff (view model) (view (update Increment model))
 end
 
