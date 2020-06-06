@@ -1,0 +1,30 @@
+<html>
+
+<body>
+  <div>
+    <button onclick=updateAndPatchIncrement()>
+      <span>Increment</span>
+    </button>
+    <p><span>0</span></p>
+    <button onclick=updateAndPatchDecrement()>
+      <span>Decrement</span>
+    </button>
+  </div>
+</body>
+
+</html>
+<script>
+  let model = 0;
+  function updateAndPatchIncrement() {
+    eval(
+      'document.body.children[0].children[1].children[0].innerHTML = ' + (model + 1)
+    );
+    model = model + 1;
+  }
+  function updateAndPatchDecrement() {
+    eval(
+      'document.body.children[0].children[1].children[0].innerHTML = ' + (model - 1)
+    );
+    model = model - 1;
+  }
+</script>
