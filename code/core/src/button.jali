@@ -1,4 +1,4 @@
-type Node = Text String | Tag String [Tuple] [Node];
+type Node = Text String | Tag String [(String, String)] [Node];
 
 init = 0;
 
