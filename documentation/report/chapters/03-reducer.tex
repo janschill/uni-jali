@@ -1,84 +1,131 @@
-When all inputs to a program are given, an interpreter evaluates the program, and obtains a result. This is possible only when all of the inputs are known. 
-Partial evaluation is a program optimization technique concerned with specialisation and evaluation of programs where only parts of the inputs are known. 
+The essence of what we are going to do is that we are going to exploit as much of the statically known data in the program, by reducing it into a smaller residual program, which is then compiled into \gls{html} and JavaScript. The program we are reducing is the \gls{mvu} described in the introduction \ref{introduction}. Reducing this program will allow us to optimize the entire diffing cycle, because we can generate JavaScript functions that know exactly what document elements to change, when called. This is all to achieve improved efficiency compared to current \gls{vdom} diffing. However, in order to understand and apply it, partial evaluation needs to be understood.
 
-Most developers are familiar with specialisation from partial application of functions. Partially applying a two-argument function obtains a one argument function where the first value has been 'fixed' to the given value. Fixing the variable to a specific value is called specialization. As an example, partially applying the function in Figure \ref{fig:specialize-easy} with the static parameter 3 yields a new function which adds 3 to any argument it receives. 
-\begin{figure}
-    \begin{verbatim}
-        add x y = x + y;
-        int -> int -> int
-    \end{verbatim}
-Function specialized with static input 3
-    \begin{verbatim}
-        add3 y = 3 + y;
-        int -> int
-    \end{verbatim}
-    \caption{Small example}
-    \label{fig:specialize-easy}
-\end{figure}
-
-A partial evaluator is an algorithm which, when given a program and some of its input, will attempt to execute the program as much as possible. The output is an reduced 'residual' program which executes the rest of the program when given the rest of the inputs. It works as if the input has been 'incorporated' into the original program, as much as possible has been evaluated, and unnecessary branches has been reduced away. Evaluation of the residual program with the rest of the inputs should yield the same output as evaluation of the original program with all of the inputs. In that sense, it is a specialized version of the original program, and partial evaluation is also known as 'program specialization'.
-
-Figure \ref{fig:specialize-update} shows the two input program update, which either increments or decrements the model by one, based on the given msg. The second program is the program specialized with the static parameter Increment.
-\begin{figure}
-    \begin{verbatim}
-    func update msg model =
-      match msg with
-      | Increment -> model + 1
-      | Decrement -> model - 1
-    end
-    \end{verbatim}
-    
-    \begin{verbatim}
-    func updateIncrement model =
-      model + (1)
-    end
-    \end{verbatim}
-    
-    \caption{Caption}
-    \label{fig:specialize-update}
-\end{figure}
-
-There are three main partial evaluation techniques: \textit{symbolic computation}, \textit{unfolding function calls}, and \textit{program point specialization}.
-- Symbolic execution: computing with symbolic values in terms of rewriting or evaluation. \textcolor{red}{Symbols (here expressions) are rewritable terms while values imply the end of rewritability.}
-- Unfolding: replacing a function call by a copy of f's body where all parameter variables has been replaced by the correponding arguments.
-- Program point specialization: 
-
-There are two strategies for unfolding; either it can be done \textit{on the fly} or in a post phase. We will be using the first. Unfolding on the fly improves the residual program, but requires a strategy that avoids infinite unfolding, avoids duplication code and computation, and that produces as few residual calls as possible. 
-- One strategy to avoid infinite unfolding it to just not unfold function calls - however this would mean that the function calls would not be unfolded even though the arguments are static, resulting in very little specialization. 
-- Another strategy is to only unfold function calls when all parameters are static. \textcolor{red}{(I don't fully understand the next, help) This introduces a risk of infinite unfolding, but only if there is already a potential infinite loop in the subject program, controlled only by static conditionals (or none at all).} 
-\liv {Do i need to talk about binding-time analysis? Is it only relevant for this strategy? (finding a congruent division, annotating expressions as either s or d)}
-
-** Sestoft book ** 
-- pre-compute all expressions involving n
-- unfold the recursive calls to function f
-- reduce x*1 to x. \textbf{This optimization was possible because the program's control is completely determined by n.} If on the other hand x = 5 but n is unknown, specialization gives no significant speedup.
+\subsection{Partial evaluation}
+When all inputs to a program are given, an interpreter evaluates the program, and obtains a result. However, this is possible only when all of the inputs are known. 
+Partial evaluation is a program optimization technique concerned with specialization and evaluation of programs where only parts of the inputs are known. 
 \\\\
-Intuitively, specialization is done by performing those of p's calculations that depend only on in1, and by generating code for those calculations that depend on the as yet unavailable input in2. A partial evaluator performs a mixture of execution and code generation actions. 
+Most developers are familiar with specialization from partial application of functions. Partially applying a two-argument function obtains a one argument function where the first value has been \textit{fixed} to the given value. Fixing the variable to a specific value is called specialization. 
 \\\\
-Three main partial evaluation techniques are well known from program transformation
-[43]: \textit{symbolic computation}, \textit{unfolding function calls}, and \textit{program point specialization}. The latter is a combination of definition and folding, amounting to memoization. Figure 1.2 applied the first two techniques; the third was unnecessary since the specialized program had no function calls. The idea of program point specialization is that a single function or label in program p may appear in the specialized program pin1 in several specialized versions, each corresponding to data determined at partial evaluation time.\\
-
-- Chief motivation is speedup. \\
-- Specialization is advantageous if in2 changes more frequently than in1. Construct pin1 (which is faster than p) and run it on in2 until in1 changes again.\\
-- Partial evaluation can even be advantageous in a \textit{single run}, since it often happens that partial evaluation p on in1 and then running on in2, is faster than running p on in1 and in2. An analogy is that compilation plus target run time is often faster than interpretation in Lisp.\\
+A partial evaluator is an algorithm which, when given a program and some of its input, will attempt to execute the program as far as possible, and output a reduced \textit{residual} program. When given the remaining inputs the residual program will execute the rest of the program. It works as if the input has been \textit{incorporated} into the original program, as much as possible has been evaluated, and unnecessary branches have been reduced away. Evaluation of the residual program with the remainder of the inputs should yield the same output as evaluation of the original program with all of the inputs. In that sense, it is a specialized version of the original program. Partial evaluation is also known as \textit{program specialization}.
 \\\\
-Does partial evaluation eliminate the need to write compilers? Yes and no...\\
-Pro: ...\\
-Contra: the generated target code is in the partial evaluator's output language,
-typically the language the interpreter is written in. ... \\
+The below Figure \ref{specialize-easy} is an example from \cite{Sestoft} showing a two-input program p for computing $x^n$. Partially evaluating the program with the static parameter 5 yields the second specialized program p5.
 
-** Sestoft book end ** \\\\
+\begin{lstlisting}[columns=fullflexible, label={specialize-easy}, language=Other, caption={Specialization of a program to compute $x^n$}]
+f(n,x) =
+  if n = 0 then 1
+  else if even(n) then f(n/2,x)^2
+  else x * f(n-1,x)
 
+f5(x) = x * ((x^2)^2)
+\end{lstlisting}
 
-
-
-
-
-
-Our partial evaluator is going to produce a residual program by running through the program and pre-compute as much as possible, based on static variables and arguments to function calls. \\\\
-    
+The reason why this is beneficial is for efficiency gains. Partially evaluating the program with 5 yields the program \texttt{p5} where this expensive computation has already been done. Thus \texttt{p5(x)} is a much faster program than \texttt{p(5)(x)}. It is worth to note that this optimization is possible because n determines the control of the program. If \texttt{x} was the static parameter, it would not be possible to achieve the same optimization. 
 \\\\
-The essence of what we are going to do is that we are going to exploit as much of the statically known data in the program, by reducing it into a smaller residual program, which is then compiled into html and javascript. The program we are reducing is the update-model-view described in chapter 1. Reducing this program will allow us circumvent the entire diffing cycle, because we can generate JavaScript functions that knows exactly what document elements to change, when that are called. 
+Figure \ref{specialize-update} shows another example, of the two-input function \texttt{update}, which either increments or decrements the model by one, based on the given \texttt{msg}. Partially evaluating the function with the static parameter \texttt{Increment} yields a new function which always adds 1 to the model it receives. 
+
+\begin{lstlisting}[columns=fullflexible, label={specialize-update}, language=JaLi, caption={Specialization of the update function on increment}]
+func update msg model =
+  match msg with
+  | Increment -> model + 1
+  | Decrement -> model - 1
+end
+
+func updateIncrement model =
+  model + 1
+end
+\end{lstlisting}
+
+Let's assume that each branch contains some expensive computation. Partially evaluating \texttt{update} with \texttt{Increment} yields the function \texttt{updateIncrement} where this expensive computation has already been done. This is desirable when the function is called with several different second parameters, as it allows to reuse \texttt{updateIncrement} with several different arguments without recomputing the expensive computation. Thus efficiency can be achieved by partially evaluating the \texttt{update} function with each of the inputs \texttt{Decrement} and \texttt{Increment}, and replace all calls to \texttt{update(Increment)} with the specialized function \texttt{updateIncrement}, and replace all calls to \texttt{update(Decrement)} with the reduced function \texttt{updateDecrement}.
+
+\subsection{Approach}
+So what is actually going on in partial evaluation, is a combination of evaluation and code generation. We are evaluating all calculations that depend only on the known input. These expressions are called \textit{static}. All expressions that rely on unknown inputs are called \textit{dynamic}. For each dynamic expression we generate code by replacing it with a new expression. This is described by the following techniques. 
+%\liv {Currently we are reducing expressions away, e.g. when %reducing Function(..), but maybe we shouldn't?: '\textit{In %general, reduction of the static version (at specialization %time) will produce a value, whereas reduction of the dynamic %version will not change its form, only reduce its %subexpressions}'.)}
+There are three main techniques in partial evaluation \cite{Sestoft}: \textit{symbolic computation}, \textit{unfolding function calls}, and \textit{program point specialization}. The two first techniques have been sufficient for this project and will be described here, while the third one will be described in improvements.
+\paragraph{Symbolic computation:} This is the process of computing with symbolic values either by rewriting or evaluation. Symbols, in this context expression, represent rewritable terms, while values imply the end of rewritability. We are going to specialize function bodies by reducing it symbolically; we will rewrite dynamic expressions to other expressions (code generation) and evaluate static expression into values.
+\paragraph{Unfolding:} This means replacing a function call by a copy of \texttt{f's} body where all parameter variables have been replaced by the corresponding arguments. E.g. if there is somewhere in the program that the partial evaluator finds a call to \texttt{unfold Increment 5} it will replace the call with the constant 6.
+\paragraph{Unfolding Strategy:} Unfolding can either be done \textit{on the fly} or in a post phase. We will be using the former. To avoid infinite unfolding, Sestoft \cite{Sestoft} proposes three strategies.
+\begin{enumerate}
+    \item Avoid infinite unfolding by not unfolding function calls, however this would mean that the function calls would not be unfolded even though the arguments are static, resulting in a minimal specialization.
+    \item Only unfold function calls when all parameters are static. This risks only infinite unfolding if the original program had a potential \textit{infinite static loop}, i.e. a loop that does not involve any dynamic tests.
+    \item Not to unfold a function call inside a dynamic conditional. As before, this avoids infinite unfolding as long as the original program does not contain a potential infinite static loop itself.
+\end{enumerate}
+
+We will be using the latter strategy, however since the control flow in our language is also determined by pattern matching, we will extend the constraint to also apply in dynamic match expressions. 
+
+\paragraph{Offline and online partial evaluation:}
+One should note that there are two different processes for partial evaluation: online and offline. Offline divides the partial evaluation into two stages. The first is a preprocessing phase, where expressions are divided in static and dynamic expressions, e.g. by annotating each expression as either dynamic or static, based on the available information. Then during the actual specialization, the decision of whether a certain expression should be reduced or not is based on the precomputed division. Online processing consists of only one phase: the action to take at each expression is decided based on the concrete values computed during specialization. The main advantage of the online process is that it exploits more static information during specialization than the offline process \cite{Sestoft}. The online process will be followed.
+
+%** Sestoft book ** 
+%- pre-compute all expressions involving n
+%- unfold the recursive calls to function f
+%- reduce x*1 to x.
+
+%- Partial evaluation can even be advantageous in a \textit{single run}, since it often happens that partial evaluation p on in1 and then running on in2, is faster than running p on in1 and in2. An analogy is that compilation plus target run time is often faster than interpretation in Lisp.
+
+% Does partial evaluation eliminate the need to write compilers? Yes and no...Pro: ... Contra: the generated target code is in the partial evaluator's output language, typically the language the interpreter is written in. ... 
+
+%** Sestoft book end **
 
 \subsection{Implementation}
+Our partial evaluator is going to produce a residual program by running through the program and pre-compute as much as possible, based on static variables and arguments to function calls. Having detailed the expressions of the JaLi language in Chapter 3, here it will be explain how each of them are reduced by the partial evalutor. 
+\\\\
+\textit{A note on the implementation}: The reduction of the expressions is mostly trivial, however reducing the patterns are quite complex. We believe that this is mainly caused by the abstract syntax behind JaLi, mainly in the different representations of \glspl{adt}. A much simpler implementation of the reducer is very likely, with a better implementation of the abstract syntax. Another notable thing is that this is not an optimal implementation of the reducer, as it may reduce function bodies and other expressions even though no static information is available and thus no reduction will be achieved. For now, this works just fine for the examples demonstrated.
+\\\\
+The partial evaluator is implemented as the single function \texttt{reduce} as seen in listing \ref{reduce-base}. As main parameters it takes an expression to reduce and a store. The store is a list of variable bindings similar to the environment parameter in the interpreter; it is a list of (string, Expr) tuples, mapping a name to an expression. The last parameter is the \textit{context} which expresses whether it is inside a dynamic conditional. This is to implement the unfolding strategy that does not unfold function calls inside dynamic conditionals. When done, the reduce function outputs an Expr.
+\\\\
+Reducing a constant returns the constant. Reducing a variable will look up the variable in the store and return the expression. 
 
+\lstinputlisting[columns=fullflexible, label={reduce-base}, language=JaLi, caption=The reduce function]{./code/compiler/base.jali}
+
+Listing \ref{reduce-ctl} shows the reduction of concatenations, tuples and lists, as these cases resemble each other. We reduce each of the sub-expressions. For concatenation and lists we return a list and for tuples we return a tuple with the reduced sub-expressions.
+
+\lstinputlisting[columns=fullflexible, label={reduce-ctl}, language=JaLi, caption=Reducing concatenations tuples and lists operations]{./code/compiler/concat-tuple-list.jali}
+
+As shown in listing \ref{reduce-prim}, a primitive operation is reduced similarly to the previous, by reducing each sub-expression. If both are constant, the interpreter will be used to evaluate the primitive expression and return a constant value. However, even though one of the sub-expressions are not constant, it may still be possible to reduce the expression. E.g. multiplying a variable with 0 will always yield zero, as seen in the match cases in the listing. For the problems that are being showcased, it suffices to consider only these cases. However, the list is not exhaustive, and a complete partial evaluator should consider many more cases in order to be optimal.
+
+\lstinputlisting[columns=fullflexible, label={reduce-prim}, language=JaLi, caption=Reducing primitive operations]{./code/compiler/prim.jali}
+
+Listing \ref{reduce-let} shows reduction of let-bindings. When reducing let-expressions the body will be reduced first. Then the result will be added to the store, bound to the name of the binding variable. Lastly the following expression will be reduced. This effectively removes the let binding expressions. The expression lives in the store and replaces dynamic variables at the places where it is referenced.
+
+\lstinputlisting[columns=fullflexible, label={reduce-let}, language=JaLi, caption=Reducing let bindings]{./code/compiler/let.jali}
+
+Reducing conditionals is shown in listing \ref{reduce-cond}. First, the conditional expression is reduced. If the expression is a constant boolean value, we already know what branch the program will take, and thus we return the reduction of this branch. If the conditional is not a constant, we return a conditional expression with the branches reduced. As according to our unfolding strategy, we change the context to false, expressing that we are inside a dynamic conditional, and thus should not unfold function calls when encountering them.
+
+\lstinputlisting[columns=fullflexible, label={reduce-cond}, language=JaLi, caption=Reducing conditional expressions]{./code/compiler/cond.jali}
+
+Listing \ref{reduce-function} shows the reduction of functions. In order to handle recursive calls, we add the closure to the store before reducing the function body. Then we create a new closure with the reduced body, add it to the original store, and continue by reducing the second expression that follows the function. Here we always return the reduced expression that follows the function. The function exists as a closure in the store, which will be specialized and unfolded at function calls.
+
+\lstinputlisting[columns=fullflexible, label={reduce-function}, language=JaLi, caption=Reducing functions]{./code/compiler/function.jali}
+
+Reducing \gls{adt} definitions happens in listing \ref{reduce-adt} by adding the constructors to the store and continue reducing the following expression. If the constructor has no parameters, it is an \gls{adt} value and otherwise an \gls{adt} constructor. A simpler representation of \gls{adt} constructors would be desirable, as the differences causes complexity in the patterns matching.
+
+\lstinputlisting[columns=fullflexible, label={reduce-adt}, language=JaLi, caption=Reducing \gls{adt} declarations]{./code/compiler/ADT.jali}
+
+Function application in listing \ref{reduce-apply} are reduced by first reducing the expression to apply and the arguments given. The reduced expression may either be a closure, \gls{adt} closure or a constant. When reducing a closure, we check if the context is true, meaning that are not in a dynamic conditional, and thus may unfold function calls. That is, we replace the function application with the specialized function body of the closure. If the context is false, we do not unfold the function body, but rather return and apply the expression. This results in not being able to handle partial function application, which is no problem as this suffices for the examples at hand. If the closure is an \gls{adt} closure, we check if all required arguments are given. If the arguments are all static, we return a constant \gls{adt} value, and otherwise return an \texttt{Apply} to the \gls{adt} closure. 
+
+\lstinputlisting[columns=fullflexible, label={reduce-apply}, language=JaLi, caption={Reducing function application}]{./code/compiler/apply.jali}
+
+The complexity of the reducer lays in the reduction of patterns. The reduction of patterns is given in listing \ref{reduce-pattern}, but which utilizes the \texttt{match1} function given in listing \ref{reduce-util}. The \texttt{match1} will try to match a single pattern with the match expression. When a pattern contains a variable name, it is a binding of an expression to a name, which shall be used in the body of the patterns. Thus, this is the main task of the \texttt{match1} function: Try to match a value with a given pattern and collect all the bindings in the pattern. This is the complex and main part of this reduction. A matching is represented by the type \texttt{ReducedMatch}, which can take three different forms. Either it is a \texttt{NoMatch}, if it is certain that the pattern will never match, even when the dynamic variables of the match expression is known. A \texttt{DynamicMatch} means that the pattern could possibly match, once the dynamic variables are known. The \texttt{StaticMatch} is certain that the pattern will match. Dynamic and static matches carry a list of bindings, which is a list of tuples of name and expression. 
+\\\\
+The \texttt{matchMany} function is a helper function for when many expressions determines whether a match is static or dynamic or a no match - e.g. in lists. The function matches all expressions in the list, and checks if one of them is a \texttt{NoMatch}. Otherwise it collects all the bindings that result from the matching. If any of them is dynamic, then the entire result is a dynamic match, and otherwise it is static. 
+\\\\
+The last helper function is \texttt{collect} which simply traverses the pattern and collects all variables as bindings to itself. This is used when the match expression is itself a dynamic variable. Then we cannot match any further in the pattern, but we still need to collect the rest of the bindings from the pattern in order to reduce the body.
+\\\\
+Returning back to the reduce function in listing \ref{reduce-pattern}. First the match expression is reduced, and the result is either a constant or it is dynamic. In either case we need to match the expression with the given patterns and reduce the body of the pattern. If the match expression is constant, we know that one of the patterns must match statically. Thus, we just need to find the first static match. The bindings are then added to the store, before reducing the body of the pattern and returning the reduced expression.
+\\\\
+If the match expression is dynamic we need to do the same thing, we check all patterns and choose the ones that matches. If the pattern is a match, the bindings are added to the store, and the body is reduced. The output is a tuple together with a boolean flag communicating whether the binding was static or dynamic. If the first match in the list is static, we know that this will always match and thus we can simply return the body of that pattern. Otherwise we return a pattern expression. 
+\\\\
+An important thing to note is that the patterns, like conditionals, control the flow of the program. Therefore, according to our unfolding strategy, the context must be switched to false inside dynamic pattern matching, to avoid infinite unfolding.
+
+\lstinputlisting[columns=fullflexible, label={reduce-pattern}, language=JaLi, caption=Reducing pattern match expressions]{./code/compiler/pattern.jali}
+
+\lstinputlisting[columns=fullflexible, label={reduce-util}, language=JaLi, caption=Function for matching an expression with a pattern expression]{./code/compiler/util.jali}
+
+\subsection{Discussion}
+\subsubsection{Complexity} As can be seen in listing \ref{reduce-util}, there are many cases which need to be considered. The complexity is mainly caused by the different representations of \glspl{adt} in the abstract syntax. These are either represented as \textit{ADTValues}, \textit{ADTClosures} or function applications \textit{Apply}. More complexity is added from the different representation of lists, in the form of Lists and ConcatC. This is unfortunate since the reducer has to be clever and extremely precise, in order to work correctly and optimally. Unfortunately this complexity has prevented us from being able to reduce the complex views containing several nested structures. It has however been possible to reduce on smaller examples, which is enough to showcase the point we want to make.
+
+\subsubsection{Program point specialization}  Another improvement is that of \textit{program point specialization}, which as mentioned is one of the three main techniques in partial evaluation that we do not exploit. In a functional language, program points are the names of the functions. Essentially program point specialization is to define and memorize specialized functions. This was exemplified in \ref{specialize-update} where we defined a new function \texttt{updateIncrement}, which can then replace all expressions in the program where \texttt{update Increment model:dyn} is called (here :dyn denotes that the model is unknown, i.e. dynamic). Thus, one function may appear many places in the program in a specialized version with a specialized name, and program point specialization is a combination of defining and folding functions.
+
+The technique would be implemented as follows. Whenever a function call is reduced, we memorize the name and arguments. When the same function call is encountered in a different place in the program (e.g. \texttt{update Increment model:dyn} may be called different places in the program) we lookup if the reduction has been computed previously. If so, we can use a copy of that. If not, the function has not been called with that combination of static and dynamic arguments before, and thus we reduce it now and memorize the reduction.
+
+Currently we are not utilizing program point specialization in the reducer, we simply reduce every time we encounter a function call (and we are not within a dynamic if-branch). This means that we may specialize the same function body with the same arguments many times. Clearly memorizing the reduction would be beneficial in terms of efficiency. 

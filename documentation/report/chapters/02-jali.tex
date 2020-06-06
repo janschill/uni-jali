@@ -3,8 +3,7 @@ The JaLi language is a minimal higher-order functional language without type che
 \lstinputlisting[label={jali_button_example}, language=JaLi, caption=Button example written in JaLi]{./code/button.jali}
     
 Listing \ref{jali_button_example} shows how the button example from the previous chapter could look like in the JaLi language.
-It introduces an \gls{adt} called \texttt{Node} in line 1, that has two constructors: \texttt{Text} and \texttt{Tag}. An \gls{adt} is a composition type, which means that it is used to introduce new and more complex types to a language. This is especially useful when wanting to depict a type from the outside into the language. To illustrate this on an example by also continuing to explain the given example:
-The \texttt{Node} type is representing an \gls{html} document element. In \gls{html} an element always carries an element name, for example \texttt{button}: \texttt{<button></button>}; a list of key-value pairs, named as \gls{attributes}: \texttt{id=buttonIncrement} , which are set after the element name in the opening tag and lastly it holds elements or text in between its opening and closing tags.
+It introduces an \gls{adt} called \texttt{Node} in line 1, that has two constructors: \texttt{Text} and \texttt{Tag}. An \gls{adt} is a composition type, which means that it is used to introduce new and more complex types to a language. This is especially useful when wanting to depict a type from the outside into the language. This is illustrated by the \texttt{Node} type in the given example. The \texttt{Node} type is representing an \gls{html} document element. In \gls{html} an element always carries an element name, for example \texttt{button}: \texttt{<button></button>}. It has a list of key-value pairs, named as \texttt{attributes}: \texttt{id=buttonIncrement} , which are set after the element name in the opening tag. Lastly, it holds elements or text in between its opening and closing tags.
 
 \begin{lstlisting}[columns=fullflexible, label={button_increment_html}, language=JaLi, caption=Button increment in HTML]
 <button id=buttonIncrement>Increment</button>
@@ -27,9 +26,9 @@ type List = Nil | Cons Integer List;
 Cons 1 (Cons 2 (Cons 3 (Nil)))
 \end{lstlisting}
 
-An \gls{adt} always carries super-type defined right after the keyword \texttt{type}, followed by a number of constructors, which are used to instantiate an actual value of the defined \gls{adt}. These constructors can carry optional type parameters, which need to be given, when creating it. Like in the listing \ref{button_increment_jali} the \texttt{Tag} constructor needs a string and two lists.
+An \gls{adt} always carries super-type defined right after the keyword \texttt{type}, followed by a number of constructors, which are used to instantiate an actual value of the defined \gls{adt}. These constructors can carry optional type parameters, which need to be given, when creating it. Like in listings \ref{button_increment_html} and \ref{button_increment_jali} the \texttt{Tag} constructor needs a string and two lists. It should be noted that the JaLi language it untyped, and that these types carry nothing but descriptive values as well as define the arity of the constructor, i.e. the number of arguments it requires. 
 
-\glspl{adt} make mostly only sense with pattern matching implemented as well. Pattern matching will allow the flow of the program according to the state of the matching \gls{adt} values.
+\glspl{adt} make mostly only sense with pattern matching implemented as well. Pattern matching will allow to control the flow of the program according to the state of the matching \gls{adt} values.
 
 \begin{lstlisting}[columns=fullflexible, label={pattern_match}, language=JaLi, caption=Pattern matching on Msg]
 type Msg = Increment | Decrement;
@@ -45,7 +44,7 @@ The example in listing \ref{pattern_match} shows the known \gls{adt} definition 
 
 Functions are defined by enclosing a name, parameters and a function body between the key words \texttt{func} and \texttt{end}.
 
-\begin{lstlisting}[columns=fullflexible, label={pattern_match}, language=JaLi, caption=Pattern matching on Msg]
+\begin{lstlisting}[columns=fullflexible, label={inner_functions}, language=JaLi, caption={Inner functions and recursion shown on factorial}]
 func factorial n =
   func mult x y =
     x * y
@@ -61,7 +60,7 @@ factorial 5 // => 120
 Functions can be recursively called and can even have inner functions.
 
 \subsection{Grammar}\label{Grammar}
-The lexer, parser and interpreter are all written in FSharp with the help of the libraries \textit{FsLex} and \textit{FsYacc}.
+The lexer, parser and interpreter are all written in FSharp using the libraries \textit{FsLex} and \textit{FsYacc}.
 
 \subsubsection{Lexer}
 The lexer receives a JaLi program as a string, recognizes and transforms its characters in the program to tokens in FSharp. These tokens are defined in the \textit{Lexer.fsl} and \textit{Parser.fsy}. The lexer does this by having a defined list of regular expressions to tokens and matches the input string character by character to those patterns.
@@ -80,9 +79,9 @@ Parser.token = EOF
 After the whole string is successfully transformed into tokens, the parser will try to make sense of it.
 
 \subsubsection{Parser}
-The parser receives the list of tokens after the lexical analysis and builds an \gls{ast} from it. It does this by recognizing different combinations of tokens, that are defined explicitly.
+The parser receives the list of tokens after the lexical analysis and builds an \gls{ast} from it. It does this by recognizing different combinations of tokens, that are defined explicitly as showcased by listing \ref{parser_expression}.
 
-In the case of JaLi, a program -- indicated by is point of entry with \texttt{Main} -- is an \texttt{Expression}, which is defined in the parser as the following:
+In the case of JaLi, a program---indicated by is point of entry with \texttt{Main}---is an \texttt{Expression}, which is defined in the parser as the following:
 
 \begin{lstlisting}[columns=fullflexible, label={parser_expression}, language=FSharp, caption=Program defined by \texttt{Expression}]
 Main:
@@ -96,7 +95,7 @@ Expression:
   | Binding { $1 }
 \end{lstlisting}
 
-From only knowing this, it might not be obvious how a program then can be multiple \texttt{Bindings} or \texttt{Functions} with a \texttt{FunctionCall} in the end. This is realized by defining a \texttt{Binding} by its \texttt{Expression} that it binds to, but also expecting another \texttt{Expression} right after the binding.
+From this, it is not obvious how a program then can be multiple \texttt{Bindings} or \texttt{Functions} with a \texttt{FunctionCall} in the end. This is realized by defining a \texttt{Binding} by its \texttt{Expression} that it binds, but also expecting another \texttt{Expression} right after the binding.
 
 \begin{lstlisting}[columns=fullflexible, label={parser_binding}, language=FSharp, caption=Binding with \texttt{Expression} afterwards]
 Binding:
@@ -108,7 +107,7 @@ LocalBinding:
   | NAME ASSIGN Expression SEMICOLON Expression { Let($1, $3, $5) }
 \end{lstlisting}
 
-The \texttt{SEMICOLON} marks an end of a \texttt{Binding}, indicating that the \texttt{Expression} after it, is the next \texttt{Expression} in the program -- allowing multi-line programs and not just a single line program. The part in curly braces after a parser rule was up until here completely ignored, but shall be explained as being the mapping to its \gls{ast} element. A \texttt{Binding} in the \gls{ast} is represented by a \texttt{Let} key word, which holds three values, these are passed over by the call on line 7 in listing \ref{parser_binding}.
+The \texttt{SEMICOLON} marks an end of a \texttt{Binding}, indicating that the \texttt{Expression} after it, is the next \texttt{Expression} in the program---allowing multi-line programs and not just a single line program. The part in curly braces after a parser rule was up until here completely ignored but shall be explained as being the mapping to its \gls{ast} element. A \texttt{Binding} in the \gls{ast} is represented by a \texttt{Let} key word, which holds three values, these are passed over by the call on line 7 in listing \ref{parser_binding}.
 The \texttt{Let} is specified as \texttt{Let of string * Expr * Expr} in the \gls{ast} file. This means that the first parameter needs to be of type string, the name and the other two parameters of type \texttt{Expr}, which is a defined type.
 
 \begin{lstlisting}[columns=fullflexible, label={ast}, language=FSharp, caption=An excerpt of the \gls{ast} of JaLi]
@@ -144,12 +143,119 @@ and Expr =
 The listing \ref{ast} gives a rough overview of the multiple \texttt{Expressions} that are currently implemented and reveal a bit of its possibilities.
 
 Returning back to the grammar in the parser the implementation and characteristic of the JaLi grammar shall be explained.
-As already mentioned everything reduces to an \texttt{Expression}, which are split into the ones shown in listing \ref{parser_expression}.
+As already mentioned, everything reduces to an \texttt{Expression}, which are split into the ones shown in listing \ref{parser_expression}.
 
 We distinguish between \texttt{Atomic Expression} and other expressions. An \texttt{Atomic Expression} is a constant, a variable, a tuple, a list, a cons operator, or a parenthesized expression (so that it is easy to see where an \texttt{Atomic Expression} begins and ends). Constants are integers, booleans, strings, and the wildcard character '\_' which is used for match expressions.
 
-The reason we make this distinction is because syntax like function applications without parentheses makes the language ambiguous, as we then can not decide when the function application expression ends and another begins. A solution to this, is to distinguish between \texttt{Atomic Expression} and other expressions, and then require arguments for function application to be atomic. 
+The reason we make this distinction is because syntax like function applications without parentheses makes the language ambiguous, as we then cannot decide when the function application expression ends, and another begins. A solution to this, is to distinguish between \texttt{Atomic Expression} and other expressions, and then require arguments for function application to be atomic. 
 \\\\
-Besides \texttt{Atomic Expression}, an expression can be a logical negation, a base operation for arithmetic and comparison (+, -, ==), a conditional expressions, a match expressions, a function call or a binding. A binding is an \gls{adt} declaration, a local binding, or a function declaration. 
+Besides \texttt{Atomic Expression}, an expression can be a logical negation, a base operation for arithmetic and comparison (+, -, ==), a conditional expressions, a match expressions, a function call or a binding. A binding is an \gls{adt} declaration, a local binding, or a function declaration. Match expressions consist of a match expression and a list of patterns. Each pattern is a tuple of expressions, where the first expression is the pattern to match against the match expression, and the second is the body to execute if the pattern matches. The \gls{adt} consist of a name and a list of constructors. Each of these constructors again contain a name and the list of type parameters. The types describe the arity of the constructor, and provides descriptive value, but it does not imply any actual type constraints on its arguments. 
 
 \input{code/grammar}
+
+\subsubsection{Interpreter}
+An interpreter takes an expression, evaluates it and returns a value. The interpreter implemented for JaLi is also written in FSharp.
+When given an expression from the list defined in the \gls{ast}, it matches this expression with the correct pattern and returns its value.
+
+\begin{lstlisting}[columns=fullflexible, label={interpreter-function_head}, language=FSharp, caption={Function head of \texttt{eval} function in interpreter}]
+let rec eval (e: Expr) (env: Value Env): Value =
+    match e with
+    // ...
+    | And (expression1, expression2) ->
+        match eval expression1 env with
+        | BooleanValue false -> BooleanValue false
+        | BooleanValue true -> eval expression2 env
+        | _ -> failwith Can only use boolean values
+    // ...
+\end{lstlisting}
+
+Listing \ref{interpreter-function_head} shows the head of the \texttt{eval} function. It takes two arguments: The expression and an environment variable of type \texttt{Env}, which is a list of tuples of type string and the type parameter provided.
+This environment is used to store variables and functions. This will be explained further on a concise example.
+The pattern matching from listing \ref{interpreter-function_head} gives the evaluation of an \texttt{And} expression, which is the logical conjunction.
+It operates on two expressions, but because an expression is the base case for the JaLi language, those expressions can of course only be evaluated to a boolean value, if they are boolean values themselves. Therefore, both expressions need to be evaluated to the type \texttt{BooleanValue} before they can be operated on. In the logical conjunction it is only necessary to evaluate the second expression, when the first evaluates to true, because if the first expression is false, it does not matter what the second expression holds, as it will never evaluate to true.
+
+The interpreter also needs to account for the problem of wanting to have more than just one single expression in a program. Those were handled for example at \textit{let bindings}, which consists of two expressions, the one it binds to and all expressions after it.
+
+\begin{lstlisting}[columns=fullflexible, label={interpreter-let_binding}, language=FSharp, caption={Evaluation of let bindings}]
+    // ...
+    | Let (name, expression1, expression2) ->
+        let value = eval expression1 env
+        let newEnv = (name, value) :: env
+        eval expression2 newEnv
+    // ...
+\end{lstlisting}
+
+Because a \textit{let binding} is essentially not a full program by itself, as it only binds an evaluated expression to a variable and not returning it by itself until it is explicitly called, it needs to do three operations:
+
+\begin{enumerate}
+    \item It needs to evaluate the expression that it is supposed to bind to.
+    \item It needs to use the provided environment, to make this variable and its expression available for expressions following it.
+    \item It needs to continue the interpretation of the program by evaluating the second expression, while providing the new environment
+\end{enumerate}
+
+One interesting aspect about evaluating programs are the handling of functions. Function declarations will be---as previously explained---put into the environment, before this happens though, they are wrapped in a type \texttt{Closure}, which holds the function name, the parameters it expects, the current environment and the expression, which is the function body.
+
+\begin{lstlisting}[columns=fullflexible, label={interpreter-function_binding}, language=FSharp, caption={Evaluation of function bindings}]
+    // ...
+    | Function (name, parameters, expression, expression2) ->
+        let closure =
+            Closure(name, parameters, expression, env)
+        let newEnv = (name, closure) :: env
+        eval expression2 newEnv
+    // ...
+\end{lstlisting}
+
+When the \gls{ast} type \texttt{Apply}---the call of a function---is encountered, it first looks up the \texttt{Closure} in the environment, then makes sure that not too many arguments are provided, if less arguments are given then the function is defined with, it will return another \texttt{Closure}, partially applying the function.
+This will be important for partial evaluation in chapter \ref{reducer} to make the optimizations that are planned.
+In both cases of less arguments and equal arguments to the parameters, the interpreter will bind those values, to the parameters, making them available for the function body to apply.
+
+\begin{lstlisting}[columns=fullflexible, label={interpreter-function_param_binding}, language=FSharp, caption={Binding of arguments and parameters in a function call}]
+let newEnv =
+    List.fold2 (fun dEnv parameterName argument ->
+      (parameterName, eval argument env) :: dEnv)
+      ((cname, fclosure) :: declarationEnv) cparameters farguments
+\end{lstlisting}
+
+Another important and interesting case is the pattern matching evaluation. For this a \texttt{Pattern} type with the \texttt{matchExpression} and a list of patterns is mapped on.
+Firstly, the \texttt{matchExpression}, which is the expression that is desired to find in the patterns, is evaluated. The value from this operation is then being matched against the different patterns given and in general available.
+
+\begin{lstlisting}[columns=fullflexible, label={interpreter-pattern}, language=FSharp, caption={Evaluation of pattern matching}]
+    // ...
+    | Pattern (matchExpression, (patternList)) ->
+        let matchPattern x (case, expr) =
+            tryMatch (tryLookup env) x case
+            |> Option.map (fun bs -> (case, expr, bs))
+
+        let evaluatedMatch = eval matchExpression env
+        match List.tryPick (matchPattern evaluatedMatch) patternList with
+        | Some (case, expr, bindings) -> env @ bindings |> eval expr
+        | None -> failwith Pattern match incomplete
+    // ...
+\end{lstlisting}
+
+\begin{lstlisting}[columns=fullflexible, label={interpreter-pattern_match}, language=FSharp, caption={Helper function to find pattern and bind values}]
+let rec tryMatch (lookupValue: string -> option<Value>)
+                   (actual: Value) (pattern: Expr) =
+    let tryMatch = tryMatch lookupValue
+
+    match (actual, pattern) with
+    | (_, Constant (CharValue '_')) -> Some []
+    | (a, Constant v) when a = v -> Some []
+    | (a, Variable x) ->
+        match lookupValue x with
+        | Some (ADTValue (a, b, c)) -> tryMatch actual (Constant(ADTValue(a, b, c)))
+        | _ -> Some [ (x, a) ]
+    | (ADTValue (name, _, values), Apply (Variable (callName), exprs)) when name = callName ->
+        forAll tryMatch values exprs
+    | (TupleValue (v1, v2), Tuple (p1, p2)) ->
+        match (tryMatch v1 p1, tryMatch v2 p2) with
+        | (Some (v1), Some (v2)) -> Some(v1 @ v2)
+        | _ -> None
+    | (ListValue (valList), List (exprList)) when valList.Length = exprList.Length -> forAll tryMatch valList exprList
+    | (ListValue (h :: t), ConcatC (h', t')) -> forAll tryMatch [ h; (ListValue t) ] [ h'; t' ]
+    | _, _ -> None
+\end{lstlisting}
+
+The variable \texttt{actual} is the value from the \texttt{matchExpression} and \texttt{pattern} the current pattern from the list of patterns, passed in shown on line 4 on listing \ref{interpreter-pattern}, with the \texttt{patternList} from line 8.
+Some interesting cases in the \texttt{tryMatch} are for example the \textit{wildcard} pattern: \texttt{(\_, Constant (CharValue'\_'))}, this means that if the pattern is an underscore symbol, it should be matched no matter the actual value of the \texttt{matchExpression}.
+It is worth noting that the \texttt{tryMatch} function returns a \textit{Some} with a list of tuples. The tuples are bindings of the pattern to the match value, this makes the value available for further use in the body of the pattern match. When all bindings are collected the correct match-pattern combination is being searched for. If found, it will be added to the environment and the body of the pattern evaluated.

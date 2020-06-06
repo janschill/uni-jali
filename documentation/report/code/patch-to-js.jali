@@ -1,0 +1,15 @@
+func patchToJs changes =
+  func loop seq chs =
+    match chs with
+    | Null -> 'patchToJs -> No changes detected'
+    | Path (idx) (d) ->
+      loop (append (seq) ([idx])) (d)
+    | Change (n) ->
+      match n with
+      | Text (t) ->
+        (changeInnerHTMLToString (seq) (t))
+      | tag -> changeElementToString (tag) (seq)
+      | _ -> 'error'
+  end
+  loop ([0]) (changes)
+end

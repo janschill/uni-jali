@@ -1,0 +1,22 @@
+| Prim (op, expr1, expr2) ->
+    let rexpr1 = reduce expr1 context store
+    let rexpr2 = reduce expr2 context store
+    match op, rexpr1, rexpr2 with
+    | _, Constant _, Constant _ -> Constant <| eval (Prim(op, rexpr1, rexpr2)) []
+    | "*", _, Constant (IntegerValue 0) -> Constant <| IntegerValue 0
+    | "*", _, Constant (IntegerValue 1) -> rexpr1
+    | "+", _, Constant (IntegerValue 0) -> rexpr1
+    | "-", _, Constant (IntegerValue 0) -> rexpr1
+    | "*", Constant (IntegerValue 0), _ -> Constant <| IntegerValue 0
+    | "*", Constant (IntegerValue 1), _ -> rexpr2
+    | "+", Constant (IntegerValue 0), _ -> rexpr2
+    | "-", Constant (IntegerValue 0), _ -> rexpr2
+    | "==", Variable x, Prim("+", Variable x1, _) when x = x1 
+            -> Constant <| BooleanValue false
+    | "==", Variable x, Prim("+", _, Variable x1) when x = x1 
+            -> Constant <| BooleanValue false
+    | "==", Variable x, Prim("-", Variable x1, _) when x = x1 
+            -> Constant <| BooleanValue false
+    | "==", Variable x, Prim("-", _, Variable x1) when x = x1 
+            -> Constant <| BooleanValue false
+    | _ -> Prim(op, rexpr1, rexpr2)

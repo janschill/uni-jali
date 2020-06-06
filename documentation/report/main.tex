@@ -68,6 +68,28 @@
   stringstyle=\color{greenstrings},
 }
 
+\lstdefinelanguage{JavaScript}%
+{ keywords={[0]{let, class, const, new, function, if, then, else, super, this, extends, instanceof, return}},
+  keywordstyle={[0]\color{codeorange}},
+  morekeywords={[1]{Inc, Dec, Increment, Decrement, Message, Node, Tag, Text, Differ, Null, Change, Path, Action, Click}},
+  keywordstyle={[1]{\color{codered}\bfseries}},
+  sensitive=true,
+  numbers=left,
+  stepnumber=1,
+  basicstyle=\ttfamily,
+  breaklines=true,
+  xleftmargin=\parindent,
+  aboveskip=\bigskipamount,
+  tabsize=2,
+  morecomment=[l][\color{commentscolor}]{///},
+  morecomment=[l][\color{commentscolor}]{//},
+  morecomment=[s][\color{commentscolor}]{{(*}{*)}},
+  morestring=[b]',
+  showstringspaces=false,
+  literate={`}{\`}1,
+  stringstyle=\color{greenstrings},
+}
+
 \lstdefinelanguage{Other}%
 { sensitive=true,
   numbers=left,
@@ -88,8 +110,8 @@
 \begin{document}
 
 \title{%  
-  Optimization of the model-view-update pattern
-  by using partial evaluation\break%
+  Optimization of the model-view-update\break%
+  pattern with partial evaluation\break%
 }
 
 \author{Liv Hartoft Borre 
@@ -111,16 +133,16 @@ IT University of Copenhagen, Copenhagen, Denmark\\
 
 \newcommand{\jan}[1]{\par\smallskip\noindent{\small\llap{\textbf{{jan:}~~}}{\textsf{#1}}}\par\smallskip}
 \newcommand{\liv}[1]{\par\smallskip\noindent{\small\llap{\textsf{{liv:}~~}}{\textsl{#1}}}\par\smallskip}
-
-\section{Introduction}
+\setcounter{secnumdepth}{-1}
+\section{Introduction}\label{introduction}
 \input{chapters/01-introduction.tex}
 \newpage
-
+\setcounter{secnumdepth}{2}
 \section{The JaLi language} \label{jali}
 \input{chapters/02-jali.tex}
 \newpage
 
-\section{Reducer}
+\section{Reducer}\label{reducer}
 \input{chapters/03-reducer.tex}
 \newpage
 
@@ -128,58 +150,18 @@ IT University of Copenhagen, Copenhagen, Denmark\\
 \input{chapters/04-mvu-jali.tex}
 \newpage
 
-\section{Reducing the model-view-update architecture}
+\section{Reducing the model-view-update architecture}\label{reducing-mvu}
 \input{chapters/05-reducing_elm.tex}
 \newpage
 
-\section{Conclusion}
+\setcounter{secnumdepth}{-1}
+\section{Conclusion}\label{conclusion}
 \input{chapters/06-conclusion.tex}
 
-\section{--Old stuff--}
-\input{chapters/old-stuff.tex}
 \newpage
 
-% \subsection{A Subsection Sample}
-% Please note that the first paragraph of a section or subsection is not indented. The first paragraph that follows a table, figure, equation etc. does not need an indent, either.
-
-% Subsequent paragraphs, however, are indented.
-
-% \subsubsection{Sample Heading (Third Level)} 
-% Only two levels of headings should be numbered. Lower level headings remain unnumbered; they are formatted as run-in headings.
-
-% \paragraph{Sample Heading}
-% The contribution should contain no more than four levels of headings. Table~\ref{tab1} gives a summary of all heading levels.
-
-% \begin{table}
-% \caption{Table captions should be placed above the tables.}\label{tab1}
-% \begin{tabular}{|l|l|l|}
-% \hline
-% Heading level &  Example & Font size and style\\
-% \hline
-% Title (centered) &  {\Large\bfseries Lecture Notes} & 14 point, bold\\
-% 1st-level heading &  {\large\bfseries 1 Introduction} & 12 point, bold\\
-% 2nd-level heading & {\bfseries 2.1 Printing Area} & 10 point, bold\\
-% 3rd-level heading & {\bfseries Run-in Heading in Bold.} Text follows & 10 point, bold\\
-% 4th-level heading & {\itshape Lowest Level Heading.} Text follows & 10 point, italic\\
-% \hline
-% \end{tabular}
-% \end{table}
-
-
-% Please try to avoid rasterized images for line-art diagrams and schemas. Whenever possible, use vector graphics instead (see Fig.~\ref{fig1}).
-
-% \begin{figure}
-% \includegraphics[width=\textwidth]{fig1.eps}
-% \caption{A figure caption is always placed % below the illustration.
-% Please note that short captions are centered, while long ones are justified by the macro package automatically.} \label{fig1}
-% \end{figure}
-
-%
-% the environments 'definition', 'lemma', 'proposition', 'corollary',
-% 'remark', and 'example' are defined in the LLNCS documentclass as well.
-%
-
-% For citations of references, we prefer the use of square brackets and consecutive numbers. Citations using labels or the author/year convention are also acceptable. The following bibliography provides a sample reference list with entries for journal articles~\cite{ref_article1}, an LNCS chapter~\cite{ref_lncs1}, a book~\cite{ref_book1}, proceedings without editors~\cite{ref_proc1}, and a homepage~\cite{ref_url1}. Multiple citations are grouped
+% For citations of references, we prefer the use of square brackets and consecutive numbers. Citations using labels or the author/year convention are also acceptable. The following bibliography provides a sample reference list with entries for journal articles~\cite{ref_article1}, an LNCS chapter~\cite{ref_lncs1}, 
+% a book~\cite{ref_book1}, proceedings without editors~\cite{ref_proc1}, and a homepage~\cite{ref_url1}. Multiple citations are grouped
 % \cite{ref_article1,ref_lncs1,ref_book1},
 % \cite{ref_article1,ref_book1,ref_proc1,ref_url1}.
 %
@@ -189,8 +171,9 @@ IT University of Copenhagen, Copenhagen, Denmark\\
 % References will then be sorted and formatted in the correct style.
 \bibliographystyle{splncs04}
 \begin{thebibliography}{8}
-\bibitem{ref_article1}
-Author, F.: Article title. Journal \textbf{2}(5), 99--110 (2016)
+\bibitem{Sestoft}
+Sestoft, Peter: Programming language concepts. 2nd edn. Springer London Ltd,
+(2012)
 
 % \bibitem{ref_book1}
 % Author, F., Author, S., Author, T.: Book title. 2nd edn. Publisher,

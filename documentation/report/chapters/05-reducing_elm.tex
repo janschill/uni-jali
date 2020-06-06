@@ -1,129 +1,99 @@
-% Chapter 5
-% Reducing the Elm model
-%   Apply reducer, what do we get
-%   How far away is the plain JavaScript button implementation to ours from JaLi
-%   Yeah
-%     javascript2 = reduce ( patchToJs (diff (view model) (view (update Decrement model))))
-  
-% The patchToJS function generates JavaScript that makes changes during runtime to the model.
-% __________________________________________________________________________________
-This chapter focuses on the reduction of the model-view-update architecture and its result when using the JaLi compiler with partial evaluation implemented.
-The previously shown example of two buttons with a counter text field shall be continued here.
+The introduction of the \gls{mvu} pattern in JaLi and implementation of the JavaScript to make it run in the browser, shows that the interaction works. This chapters will now take the reduction strategies from chapter \ref{reducer} and apply them to the example at hand.
 
-To revisit the desired outcome of having two small JavaScript snippets that sit on the buttons that apply the change directly onto the \gls{dom} node, it needs to be figured out now, how to achieve this by reducing the model-view-update architecture.
+The desired outcome is to have a view with two small JavaScript snippets that sit on the buttons that apply the change directly onto the \gls{dom} node, without the need of having to go through the whole cycle of \textit{diffing} again.
 
-When an update on the \gls{dom} is happening \textit{diffing} (see chapter \ref{Model-view-update-architecture-in-JaLi}) needs to take place.
-This diffing however is expensive, because it needs to iterate through both views and compare their nodes, until it has calculated the complete \textit{Differ} path, knowing where all changes are that need patching. For this reason the diffing should only happen when absolutely necessary or even better happen during compile time and reduced to optimized functions, that can be directly used.
+When diffing two views, both of those \gls{dom} trees need to be traversed completely and compared node by node until it has calculated the full \textit{Differ} path. This should only happen when absolutely necessary or at a time where a user does not notice it, for example during compile time.
 
-Continuing with the button example from the previous chapters, it is intuitive to see that the two increment and decrement buttons will always only change the model by either incrementing or decrementing its value by one. It is also only being rendered by one single \gls{dom} node.
+The problem is during compile time the value of the model in the button example is unknown. This makes pre-computations difficult. This is however where partial evaluation comes in handy.
 
-\begin{figure}[H]
-    \centering
-    \begin{verbatim}
-    func view model =
-      Tag ('div') ([]) ([
-        Tag ('button') ([
-            (Click, (onClick (Increment)))]) ([Text ('Increment')
-        ]),
-        Tag ('p') ([]) ([
-          Text (model)
-        ]),
-        Tag ('button') (
-            [(Click, (onClick (Decrement)))]) ([Text ('Decrement')
-        ]),
-      ])
-    end
-    \end{verbatim}
-    \caption{ADT of button example}
-    \label{fig:button-view-function}
-\end{figure}
+It is intuitive to see that the two buttons: increment and decrement, will always only change the model by either increasing or decreasing its value by one. It is also known where this model is being rendered in the \gls{dom} tree. 
+This means that the program should not have to through the whole cycle for every action. The path for the children to update will remain the same.
 
-The only problem when wanting to reduce, is that during compile time when the reducer is applied the model cannot be known. Using an initial value 0 on the model, would cause the problem that the reducer would generate two functions that either add or subtract 1 to 0. Therefor two functions need to be generated where the model is treated as dynamic:
+What currently happens in the \gls{mvu} cycle is that the value to be inserted in a given child is computed. E.g. evaluating the diff function on the two previously generated views computed a Differ that described exactly what value to insert. This means that the calculation and the cycle needs to take place every time an action occurs. 
 
-\begin{verbatim}
-updateIncrement: update Increment dynamic:model
-updateDecrement: update Decrement dynamic:model
-\end{verbatim}
+However, given the previous button example, the path and the change that needs to happen is already known at compile time. The only unknown variable is the model. Thus is seems that partial evaluation can be exploited to compute two specialized functions for each button: one for increment and one for decrement, each of which needs only the model as the last argument. Translating these two functions to JavasScript and injecting them into the browser together with the view, would effectively result in two JavaScript functions that know exactly where to change the \gls{dom}, without any diffing. The example of generating this function based on known input was showcased by the result from \texttt{pathToJs} function in listing \ref{eval_patch_to_js_result}. Imagine this same function with a dynamic model as below. Achieving such a function and injecting it into the browser would efficiently circumvent the entire \gls{mvu} cycle that was needed to get the result of \texttt{patchToJs}.
 
-This also means, that in the end our run-time needs to hold some state for the model, which can then be passed to the partially evaluated \texttt{updateIncrement} and \texttt{updateDecrement} functions.
-The state would be generated by a JavaScript compiler, that would compile the whole JaLi program into JavaScript, this JavaScript compiler is not implemented. 
-The update on the model is not enough though, since the \gls{dom} needs to be patched as well. The \textit{onClick} handler attached to the button essentially calls a function: \textit{updateAndPatch}.
+\begin{lstlisting}[columns=fullflexible, label={dyn_javascript}, language=JaLi, caption=Eval the JavaScript string that patches the view]
+function updateIncrement {
+    document.body.children[0].children[1].children[0].innerHTML = (*@\textcolor{blue}{m+1}@*);
+}
+\end{lstlisting}
 
-\begin{figure}[H]
-    \centering
-    \begin{verbatim}
-      func updateAndPatch action = 
-        oldModel = readGlobal ("model");
-        newModel = update (action) (oldModel);
-        eval (patchToJs (diff (view newModel) (view (oldModel))))
-        setGlobal ("model") (newModel)
-      end
-    \end{verbatim}
-    \caption{Function called by onClick handler}
-    \label{fig:updateAndPatch}
-\end{figure}
-
-Figure \ref{fig:updateAndPatch} shows four operations performed when called.
-\begin{enumerate}
-    \item It reads a global variable that is called \textit{model} and assigns it to \textit{oldModel}
-    \item Generates a new model based on the \textit{Action} passed and the \textit{oldModel}
-    \item Evaluates the JavaScript string returned from the patch on the old view and new view
-    \item Set the global variable to the value of \textit{newModel}
-\end{enumerate}
-
-The two parts that get reduced here and are crucial for performance gain is the \textit{update} and the \textit{diff} functions.
+The two parts that get reduced---and are crucial for performance gain---are the \textit{update} and the \textit{diff} functions.
 These two function calls would be reduced as there are two different actions:
 
-\begin{figure}[H]
-    \centering
-    \begin{verbatim}
-        diff (view dynamic:model) (view (update Increment dynamic:model))
-        diff (view dynamic:model) (view (update Decrement dynamic:model))
-    \end{verbatim}
-    \caption{Increment and Decrement diff calls}
-    \label{fig:diff-inc-dec}
-\end{figure}
+\begin{lstlisting}[columns=fullflexible, label={diff-inc-dec}, language=Other, caption=Increment and Decrement diff calls]
+diff (view dyn:model) (view (update Increment dyn:model))
+diff (view dyn:model) (view (update Decrement dyn:model))
+\end{lstlisting}
 
-The reduction of these two calls will yield a a partially evaluated function, that will always return the same \textit{Differ} path, and only the actual \textit{Change} constructor from the \textit{Differ} data type, will be different.
-This means that for all actions that update the model and thus change the view, will be calculated and reduced during compiling to the point that only the value of the to be inserted node is missing, which means no \gls{dom} compare/diffing needs to be done during run-time.
+The reduction of these two calls will yield a partially evaluated function, that will always return the same \textit{Differ} path, and only the actual \textit{Change} constructor from the \textit{Differ} data type, will be different.
+This means that for all actions that update the model and thus change the view, will be calculated and reduced during compiling to the point that only the value of the to be inserted node is missing, which means no \gls{dom} diffing needs to be done during run-time. The result should be a path containing the changes but based on a dynamic value rather than a specific value. The action should be to increment the dynamic value by one, as specified by specializing update with the static value Increment. 
+We now demonstrate the result of reducing the implementation of the \gls{mvu} framework in listen \ref{to_reduce}.
 
-All other parts in \ref{fig:updateAndPatch} will be treated by the reducer as dynamic -- the setting of the global model -- and hence not reduced further.
+\lstinputlisting[columns=fullflexible, label={to_reduce}, language=JaLi, caption=Reducing pattern match expressions]{./code/to_reduce.jali}
 
+We demonstrate this on the small example in listing \ref{simple_view}.
 
+\begin{lstlisting}[columns=fullflexible, label={simple_view}, language=JaLi, caption={A minimal example of a DOM node}]
+func view model =
+  Tag ('div') ([]) ([
+    Text model
+  ])
+end
+\end{lstlisting}
 
-\jan{show reduced diff function}
-\jan{show the parts in fig 3}
+\begin{lstlisting}[columns=fullflexible, label={reduced_diff}, language=Other, caption=Reduced result from calling diff with a dynamic model]
+Constant
+(Closure
+ ("dynamicDiff",["model"],
+  Apply
+  (Constant
+   (ADTClosure (("Path",[Int; Typevar "Differ"]),"Differ",[])),
+   [Constant (IntegerValue (*@\textcolor{blue}{0}@*));
+    Apply
+    (Constant
+     (ADTClosure (("Change", [Typevar "Node"]),"Differ",[])),
+     [Apply
+      (Constant (ADTClosure (("Text", [String]),"Node",[])),
+      [Prim ("+",Variable "model",Constant (IntegerValue (*@\textcolor{blue}{1}@*)))])
+     ])]),
+[]))
+\end{lstlisting}
 
-The JavaScript compiler would then generate JavaScript code from the whole JaLi program and generate a run-time that would have access to a \textit{model} that could be passed to the partially applied JavaScript function generated by the compiler based on the reduction of the whole program
+Listing \ref{reduced_diff} displays the reduced program, when \textit{diffing} on two views with a dynamic model, like down in listing \ref{dynamic_diffing}. This means that the reducer is able to reduce away all computations that are needed during the compilation of the program, even though it is missing the crucial information about the value of the model. It indicates exactly where the changes need to happen---as it returns the calculated path---and what operation needs to be executed once the model is known. That is, based on the implementation of the JaLi program, we have been able to reduce the diff function with a dynamic model as specified in \ref{dynamic_diffin}. Doing this for decrement would achieve the same result but decrementing the model by 1.
 
-\jan{TODO: here show JavaScript snippets that make the change}
+\begin{lstlisting}[columns=fullflexible, label={dynamic_diffing}, language=Other, caption={Dynamisc diffing}]
+diff (view model) (view (update Increment model)
+\end{lstlisting}
 
-\jan{TODO: 
-- JavaScript snippets
-- Reduction of Differ
-- Reduction of patchToJs
-}
+Knowing where and what needs to happen on the comparison of two different views, \textit{patching} the old view with the changes from \textit{diffing} is the next step. For this the \texttt{patchToJs} function is used.
+The \texttt{patchToJs} function returns the value from the \textit{Change} constructor and sets it to the \textit{innerHTML} of the element established by the path.
+Because the reduced program, does not know the current value of the model, it is a primitive operation of adding 1 to the model.
+Therefore, this is exactly what is being then returned from the \texttt{patchToJs} function when reduced in listing \ref{reduced_patchtojs}.
 
-\begin{verbatim}
-document.body.children[0].children[1].children[0].innerHTML = 1;
-\end{verbatim}
+\begin{lstlisting}[columns=fullflexible, label={reduced_patchtojs}, language=Other, caption={Reduced result from calling patchToJs with the result from dynamic diff}]
+Constant
+ (Closure
+  ("dynamicDiff",["model"],
+  Prim
+   ("+",
+    Prim
+     ("+",
+      Constant
+       (StringValue
+        "document.body.children[0].children[0].innerHTML = "),
+         Prim ("+",Variable "model",Constant (IntegerValue (*@\textcolor{blue}{1}@*)))),
+        Constant (StringValue ";")),[]))
+\end{lstlisting}
 
-\jan{backlog: write JaLi function eval that calls JavaScript eval}
+This program returns a function called \textit{dynamicDiff} which takes an argument of model dynamically and has the same operation as before on the model, which is then just concatenated with different JavaScript symbols and the path to the \gls{dom} node element.
 
-% \begin{figure}
-%     \centering
-%     \begin{verbatim}
-%     func incrementDynamicPatchToJs dynamic_model = 
-%         view1 = view (dynamic_model);
-%         view2 = view (update Increment dynamic_model);
-%         patchToJs view1 (diff view1 view2)
-%     end
-%     \end{verbatim}
-%     \caption{Patch function with dynamic model}
-%     \label{fig:dynamicPatchToJs}
-% \end{figure}
+This is the JavaScript snippet that would be attached to the button handler of increment, handling the the calculation of the new model value, when given by the run-time that would be generated by the JavaScript compiler. This is all computable at compile time since most of the data is already known, and with the help of a partial evaluator. With a compiler from JaLi to JavaScript we can then achieve the desired function, that efficiently updates the view, without needing any diffing.
 
-% The \textit{dynamicPatchToJs} function from Fig. \ref{fig:dynamicPatchToJs}. shows how it generates two views on a dynamic model, where one view is being updated by an \textit{Increment}.
+\subsection{Further work}
+The only problem that is left when reducing is now to read the model from the global state in the JavaScript, and updating the model after updating the view as described previously. This is also the reason the model needs to be implemented in the run-time, which can then be passed to the partially evaluated \texttt{updateIncrement} and \texttt{updateDecrement} functions.
+The state would be generated by a JavaScript compiler, that would compile the whole JaLi program into JavaScript, this JavaScript compiler is not implemented and was simulated by the example code snippets from chapter \ref{Model-view-update-architecture-in-JaLi}.
+Only updating the model is not enough though, since the \gls{dom} needs to be patched as well. The \textit{onClick} handler attached to the button essentially calls the function: \textit{updateAndPatch}.
 
-% The partially evaluated \textit{diff} function is not yet enough though, because it still needs to be used to patch the view.
-% As previously stated that the patching cannot be done during compiling, due to the lack of information regarding the dynamic variable model, the \textit{patch} function needs to generate JavaScript that can be executed during run-time, where the model is known in form of a state variable.
+However the idea here has been demonstrated that the diffing can be completely circumventing by partial evaluation of the initial program. The rest left for the JaLi to JavaScript compiler which can efficiently generate the initial model and read and write to the model from global state.

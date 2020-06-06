@@ -1,0 +1,3 @@
+| Let (name, expr1, expr2) ->
+    let e = reduce expr1 context store
+    (name, e) :: store |> reduce expr2 context
