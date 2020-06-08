@@ -35,6 +35,7 @@ let load = System.IO.File.ReadAllText
 // let button = load "./examples/button.javi"
 
 let difference = "../core/src/difference.jali"
+let patch = "../core/src/patch.jali"
 let diff = load difference
 
 
