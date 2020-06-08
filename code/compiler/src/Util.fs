@@ -62,7 +62,7 @@ let rec collect = // If actual is dynamic, then this just collects all variables
         Some bindings   *)
 
 let rec match1 (actual: Expr, case: Expr) =
-    printfn "match1: %A ? %A" actual case
+    // printfn "match1: %A ? %A" actual case
     match (actual, case) with
     | Constant v1, Constant v2 when v1 = v2 -> StaticMatch []
     | _, Constant (CharValue '_') -> StaticMatch []
@@ -81,7 +81,7 @@ let rec match1 (actual: Expr, case: Expr) =
         then matchMany (List.map Constant values) exprs
         else NoMatch
     | _, _ ->
-        printfn "No match: %A ~ %A" actual case
+        // printfn "No match: %A ~ %A" actual case
         NoMatch
 
 
@@ -99,3 +99,9 @@ and matchMany exprs pats =
             DynamicMatch bindings
         else
             StaticMatch bindings
+
+    // | Variable dyn, Variable x ->
+    //     // We're binding a variable to a dynamic value. This will always succeed.
+    //     match tryLookup store dyn with
+    //     | Some (Variable y) when y = dyn -> StaticMatch [x, Variable dyn]
+    //     | v -> printfn "Unexpected value %A for dynamic %s" v x; NoMatch

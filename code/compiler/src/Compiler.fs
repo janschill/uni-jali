@@ -25,15 +25,11 @@ let getValues = List.map getValue
 let mutable indent = 0
 
 let rec reduce2 (e: Expr) (context: bool) (store: Expr Env): Expr =
-    (* This will print out the store and the expression it is about to reduce *)
-    //List.fold (fun u (n, e) -> printArg e |> printf "(%s,%s) " n |> ignore) () (("Store", StringLiteral(":")) :: store)
-    //printfn "\n"
-    indent <- indent + 1
-    printfn "**(%d) Reducing %A" indent e
+    // indent <- indent + 1
+    // printfn "**(%d) Reducing %A" indent e
     let fail msg = ReduceError(e, msg) |> raise
 
     let x =
-        let fail msg = ReduceError(e, msg) |> raise
         match e with
         | Constant c -> Constant c
         | Variable x -> lookup store x
@@ -160,7 +156,7 @@ let rec reduce2 (e: Expr) (context: bool) (store: Expr Env): Expr =
 
         | _ -> raise <| ReduceError(e, "No match found")
 
-    indent <- indent - 1
+    // indent <- indent - 1
     x
 
 let reduce (e: Expr) (store: Expr Env): Expr = reduce2 e true store

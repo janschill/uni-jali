@@ -8,14 +8,22 @@ type Differ =
 (* UPDATE *)
 func update msg m = (* return a view *)
   match msg with
-  | Increment -> m+1
-  | Decrement -> m-1
+  | #Increment -> m+1
+  | #Decrement -> m-1
 end
 
 (* VIEW *)
 func view model =
   Tag ('div') ([]) ([
-      Text (model)
+      Tag ('p') ([]) [
+        Text (model)
+      ],
+      Tag ('button') [('onClick', update (Increment) (model))] [
+        Text ('Increment')
+      ],
+      Tag ('button') [('onClick', update (Decrement) (model))] [
+        Text ('Decrement')
+      ]
   ])
 end
 
@@ -24,20 +32,21 @@ func diff view1 view2 =
   func fold nodes1 nodes2 index =
     match (nodes1, nodes2) with
     | (n1::r1, n2::r2) ->
-      x = diff (n1) (n2);
+      x = diff n1 n2;
       (match x with
-      | #Null -> (fold (r1) (r2) (index + 1))
-      | change -> Path (index) (change))
+      | #Null -> fold r1 r2 (index+1)
+      | change -> Path(index)(change))
     | _ -> Null
   end
 
   match (view1, view2) with
-  | (Tag (t1) (atts1) (children1), Tag (t2) (atts2) (children2)) ->
+    | (Tag (t1) (atts1) (children1), Tag (t2) (atts2) (children2)) ->
       if t1 == t2
       then fold (children1) (children2) (0)
       else Change (Tag (t2) (atts2) (children2))
-  | (Text (s1), Text (s2)) ->
+    | (Text (s1), Text (s2)) ->
       if (s1 == s2) then Null else Change(Text s2)
+    | _ -> 'Diff error'
 end
 
 // view1 = view (1);
@@ -46,8 +55,8 @@ end
 // changes = diff (view1) (view2);
 // changes
 
-func dynamicDiff model =
-  diff (view model) (view (update Increment model))
+func dynamicDiff mm =
+  diff (view mm) (view (update Increment mm))
 end
 
 dynamicDiff

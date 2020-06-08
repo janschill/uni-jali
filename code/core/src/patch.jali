@@ -6,39 +6,26 @@ type Differ =
   | Change Node
   | Path Integer Differ;
 
-func update msg m =
-  match msg with
-  | #Increment -> m + 1
-  | #Decrement -> m - 1
-end
-
-func view model =
-
-    Tag ('p') ([]) ([
-      Text (model)
-    ])
-
-end
-
-
-(* model-view-update-cycle *)
+(* DIFF *)
 func diff view1 view2 =
   func fold nodes1 nodes2 index =
     match (nodes1, nodes2) with
     | (n1::r1, n2::r2) ->
-      (match diff (n1) (n2) with
-      | #Null -> fold (r1) (r2) (index + 1)
-      | change -> Path (index) (change))
+      x = diff n1 n2;
+      (match x with
+      | #Null -> fold r1 r2 (index+1)
+      | change -> Path(index)(change))
     | _ -> Null
   end
 
   match (view1, view2) with
-  | (Tag (t1) (atts1) (children1), Tag (t2) (atts2) (children2)) ->
+    | (Tag (t1) (atts1) (children1), Tag (t2) (atts2) (children2)) ->
       if t1 == t2
       then fold (children1) (children2) (0)
       else Change (Tag (t2) (atts2) (children2))
-  | (Text (s1), Text (s2)) ->
+    | (Text (s1), Text (s2)) ->
       if (s1 == s2) then Null else Change(Text s2)
+    | _ -> 'Diff error'
 end
 
 (* List helper functions *)
@@ -109,32 +96,6 @@ func viewToHTML tags =
   | _ -> ''
 end
 
-(* model-view-update-cycle *)
-func update msg m =
-  match msg with
-  | #Increment -> m + 1
-  | #Decrement -> m - 1
-end
-
-func diff view1 view2 =
-  func fold nodes1 nodes2 index =
-    match (nodes1, nodes2) with
-    | (n1::r1, n2::r2) ->
-      x = diff (n1) (n2);
-      (match x with
-      | #Null -> fold (r1) (r2) (index + 1)
-      | change -> Path (index) (change))
-    | _ -> Null
-  end
-
-  match (view1, view2) with
-  | (Tag (t1) (atts1) (children1), Tag (t2) (atts2) (children2)) ->
-      if t1 == t2
-      then fold (children1) (children2) (0)
-      else Change (Tag (t2) (atts2) (children2))
-  | (Text (s1), Text (s2)) ->
-      if (s1 == s2) then Null else Change(Text s2)
-end
 
 (*
   Looping through the sequence of elements:
@@ -177,19 +138,19 @@ func changeElementToString tag seq =
   el + '.parentNode.replaceChild(' + newEl + ', '+ el + ');'
 end
 
+func loop seq chs =
+  (match chs with
+  | Path (idx) (d) -> loop (append (seq) ([idx])) (d)
+  | #Null -> 'patchToJs -> Null'
+  | Change (n) ->
+    (match n with
+    | Text (t) ->
+      (changeInnerHTMLToString (seq) (t))
+    | tag -> changeElementToString (tag) (seq)
+    | _ -> 'error'))
+end
+
 func patchToJs changes =
-  func loop seq chs =
-    (match chs with
-    | Path (idx) (d) ->
-      loop (append (seq) ([idx])) (d)
-    | #Null -> 'patchToJs -> Null'
-    | Change (n) ->
-      (match n with
-      | Text (t) ->
-        (changeInnerHTMLToString (seq) (t))
-      | tag -> changeElementToString (tag) (seq)
-      | _ -> 'error'))
-  end
   loop ([0]) (changes)
 end
 
@@ -207,15 +168,29 @@ func html tags =
   '</html>'
 end
 
+func update msg m =
+  match msg with
+  | #Increment -> m + 1
+  | #Decrement -> m - 1
+end
+
 func view model =
   Tag ('div') ([]) ([
-    Text (model)
+      Tag ('p') ([]) [
+        Text (model)
+      ],
+      Tag ('button') [('onClick', update (Increment) (model))] [
+        Text ('Increment')
+      ],
+      Tag ('button') [('onClick', update (Decrement) (model))] [
+        Text ('Decrement')
+      ]
   ])
 end
 
-func dynamicDiff model =
-  // diff (view model) (view (update Increment model))
-  patch (diff (view model) (view (update Increment model)))
+func dynamicDiff m =
+  diff (view m) (view (update Increment m))
+  // patchToJs (diff (view m) (view (update Increment m)))
 end
 
 dynamicDiff
