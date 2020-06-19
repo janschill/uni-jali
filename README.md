@@ -1,4 +1,4 @@
-# uni-project
+# uni-jali
 
 ## Getting started
 
